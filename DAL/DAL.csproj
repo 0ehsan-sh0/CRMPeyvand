@@ -61,6 +61,10 @@
     <Compile Include="MessageDAL.cs" />
     <Compile Include="MessagePanelDAL.cs" />
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Migrations\202608260000000_InitialCreate.cs" />
+    <Compile Include="Migrations\202608260000000_InitialCreate.Designer.cs">
+      <DependentUpon>202608260000000_InitialCreate.cs</DependentUpon>
+    </Compile>
     <Compile Include="OffCodeDAL.cs" />
     <Compile Include="CatalogItemDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,6 +77,11 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202608260000000_InitialCreate.resx">
+      <DependentUpon>202608260000000_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BE\BE.csproj">
