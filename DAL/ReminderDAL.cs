@@ -107,12 +107,11 @@ namespace DAL
 
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand("SearchReminder");
+            SqlCommand command = new SqlCommand("SELECT    TOP (1000)  dbo.Reminders.id AS ردیف, dbo.Reminders.Title AS موضوع, dbo.Reminders.Info AS توضیحات, dbo.Reminders.RemindDate AS [تاریخ یادآوری], dbo.Reminders.IsReminded AS [وضعیت یادآور], dbo.Users.Name AS [نام کاربری], \r\n                      dbo.Reminders.RegDate\r\nFROM          dbo.Reminders INNER JOIN\r\n                      dbo.Users ON dbo.Reminders.User_id = dbo.Users.id\r\nWHERE      (dbo.Reminders.DeleteStatus = 0) AND ((dbo.Reminders.Title LIKE N'%' + @Search + N'%') OR (dbo.Reminders.Info LIKE N'%' + @Search + N'%')) ORDER BY dbo.Reminders.id DESC");
             string connectionStringText = DB.ConnectionString;
             command.Parameters.AddWithValue("@Search", Filter);
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

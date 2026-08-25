@@ -34,12 +34,12 @@ namespace CRMPeyvand
         }
 
         CustomerBLL Cbll = new CustomerBLL();
-        ProductBLL Pbll = new ProductBLL();
+        CatalogItemBLL Pbll = new CatalogItemBLL();
         InvoiceBLL Ibll = new InvoiceBLL();
         Customer cbCustomer = new Customer();
-        List<Product> products = new List<Product>();
+        List<InvoiceLine> draftLines = new List<InvoiceLine>();
         OffCodeBLL Obll = new OffCodeBLL();
-        Product cbProduct = new Product();
+        CatalogItem cbProduct = new CatalogItem();
         Invoice invoiceEdit = new Invoice();
         UserBLL Ubll = new UserBLL();
         User u = new User();
@@ -52,21 +52,10 @@ namespace CRMPeyvand
                 if (double.TryParse(result, out double offcode))
                 {
                     off = Obll.GetOffCode(txtOff.Text);
-                    if (off.IsPrice)
-                    {
-                        double total = Convert.ToDouble(lblTotalPrice.Content);
-                        lblOff.Content = (Convert.ToDouble(off.Price)).ToString("N0");
-                        if (total >= Convert.ToDouble(lblOff.Content))
-                        {
-                            lblFinalPrice.Content = Convert.ToDouble(total - Convert.ToDouble(lblOff.Content)).ToString("N0");
-                        }
-                    }
-                    else if (lblTotalPrice.Content.ToString() != "0")
-                    {
-                        double total = Convert.ToDouble(lblTotalPrice.Content);
-                        lblOff.Content = Convert.ToDouble((total * off.Percent / 100)).ToString("N0");
-                        lblFinalPrice.Content = Convert.ToDouble(total - Convert.ToDouble(lblOff.Content)).ToString("N0");
-                    }
+                    decimal total = draftLines.Sum(l => l.LineTotal);
+                    decimal discount = Pricing.ComputeDiscount(off, total);
+                    lblOff.Content = discount.ToString("N0");
+                    lblFinalPrice.Content = Pricing.ComputePayable(total, discount).ToString("N0");
                     lblOffError.Content = "";
                     return off.Code;
                 }
@@ -82,67 +71,21 @@ namespace CRMPeyvand
         }
         void FillDataGrid()
         {
-            if (cbProduct.Type == "محصول")
+            int qty = cbProduct.Kind == ItemKind.Service ? 1 : Convert.ToInt32(txtCount.Text);
+            if (cbProduct.Kind == ItemKind.Good && cbProduct.Stock < qty)
             {
-                if (cbProduct.Total >= Convert.ToInt32(txtCount.Text))
-                {
-
-                    cbProduct.Count = Convert.ToInt32(txtCount.Text);
-                    products.Add(cbProduct);
-                    dgvProduts.ItemsSource = null;
-                    dgvProduts.ItemsSource = products;
-                    string s = cbProduct.Name + " به ارزش " + cbProduct.Price.ToString("N0") + " تومان " + "به تعداد " + cbProduct.Count;
-                    lstResult.Items.Add(s);
-                    dgvProduts.Columns[0].Visibility = Visibility.Hidden;
-                    dgvProduts.Columns[4].Visibility = Visibility.Hidden;
-                    dgvProduts.Columns[5].Visibility = Visibility.Hidden;
-                    dgvProduts.Columns[7].Visibility = Visibility.Hidden;
-                    dgvProduts.Columns[1].Header = "نام کالا";
-                    dgvProduts.Columns[2].Header = "قیمت";
-                    dgvProduts.Columns[3].Header = "نوع کالا";
-                    dgvProduts.Columns[6].Header = "تعداد";
-                    if (dgvProduts.ItemsSource != null)
-                    {
-                        dgvProduts.MinColumnWidth = (dgvProduts.ActualWidth / (dgvProduts.Columns.Count - 4)) - 3;
-                        dgvProduts.MaxColumnWidth = (dgvProduts.ActualWidth / (dgvProduts.Columns.Count - 4)) - 3;
-                    }
-                    cbProduct = null;
-                    txtProduct.Text = "";
-                    txtCount.Text = "";
-
-                }
-                else
-                {
-                    MessageBox.Show("موجودی انبار کافی نمیباشد");
-                }
+                MessageBox.Show("موجودی انبار کافی نمیباشد");
+                return;
             }
-            else
-            {
-                cbProduct.Count = 1;
-                products.Add(cbProduct);
-                dgvProduts.ItemsSource = null;
-                dgvProduts.ItemsSource = products;
-                string s = cbProduct.Name + " به ارزش " + cbProduct.Price.ToString("N0") + " تومان ";
-                lstResult.Items.Add(s);
-
-                dgvProduts.Columns[0].Visibility = Visibility.Hidden;
-                dgvProduts.Columns[4].Visibility = Visibility.Hidden;
-                dgvProduts.Columns[5].Visibility = Visibility.Hidden;
-                dgvProduts.Columns[7].Visibility = Visibility.Hidden;
-                dgvProduts.Columns[1].Header = "نام کالا";
-                dgvProduts.Columns[2].Header = "قیمت";
-                dgvProduts.Columns[3].Header = "نوع کالا";
-                dgvProduts.Columns[6].Header = "تعداد";
-                if (dgvProduts.ItemsSource != null)
-                {
-                    dgvProduts.MinColumnWidth = (dgvProduts.ActualWidth / (dgvProduts.Columns.Count - 4)) - 3;
-                    dgvProduts.MaxColumnWidth = (dgvProduts.ActualWidth / (dgvProduts.Columns.Count - 4)) - 3;
-                }
-                cbProduct = null;
-                txtProduct.Text = "";
-                txtCount.Text = "";
-            }
-
+            var line = new InvoiceLine { CatalogItemId = cbProduct.Id, Quantity = qty };
+            draftLines.Add(line);
+            dgvProduts.ItemsSource = null;
+            dgvProduts.ItemsSource = draftLines;
+            lstResult.Items.Add(cbProduct.Name + " به ارزش " + cbProduct.SalePrice.ToString("N0") + " تومان "
+                + (cbProduct.Kind == ItemKind.Good ? "به تعداد " + qty : ""));
+            cbProduct = null;
+            txtProduct.Text = "";
+            txtCount.Text = "";
         }
         private void BackToHome_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -163,38 +106,16 @@ namespace CRMPeyvand
         private void AddProductToList_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
 
-            if ((cbProduct != null && txtCount.Text != "" && txtCount.Text != "0" && cbProduct.Type == "محصول") || (cbProduct != null && cbProduct.Type == "خدمات"))
+            if ((cbProduct != null && txtCount.Text != "" && txtCount.Text != "0" && cbProduct.Kind == ItemKind.Good) || (cbProduct != null && cbProduct.Kind == ItemKind.Service))
             {
-                bool exist = false;
-                foreach (var item in products)
+                FillDataGrid();
+                decimal sum = draftLines.Sum(l => l.LineTotal);
+                lblTotalPrice.Content = sum.ToString("N0");
+                if (txtOff.Text != string.Empty)
                 {
-                    if (item.id == cbProduct.id)
-                    {
-                        exist = true;
-                    }
+                    countOff();
                 }
-                if (!exist)
-                {
-                    FillDataGrid();
-                    double sum = 0;
-                    foreach (var item in dgvProduts.Items)
-                    {
-                        Product p = new Product();
-                        p = item as Product;
-                        sum += p.Price * p.Count;
-                    }
-                    lblTotalPrice.Content = sum.ToString("N0");
-                    if (sum >= Convert.ToDouble(lblOff.Content))
-                    {
-                        if (txtOff.Text != string.Empty)
-                        {
-                            countOff();
-                        }
-                        else lblFinalPrice.Content = sum.ToString("N0");
-                    }
-                    else lblFinalPrice.Content = sum.ToString("N0");
-                }
-                else MessageBox.Show("شما در حال حاضر این کالا را در سبد خرید دارید");
+                else lblFinalPrice.Content = sum.ToString("N0");
             }
 
         }
@@ -203,7 +124,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش فعالیت ها", 2))
+            if (!Ubll.Access(u, "بخش فاکتورها", 2))
             {
                 btnAdd.IsEnabled = false;
                 Print.IsEnabled = false;
@@ -213,7 +134,7 @@ namespace CRMPeyvand
                 btnAdd.IsEnabled = true;
                 Print.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش فعالیت ها", 4))
+            if (!Ubll.Access(u, "بخش فاکتورها", 4))
             {
                 miDelete.IsEnabled = false;
             }
@@ -226,8 +147,6 @@ namespace CRMPeyvand
             txtProduct.ItemsSource = Pbll.ReadNames();
             lblDate.Content = DateTime.Now.Date.ToString("yyyy/MM/dd");
             lblCount.Content = Ibll.CountInvoices();
-            dgvProduts.AutoGenerateColumns = true;
-            dgvProduts.CanUserAddRows = false;
             PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
         }
 
@@ -236,7 +155,7 @@ namespace CRMPeyvand
             if (txtProduct.SelectedItem != null)
             {
                 cbProduct = Pbll.ReadByName(txtProduct.SelectedItem.ToString());
-                if (cbProduct.Type == "خدمات")
+                if (cbProduct.Kind == ItemKind.Service)
                 {
                     txtCount.IsEnabled = false;
                 }
@@ -261,16 +180,8 @@ namespace CRMPeyvand
                 Invoice invoice = new Invoice();
                 invoice.RegDate = DateTime.Now;
                 invoice.OffCode = countOff();
-                invoice.TotalPrice = Convert.ToDouble(lblFinalPrice.Content);
                 invoice.User = u;
-                
-                foreach (var item in dgvProduts.Items)
-                {
-                    Product p = new Product();
-                    p = item as Product;
-                    invoice.TotalCount += p.Count;
-                }
-                MessageBox.Show(Ibll.Create(invoice, cbCustomer, products), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(Ibll.Create(invoice, cbCustomer.id, draftLines.ToList()).id.ToString(), "اطلاعه ثبت فاکتور", MessageBoxButton.OK, MessageBoxImage.Information);
                 if (IsCheckedOutImage.Visibility == Visibility.Visible)
                 {
                     int id = Ibll.ReadInvoiceLastID();
@@ -279,7 +190,7 @@ namespace CRMPeyvand
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 dgvProduts.ItemsSource = null;
-                products.Clear();
+                draftLines.Clear();
                 lstResult.Items.Clear();
                 lblFinalPrice.Content = "0";
                 lblTotalPrice.Content = "0";
@@ -305,7 +216,7 @@ namespace CRMPeyvand
         private void miDelete_Click(object sender, RoutedEventArgs e)
         {
             dgvProduts.ItemsSource = null;
-            products.Clear();
+            draftLines.Clear();
             lstResult.Items.Clear();
             lblFinalPrice.Content = "0";
             lblTotalPrice.Content = "0";
@@ -316,7 +227,7 @@ namespace CRMPeyvand
             MessageBoxResult DeleteConfirmation = MessageBox.Show("آیا از عملیات حذف مطمعن هستید ؟", "هشدار", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {
-                Ibll.Delete(invoiceEdit.InvoiceNumber);
+                Ibll.Delete(invoiceEdit.id);
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
             }
@@ -334,7 +245,7 @@ namespace CRMPeyvand
             {
                 dgvInvoices.ContextMenu.IsEnabled = true;
                 
-                invoiceEdit = Ibll.Read(PublicMethods.ReadTheEntityCode(dgvInvoices, 0));
+                invoiceEdit = Ibll.ReadById(Convert.ToInt32(PublicMethods.ReadTheEntityCode(dgvInvoices, 0)));
             }
             else
             {
@@ -349,16 +260,9 @@ namespace CRMPeyvand
                 Invoice invoice = new Invoice();
                 invoice.RegDate = DateTime.Now;
                 invoice.OffCode = countOff();
-                invoice.TotalPrice = Convert.ToDouble(lblFinalPrice.Content);
                 invoice.User = u;
-                foreach (var item in dgvProduts.Items)
-                {
-                    Product p = new Product();
-                    p = item as Product;
-                    invoice.TotalCount += p.Count;
-                }
-                
-                MessageBox.Show(Ibll.Create(invoice, cbCustomer, products), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                Invoice savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
+                MessageBox.Show(savedInvoice.id.ToString(), "اطلاعه ثبت فاکتور", MessageBoxButton.OK, MessageBoxImage.Information);
                 if (IsCheckedOutImage.Visibility == Visibility.Visible)
                 {
                     int id = Ibll.ReadInvoiceLastID();
@@ -368,17 +272,21 @@ namespace CRMPeyvand
                 lblCount.Content = Ibll.CountInvoices();
                 StiReport sti = new StiReport();
                 sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\InvoicePrint.mrt")));
-                sti.Dictionary.Variables["InvoiceNum"].Value = Ibll.ReadInvoiceNumIsReport();
+                sti.Dictionary.Variables["InvoiceNum"].Value = savedInvoice.id.ToString();
                 sti.Dictionary.Variables["Date"].Value = lblDate.Content.ToString();
                 sti.Dictionary.Variables["CustomerName"].Value = lblName.Content.ToString();
                 sti.Dictionary.Variables["CustomerPhone"].Value = lblPhone.Content.ToString();
                 sti.Dictionary.Variables["TotalPrice"].Value = lblTotalPrice.Content.ToString();
                 sti.Dictionary.Variables["FinalPrice"].Value = lblFinalPrice.Content.ToString();
-                sti.RegBusinessObject("Product", products);
+                sti.RegBusinessObject("Product", draftLines.Select(l => new {
+                    Name = l.CatalogItem.Name,
+                    Price = l.UnitPrice,
+                    Count = l.Quantity
+                }).ToList());
                 sti.Render();
                 sti.Show();
                 dgvProduts.ItemsSource = null;
-                products.Clear();
+                draftLines.Clear();
                 lstResult.Items.Clear();
                 lblFinalPrice.Content = "0";
                 lblTotalPrice.Content = "0";

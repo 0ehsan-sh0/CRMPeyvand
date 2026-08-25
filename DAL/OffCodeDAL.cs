@@ -48,12 +48,11 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand();
-            command.CommandText = "SearchOffCode";
+            command.CommandText = "SELECT  TOP (1000)   Code AS [کد تخفیف], Price AS [مبلغ تخفیف], [Percent] AS [درصد تخفیف], LimitCount AS [محدودیت مصرف], ExpireDate AS [تاریخ انقضا], RegDate AS [تاریخ ثبت] \r\nFROM          dbo.OffCodes\r\nWHERE      (DeleteStatus = 0) AND (Code LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

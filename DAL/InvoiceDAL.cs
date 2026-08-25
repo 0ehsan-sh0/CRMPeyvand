@@ -13,38 +13,44 @@ namespace DAL
     {
         DB db = new DB();
 
-        public string Create(Invoice invoice, Customer customer, List<CatalogItem> products)
+        // Creates invoice + lines atomically, validates/decrements Goods stock, returns saved invoice with id.
+        // validateStock / computeDiscount are injected from BLL (StockPolicy.Validate / Pricing.ComputeDiscount)
+        // because the DAL assembly cannot reference BLL (BLL references DAL).
+        public Invoice Create(Invoice invoice, int customerId, IReadOnlyList<InvoiceLine> lines,
+            Func<CatalogItem, int, InvalidOperationException> validateStock,
+            Func<OffCode, decimal, decimal> computeDiscount)
         {
-            try
+            using (var transaction = db.Database.BeginTransaction())
             {
-                invoice.Customer = db.Customers.Find(customer.id);
-                invoice.User = db.Users.Find(invoice.User.id);
-                foreach (var item in products.ToList())
+                try
                 {
-                    invoice.Products.Add(db.CatalogItems.Find(item.Id));
-                    CatalogItem p = new CatalogItem();
-                    p = db.CatalogItems.Find(item.Id);
-                    if (p.Kind == ItemKind.Good)
+                    invoice.Customer = db.Customers.Find(customerId);
+                    invoice.User = db.Users.Find(invoice.User.id);
+                    foreach (var line in lines)
                     {
-                        p.Stock -= item.Count;
+                        var item = db.CatalogItems.Find(line.CatalogItemId);
+                        var rejection = validateStock(item, line.Quantity);
+                        if (rejection != null) throw rejection;
+                        if (item.Kind == ItemKind.Good) item.Stock -= line.Quantity;
+                        line.UnitPrice = item.SalePrice;
+                        line.CatalogItem = item;
+                        invoice.Lines.Add(line);
                     }
-                    
+                    invoice.DiscountAmount = computeDiscount(
+                        string.IsNullOrEmpty(invoice.OffCode)
+                            ? null
+                            : db.OffCodes.FirstOrDefault(o => o.Code == invoice.OffCode),
+                        invoice.SubTotal);
+                    db.Invoices.Add(invoice);
+                    db.SaveChanges();
+                    transaction.Commit();
+                    return invoice;
                 }
-                Random random = new Random();
-                string numberrandom = random.Next(100000000).ToString();
-                var q = db.Invoices.Where(x => x.InvoiceNumber == numberrandom);
-                while (q.Count() > 0)
+                catch
                 {
-                    numberrandom = random.Next(100000000).ToString();
+                    transaction.Rollback();
+                    throw;
                 }
-                invoice.InvoiceNumber = numberrandom;
-                db.Invoices.Add(invoice);
-                db.SaveChanges();
-                return "ثبت فاکتور با موفقیت انجام شد";
-            }
-            catch (Exception e)
-            {
-                return "ثبت فاکتور با مشکلی مواجه شد" + e.Message;
             }
         }
 
@@ -74,11 +80,6 @@ namespace DAL
         }
 
 
-        public string ReadInvoiceNumIsReport()
-        {
-            var q = db.Invoices.OrderByDescending(i => i.id).FirstOrDefault();
-            return q.InvoiceNumber;
-        }
         public int ReadInvoiceLastID()
         {
             var q = db.Invoices.OrderByDescending(i => i.id).FirstOrDefault();
@@ -94,7 +95,7 @@ namespace DAL
 
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)   InvoiceNumber AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], TotalCount AS [تعداد کالاهای فاکتور], TotalPrice AS [هزینه پرداختی], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
+            string Query = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
@@ -103,17 +104,12 @@ namespace DAL
             sqlAdapter.Fill(dataset);
             return dataset.Tables[0];
         }
-        public Invoice Read(string number)
-        {
-            var q = db.Invoices.Where(i => i.InvoiceNumber == number).FirstOrDefault();
-            return q;
-        }
 
-        public string Delete(string number)
+        public string Delete(int id)
         {
             try
             {
-                var q = db.Invoices.Where(i => i.InvoiceNumber == number).FirstOrDefault();
+                var q = db.Invoices.Find(id);
                 if (q != null)
                 {
                     q.DeleteStatus = true;
@@ -140,12 +136,11 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand();
-            command.CommandText = "SearchInvoice";
+            command.CommandText = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) AND (CONVERT(nvarchar(max), id) LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

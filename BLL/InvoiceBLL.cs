@@ -9,16 +9,12 @@ namespace BLL
     {
         InvoiceDAL dal = new InvoiceDAL();
 
-        public string Create(Invoice invoice, Customer customer, List<CatalogItem> products)
+        public Invoice Create(Invoice invoice, int customerId, IReadOnlyList<InvoiceLine> lines)
         {
-            return dal.Create(invoice, customer, products);
+            return dal.Create(invoice, customerId, lines, StockPolicy.Validate, Pricing.ComputeDiscount);
         }
 
 
-        public string ReadInvoiceNumIsReport()
-        {
-            return dal.ReadInvoiceNumIsReport();
-        }
         public int ReadInvoiceLastID()
         {
             return dal.ReadInvoiceLastID();
@@ -37,9 +33,9 @@ namespace BLL
         }
 
 
-        public string Delete(string n)
+        public string Delete(int id)
         {
-            return dal.Delete(n);
+            return dal.Delete(id);
         }
 
 
@@ -54,10 +50,6 @@ namespace BLL
             return dal.ReadById(id);
         }
 
-        public Invoice Read(string number)
-        {
-            return dal.Read(number);
-        }
         public DataTable Search(string Filter)
         {
             return dal.Search(Filter);

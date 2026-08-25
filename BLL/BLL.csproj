@@ -49,6 +49,8 @@
     <Compile Include="MessageBLL.cs" />
     <Compile Include="MessagePanelBLL.cs" />
     <Compile Include="OffCodeBLL.cs" />
+    <Compile Include="Pricing.cs" />
+    <Compile Include="StockPolicy.cs" />
     <Compile Include="CatalogItemBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RememberMeBLL.cs" />

@@ -44,12 +44,11 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand();
-            command.CommandText = "SearchMessage";
+            command.CommandText = "SELECT   TOP (1000)  [Content] AS [متن پیام]\r\nFROM          dbo.Messages\r\nWHERE      (DeleteStatus = 0) AND ([Content] LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

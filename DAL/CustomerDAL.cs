@@ -99,12 +99,11 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand();
-            command.CommandText = "SearchCustomers";
+            command.CommandText = "SELECT  TOP (1000)    Name AS [نام], Phone AS [شماره تماس], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Customers\r\nWHERE      (DeleteStatus = 0) AND ((Name LIKE N'%' + @Search + N'%') OR (Phone LIKE N'%' + @Search + N'%'))\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", Filter);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

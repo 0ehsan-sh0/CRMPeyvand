@@ -30,7 +30,7 @@ namespace DAL
 
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)   Name AS نام, Price AS قیمت, Type AS نوع, Total AS موجودی\r\nFROM          dbo.Products\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
+            string Query = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
@@ -40,12 +40,12 @@ namespace DAL
         }
         public DataTable Read(string type)
         {
-            SqlCommand command = new SqlCommand("ReadByType");
+            SqlCommand command = new SqlCommand();
+            command.CommandText = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) AND ((CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) = @Search)\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", type);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();
@@ -117,12 +117,12 @@ namespace DAL
         }
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand("SearchProduct");
+            SqlCommand command = new SqlCommand();
+            command.CommandText = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) AND (Name LIKE N'%' + @Search + N'%')\r\nORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", Filter);
             command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
             var sqldataadpter = new SqlDataAdapter();
             sqldataadpter.SelectCommand = command;
             var dataset = new DataSet();

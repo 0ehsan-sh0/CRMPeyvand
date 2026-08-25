@@ -18,12 +18,13 @@ namespace DAL
             try
             {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = "BackUpCRM";
                 string connectionStringText = DB.ConnectionString;
                 SqlConnection connection = new SqlConnection(connectionStringText);
+                // BACKUP DATABASE cannot be parameterized for the db name; it is taken from
+                // the live connection (not user input). The file path stays a parameter.
+                command.CommandText = "BACKUP DATABASE [" + connection.Database + "] TO DISK = @path WITH INIT";
                 command.Parameters.AddWithValue("@path", Path);
                 command.Connection = connection;
-                command.CommandType = CommandType.StoredProcedure;
                 connection.Open();
                 command.ExecuteNonQuery();
                 connection.Close();
