@@ -37,7 +37,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT  TOP (1000)   Code AS [کد تخفیف], Price AS [مبلغ تخفیف], [Percent] AS [درصد تخفیف], LimitCount AS [محدودیت مصرف], ExpireDate AS [تاریخ انقضا], RegDate AS [تاریخ ثبت] \r\nFROM          dbo.OffCodes\r\nWHERE      (DeleteStatus = 0)\r\nORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);
@@ -49,7 +49,7 @@ namespace DAL
         {
             SqlCommand command = new SqlCommand();
             command.CommandText = "SearchOffCode";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;

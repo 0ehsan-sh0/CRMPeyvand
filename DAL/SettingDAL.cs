@@ -19,7 +19,7 @@ namespace DAL
             {
                 SqlCommand command = new SqlCommand();
                 command.CommandText = "BackUpCRM";
-                string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+                string connectionStringText = DB.ConnectionString;
                 SqlConnection connection = new SqlConnection(connectionStringText);
                 command.Parameters.AddWithValue("@path", Path);
                 command.Connection = connection;

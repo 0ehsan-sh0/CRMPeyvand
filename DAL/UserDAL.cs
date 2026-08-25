@@ -61,7 +61,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT    TOP (1000)  dbo.Users.Name AS نام, dbo.Users.UserName AS [نام کاربری], dbo.UserGroups.Title AS [گروه کاربری], dbo.Users.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Users INNER JOIN\r\n                      dbo.UserGroups ON dbo.Users.UserGroup_id = dbo.UserGroups.id\r\nWHERE      (dbo.Users.DeleteStatus = 0) and (dbo.UserGroups.Title <> N'مدیریت') ORDER BY dbo.Users.id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var dataset = new DataSet();

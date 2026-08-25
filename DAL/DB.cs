@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
 using System.Data.Entity;
 using BE;
 
@@ -10,6 +11,9 @@ namespace DAL
 {
     public class DB :DbContext
     {
+        public static string ConnectionString =
+            System.Configuration.ConfigurationManager.ConnectionStrings["conStr"].ConnectionString;
+
         public DB() : base("conStr")
         {
 

@@ -33,7 +33,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT   TOP (1000)  [Content] AS [متن پیام]\r\nFROM          dbo.Messages\r\nWHERE      (DeleteStatus = 0)\r\nORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);
@@ -45,7 +45,7 @@ namespace DAL
         {
             SqlCommand command = new SqlCommand();
             command.CommandText = "SearchMessage";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;

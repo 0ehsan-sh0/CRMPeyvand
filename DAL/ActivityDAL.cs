@@ -31,7 +31,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT TOP (1000)  dbo.Activities.id AS ردیف ,  dbo.Activities.Title AS عنوان, dbo.Activities.Info AS توضبحات, dbo.ActivityCategories.CategoryName AS [دسته بندی], dbo.Users.UserName AS [نام کاربر], dbo.Activities.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Activities INNER JOIN\r\n                      dbo.ActivityCategories ON dbo.Activities.ActivityCategory_id = dbo.ActivityCategories.id INNER JOIN\r\n                      dbo.Users ON dbo.Activities.User_id = dbo.Users.id\r\nWHERE      (dbo.Activities.DeleteStatus = 0) ORDER BY dbo.Activities.id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);
@@ -99,7 +99,7 @@ namespace DAL
         {
             SqlCommand command = new SqlCommand();
             command.CommandText = "SearchActivity";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", Filter);
             command.Connection = connection;

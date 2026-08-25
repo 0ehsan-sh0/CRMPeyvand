@@ -95,7 +95,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT   TOP (1000)   InvoiceNumber AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], TotalCount AS [تعداد کالاهای فاکتور], TotalPrice AS [هزینه پرداختی], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);
@@ -141,7 +141,7 @@ namespace DAL
         {
             SqlCommand command = new SqlCommand();
             command.CommandText = "SearchInvoice";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);
             command.Connection = connection;

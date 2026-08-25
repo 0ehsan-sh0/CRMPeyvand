@@ -34,7 +34,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT    TOP (1000)  dbo.Reminders.id AS ردیف, dbo.Reminders.Title AS موضوع, dbo.Reminders.Info AS توضیحات, dbo.Reminders.RemindDate AS [تاریخ یادآوری], dbo.Reminders.IsReminded AS [وضعیت یادآور], dbo.Users.Name AS [نام کاربری], \r\n                      dbo.Reminders.RegDate\r\nFROM          dbo.Reminders INNER JOIN\r\n                      dbo.Users ON dbo.Reminders.User_id = dbo.Users.id\r\nWHERE      (dbo.Reminders.DeleteStatus = 0) ORDER BY dbo.Reminders.id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var dataset = new DataSet();
@@ -108,7 +108,7 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand("SearchReminder");
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             command.Parameters.AddWithValue("@Search", Filter);
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Connection = connection;

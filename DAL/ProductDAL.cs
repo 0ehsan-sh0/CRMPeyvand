@@ -31,7 +31,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT   TOP (1000)   Name AS نام, Price AS قیمت, Type AS نوع, Total AS موجودی\r\nFROM          dbo.Products\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var dataset = new DataSet();
@@ -41,7 +41,7 @@ namespace DAL
         public DataTable Read(string type)
         {
             SqlCommand command = new SqlCommand("ReadByType");
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", type);
             command.Connection = connection;
@@ -118,7 +118,7 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand("SearchProduct");
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@Search", Filter);
             command.Connection = connection;

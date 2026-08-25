@@ -34,7 +34,7 @@ namespace DAL
         public string SellsCountWeek()
         {
             string queryString = "SELECT COUNT(*) \r\nFROM Invoices \r\nWHERE (DeleteStatus = 0) AND Invoices.RegDate BETWEEN DATEADD(WEEK, -1, GETDATE()) AND GETDATE()";
-            string connectionString = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionString = DB.ConnectionString;
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 SqlCommand command = new SqlCommand(queryString, connection);

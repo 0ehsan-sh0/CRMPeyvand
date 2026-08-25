@@ -29,7 +29,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT   TOP (1000)  Title AS [نام گروه کاربری]\r\nFROM          dbo.UserGroups where (dbo.UserGroups.Title <> N'مدیریت') ORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);

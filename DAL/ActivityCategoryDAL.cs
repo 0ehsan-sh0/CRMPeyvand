@@ -35,7 +35,7 @@ namespace DAL
         public DataTable Read()
         {
             string Query = "SELECT  TOP (100)   id AS ردیف, CategoryName AS [نام دسته بندی]\r\nFROM          dbo.ActivityCategories\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = @"Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true";
+            string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
             var commandbuilder = new SqlCommandBuilder(sqlAdapter);
