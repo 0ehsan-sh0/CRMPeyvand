@@ -60,10 +60,6 @@
     <Compile Include="InvoiceDAL.cs" />
     <Compile Include="MessageDAL.cs" />
     <Compile Include="MessagePanelDAL.cs" />
-    <Compile Include="Migrations\202302041524402_InitialCreate.cs" />
-    <Compile Include="Migrations\202302041524402_InitialCreate.designer.cs">
-      <DependentUpon>202302041524402_InitialCreate.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="OffCodeDAL.cs" />
     <Compile Include="ProductDAL.cs" />
@@ -83,11 +79,6 @@
       <Project>{d8988484-e019-4815-a723-d29d145928d8}</Project>
       <Name>BE</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202302041524402_InitialCreate.resx">
-      <DependentUpon>202302041524402_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
