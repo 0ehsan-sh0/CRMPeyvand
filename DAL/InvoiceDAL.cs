@@ -20,36 +20,41 @@ namespace DAL
             Func<CatalogItem, int, InvalidOperationException> validateStock,
             Func<OffCode, decimal, decimal> computeDiscount)
         {
-            using (var transaction = db.Database.BeginTransaction())
+            // Per-call context: a rollback must not leave modified entities pending in a
+            // shared long-lived tracker (phantom decrements would flush on the next SaveChanges).
+            using (var db = new DB())
             {
-                try
+                using (var transaction = db.Database.BeginTransaction())
                 {
-                    invoice.Customer = db.Customers.Find(customerId);
-                    invoice.User = db.Users.Find(invoice.User.id);
-                    foreach (var line in lines)
+                    try
                     {
-                        var item = db.CatalogItems.Find(line.CatalogItemId);
-                        var rejection = validateStock(item, line.Quantity);
-                        if (rejection != null) throw rejection;
-                        if (item.Kind == ItemKind.Good) item.Stock -= line.Quantity;
-                        line.UnitPrice = item.SalePrice;
-                        line.CatalogItem = item;
-                        invoice.Lines.Add(line);
+                        invoice.Customer = db.Customers.Find(customerId);
+                        invoice.User = db.Users.Find(invoice.User.id);
+                        foreach (var line in lines)
+                        {
+                            var item = db.CatalogItems.Find(line.CatalogItemId);
+                            var rejection = validateStock(item, line.Quantity);
+                            if (rejection != null) throw rejection;
+                            if (item.Kind == ItemKind.Good) item.Stock -= line.Quantity;
+                            line.UnitPrice = item.SalePrice;
+                            line.CatalogItem = item;
+                            invoice.Lines.Add(line);
+                        }
+                        invoice.DiscountAmount = computeDiscount(
+                            string.IsNullOrEmpty(invoice.OffCode)
+                                ? null
+                                : db.OffCodes.FirstOrDefault(o => o.Code == invoice.OffCode),
+                            invoice.SubTotal);
+                        db.Invoices.Add(invoice);
+                        db.SaveChanges();
+                        transaction.Commit();
+                        return invoice;
                     }
-                    invoice.DiscountAmount = computeDiscount(
-                        string.IsNullOrEmpty(invoice.OffCode)
-                            ? null
-                            : db.OffCodes.FirstOrDefault(o => o.Code == invoice.OffCode),
-                        invoice.SubTotal);
-                    db.Invoices.Add(invoice);
-                    db.SaveChanges();
-                    transaction.Commit();
-                    return invoice;
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
             }
         }
@@ -95,7 +100,7 @@ namespace DAL
 
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
+            string Query = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت], (SELECT ISNULL(SUM(l.Quantity),0) FROM dbo.InvoiceLines l WHERE l.InvoiceId = i.id) AS [تعداد کالاهای فاکتور], (SELECT ISNULL(SUM(l.Quantity*l.UnitPrice),0) FROM dbo.InvoiceLines l WHERE l.InvoiceId = i.id) - i.DiscountAmount AS [هزینه پرداختی]\r\nFROM          dbo.Invoices i\r\nWHERE      (i.DeleteStatus = 0) ORDER BY i.id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
@@ -136,7 +141,7 @@ namespace DAL
         public DataTable Search(string Filter)
         {
             SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Invoices\r\nWHERE      (DeleteStatus = 0) AND (CONVERT(nvarchar(max), id) LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
+            command.CommandText = "SELECT   TOP (1000)   id AS [شماره فاکتور], IsCheckedout AS [وضعیت پرداخت], CheckoutDate AS [تاریخ پرداخت], OffCode AS [کد تخفیف], RegDate AS [تاریخ ثبت], (SELECT ISNULL(SUM(l.Quantity),0) FROM dbo.InvoiceLines l WHERE l.InvoiceId = i.id) AS [تعداد کالاهای فاکتور], (SELECT ISNULL(SUM(l.Quantity*l.UnitPrice),0) FROM dbo.InvoiceLines l WHERE l.InvoiceId = i.id) - i.DiscountAmount AS [هزینه پرداختی]\r\nFROM          dbo.Invoices i\r\nWHERE      (i.DeleteStatus = 0) AND (CONVERT(nvarchar(max), i.id) LIKE N'%' + @search + N'%')\r\nORDER BY i.id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             command.Parameters.AddWithValue("@search", Filter);

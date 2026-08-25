@@ -277,6 +277,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PersianCulture.cs" />
+    <Compile Include="PersianKindConverter.cs" />
     <Compile Include="ProductForm.xaml.cs">
       <DependentUpon>ProductForm.xaml</DependentUpon>
     </Compile>

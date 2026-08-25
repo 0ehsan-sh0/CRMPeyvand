@@ -131,14 +131,6 @@ namespace DAL
         }
 
 
-
-        public List<CatalogItem> ReadByTotal()
-        {
-            return db.CatalogItems.Where(i => i.DeleteStatus == false && i.Stock != 0).ToList();
-        }
-
-
-
         public CatalogItem ReadByName(string product)
         {
             return db.CatalogItems.Where(i => i.DeleteStatus == false && i.Name == product).SingleOrDefault();

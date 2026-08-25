@@ -14,6 +14,11 @@ namespace DAL
         public static string ConnectionString =
             System.Configuration.ConfigurationManager.ConnectionStrings["conStr"].ConnectionString;
 
+        static DB()
+        {
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<DB, Migrations.Configuration>());
+        }
+
         public DB() : base("conStr")
         {
 

@@ -77,7 +77,7 @@ namespace CRMPeyvand
                 MessageBox.Show("موجودی انبار کافی نمیباشد");
                 return;
             }
-            var line = new InvoiceLine { CatalogItemId = cbProduct.Id, Quantity = qty };
+            var line = new InvoiceLine { CatalogItemId = cbProduct.Id, CatalogItem = cbProduct, UnitPrice = cbProduct.SalePrice, Quantity = qty };
             draftLines.Add(line);
             dgvProduts.ItemsSource = null;
             dgvProduts.ItemsSource = draftLines;
@@ -181,11 +181,20 @@ namespace CRMPeyvand
                 invoice.RegDate = DateTime.Now;
                 invoice.OffCode = countOff();
                 invoice.User = u;
-                MessageBox.Show(Ibll.Create(invoice, cbCustomer.id, draftLines.ToList()).id.ToString(), "اطلاعه ثبت فاکتور", MessageBoxButton.OK, MessageBoxImage.Information);
+                Invoice savedInvoice;
+                try
+                {
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
+                }
+                catch (InvalidOperationException ex)
+                {
+                    MessageBox.Show(ex.Message, "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                 if (IsCheckedOutImage.Visibility == Visibility.Visible)
                 {
-                    int id = Ibll.ReadInvoiceLastID();
-                    Ibll.Done(id);
+                    Ibll.Done(savedInvoice.id);
                 }
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
@@ -261,12 +270,20 @@ namespace CRMPeyvand
                 invoice.RegDate = DateTime.Now;
                 invoice.OffCode = countOff();
                 invoice.User = u;
-                Invoice savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
-                MessageBox.Show(savedInvoice.id.ToString(), "اطلاعه ثبت فاکتور", MessageBoxButton.OK, MessageBoxImage.Information);
+                Invoice savedInvoice;
+                try
+                {
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
+                }
+                catch (InvalidOperationException ex)
+                {
+                    MessageBox.Show(ex.Message, "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                 if (IsCheckedOutImage.Visibility == Visibility.Visible)
                 {
-                    int id = Ibll.ReadInvoiceLastID();
-                    Ibll.Done(id);
+                    Ibll.Done(savedInvoice.id);
                 }
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();

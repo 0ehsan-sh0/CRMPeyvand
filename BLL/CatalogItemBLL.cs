@@ -56,12 +56,6 @@ namespace BLL
         }
 
 
-        public List<CatalogItem> ReadByTotal()
-        {
-            return dal.ReadByTotal();
-        }
-
-
         public CatalogItem ReadByName(string product)
         {
             return dal.ReadByName(product);

@@ -27,7 +27,7 @@ namespace BE
         public List<InvoiceLine> Lines { get; set; } = new List<InvoiceLine>();
 
         [NotMapped] public decimal SubTotal => Lines.Sum(l => l.LineTotal);
-        [NotMapped] public decimal Payable => SubTotal - DiscountAmount;
+        [NotMapped] public decimal Payable => Math.Max(0m, SubTotal - DiscountAmount);
         [NotMapped] public int TotalQuantity => Lines.Sum(l => l.Quantity);
     }
 }

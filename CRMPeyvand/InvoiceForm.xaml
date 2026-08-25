@@ -14,6 +14,9 @@
         FlowDirection="RightToLeft"
 
         Title="InvoiceForm" Height="600" Width="1260" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <local:PersianKindConverter x:Key="KindConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -79,7 +82,7 @@
             <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvProduts" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="نام کالا" Binding="{Binding CatalogItem.Name}" />
-                    <DataGridTextColumn Header="نوع کالا" Binding="{Binding CatalogItem.Kind}" />
+                    <DataGridTextColumn Header="نوع کالا" Binding="{Binding CatalogItem.Kind, Converter={StaticResource KindConverter}}" />
                     <DataGridTextColumn Header="تعداد" Binding="{Binding Quantity}" />
                     <DataGridTextColumn Header="قیمت واحد" Binding="{Binding UnitPrice, StringFormat=N0}" />
                     <DataGridTextColumn Header="جمع خط" Binding="{Binding LineTotal, StringFormat=N0}" />
