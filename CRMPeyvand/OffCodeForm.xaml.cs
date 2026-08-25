@@ -99,7 +99,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Convert.ToDouble(txtPrice.Text);
+                            offCode.Price = Convert.ToDecimal(txtPrice.Text);
                         }
                         else
                         {
@@ -120,7 +120,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Convert.ToDouble(txtPrice.Text);
+                        offCode.Price = Convert.ToDecimal(txtPrice.Text);
                     }
                     else
                     {
@@ -155,7 +155,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Convert.ToDouble(txtPrice.Text);
+                            offCode.Price = Convert.ToDecimal(txtPrice.Text);
                         }
                         else
                         {
@@ -179,7 +179,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Convert.ToDouble(txtPrice.Text);
+                        offCode.Price = Convert.ToDecimal(txtPrice.Text);
                     }
                     else
                     {

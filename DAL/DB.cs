@@ -20,7 +20,7 @@ namespace DAL
         }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ActivityCategory> ActivityCategories { get; set; }
-        public DbSet<Product> Products { get; set; }
+        public DbSet<CatalogItem> CatalogItems { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<User> Users { get; set; }

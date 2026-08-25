@@ -15,7 +15,7 @@ namespace BE
         public int id { get; set; }
         public string Code { get; set; }
         public bool IsPrice { get; set; }
-        public Nullable<double> Price { get; set; }
+        public Nullable<decimal> Price { get; set; }
         public Nullable<int> Percent { get; set; }
         public DateTime RegDate { get; set; }
         public Nullable<DateTime> ExpireDate { get; set; }

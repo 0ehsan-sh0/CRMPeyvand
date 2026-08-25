@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -43,12 +44,14 @@
   <ItemGroup>
     <Compile Include="Activity.cs" />
     <Compile Include="ActivityCategory.cs" />
+    <Compile Include="CatalogItem.cs" />
     <Compile Include="Customer.cs" />
     <Compile Include="Invoice.cs" />
+    <Compile Include="InvoiceLine.cs" />
+    <Compile Include="ItemKind.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessagePanel.cs" />
     <Compile Include="OffCode.cs" />
-    <Compile Include="Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RememberMe.cs" />
     <Compile Include="Reminder.cs" />
