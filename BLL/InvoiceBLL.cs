@@ -9,7 +9,7 @@ namespace BLL
     {
         InvoiceDAL dal = new InvoiceDAL();
 
-        public string Create(Invoice invoice, Customer customer, List<Product> products)
+        public string Create(Invoice invoice, Customer customer, List<CatalogItem> products)
         {
             return dal.Create(invoice, customer, products);
         }

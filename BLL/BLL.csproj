@@ -49,7 +49,7 @@
     <Compile Include="MessageBLL.cs" />
     <Compile Include="MessagePanelBLL.cs" />
     <Compile Include="OffCodeBLL.cs" />
-    <Compile Include="ProductBLL.cs" />
+    <Compile Include="CatalogItemBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RememberMeBLL.cs" />
     <Compile Include="ReminderBLL.cs" />

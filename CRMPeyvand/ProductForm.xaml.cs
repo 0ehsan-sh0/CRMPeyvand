@@ -26,8 +26,8 @@ namespace CRMPeyvand
             InitializeComponent();
             PublicMethods.ChangeToPersianCulture();
         }
-        ProductBLL bll = new ProductBLL();
-        Product productEdit = new Product();
+        CatalogItemBLL bll = new CatalogItemBLL();
+        CatalogItem productEdit = new CatalogItem();
         string name;
         UserBLL Ubll = new UserBLL();
         User u = new User();
@@ -58,29 +58,29 @@ namespace CRMPeyvand
         }
         private void btnAddProduct_Click(object sender, RoutedEventArgs e)
         {
-            string ProductType = "";
+            ItemKind kind = ItemKind.Good;
             int total = 0;
             if (IsServiceImage.Visibility == Visibility.Visible)
             {
-                ProductType = "خدمات";
+                kind = ItemKind.Service;
                 total = 1;
             }
             else if (IsServiceImage.Visibility == Visibility.Hidden)
             {
-                ProductType = "محصول";
+                kind = ItemKind.Good;
                 total = Convert.ToInt32(txtTotal.Text);
             }
-            Product product = new Product()
+            CatalogItem product = new CatalogItem()
             {
                 Name = txtName.Text,
-                Total = total,
-                Type = ProductType
+                Stock = total,
+                Kind = kind
             };
-            if ((txtName.Text != "" && txtTotal.Text != "" && txtPrice.Text != "" && product.Type == "محصول") || (txtName.Text != "" && txtPrice.Text != "" && product.Type == "خدمات"))
+            if ((txtName.Text != "" && txtTotal.Text != "" && txtPrice.Text != "" && product.Kind == ItemKind.Good) || (txtName.Text != "" && txtPrice.Text != "" && product.Kind == ItemKind.Service))
             {
                 if (btnAddProduct.Content.ToString() == "ثبت کالا")
                 {
-                    product.Price = Convert.ToInt32(txtPrice.Text);
+                    product.SalePrice = Convert.ToInt32(txtPrice.Text);
                     MessageBox.Show(bll.Create(product), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();
@@ -91,8 +91,8 @@ namespace CRMPeyvand
                 }
                 else if (btnAddProduct.Content.ToString() == "ویرایش کالا")
                 {
-                    product.Price = Convert.ToInt32(txtPrice.Text);
-                    MessageBox.Show(bll.Update(product, productEdit.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                    product.SalePrice = Convert.ToInt32(txtPrice.Text);
+                    MessageBox.Show(bll.Update(product, productEdit.Id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();
                     txtTotal.Clear();
@@ -152,7 +152,7 @@ namespace CRMPeyvand
             MessageBoxResult DeleteConfirmation = MessageBox.Show("آیا از عملیات حذف مطمعن هستید ؟", "هشدار", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {
-                bll.Delete(productEdit.id);
+                bll.Delete(productEdit.Id);
                 PublicMethods.dgvFiller(dgvProducts, bll.Read());
                 ProductCount.Content = bll.ProductsCount();
             }
@@ -161,14 +161,14 @@ namespace CRMPeyvand
         private void miEdit_Click(object sender, RoutedEventArgs e)
         {
             txtName.Text = productEdit.Name;
-            txtPrice.Text = productEdit.Price.ToString();
-            txtTotal.Text = productEdit.Total.ToString();
-            if (productEdit.Type == "خدمات")
+            txtPrice.Text = productEdit.SalePrice.ToString();
+            txtTotal.Text = productEdit.Stock.ToString();
+            if (productEdit.Kind == ItemKind.Service)
             {
                 IsServiceImage.Visibility = Visibility.Visible;
                 txtTotal.IsEnabled = false;
             }
-            else if (productEdit.Type == "محصول")
+            else if (productEdit.Kind == ItemKind.Good)
             {
                 IsServiceImage.Visibility = Visibility.Hidden;
                 txtTotal.IsEnabled = true;

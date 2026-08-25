@@ -5,10 +5,10 @@ using System.Data;
 
 namespace BLL
 {
-    public class ProductBLL
+    public class CatalogItemBLL
     {
-        ProductDAL dal = new ProductDAL();
-        public string Create(Product p)
+        CatalogItemDAL dal = new CatalogItemDAL();
+        public string Create(CatalogItem p)
         {
             if (dal.Exist(p) == false)
             {
@@ -31,13 +31,13 @@ namespace BLL
             return dal.ReadNames();
         }
 
-        public Product ReadByid(int id)
+        public CatalogItem ReadByid(int id)
         {
             return dal.ReadById(id);
         }
 
 
-        public string Update(Product p, int id)
+        public string Update(CatalogItem p, int id)
         {
             return dal.Update(p, id);
         }
@@ -56,13 +56,13 @@ namespace BLL
         }
 
 
-        public List<Product> ReadByTotal()
+        public List<CatalogItem> ReadByTotal()
         {
             return dal.ReadByTotal();
         }
 
 
-        public Product ReadByName(string product)
+        public CatalogItem ReadByName(string product)
         {
             return dal.ReadByName(product);
         }

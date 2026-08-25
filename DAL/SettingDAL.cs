@@ -68,7 +68,7 @@ namespace DAL
                 {
                     item.DeleteStatus = false;
                 }
-                var q6 = db.Products.Where(i => i.DeleteStatus == true).ToList();
+                var q6 = db.CatalogItems.Where(i => i.DeleteStatus == true).ToList();
                 foreach (var item in q6)
                 {
                     item.DeleteStatus = false;

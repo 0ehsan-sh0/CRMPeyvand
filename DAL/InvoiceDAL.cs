@@ -13,7 +13,7 @@ namespace DAL
     {
         DB db = new DB();
 
-        public string Create(Invoice invoice, Customer customer, List<Product> products)
+        public string Create(Invoice invoice, Customer customer, List<CatalogItem> products)
         {
             try
             {
@@ -21,12 +21,12 @@ namespace DAL
                 invoice.User = db.Users.Find(invoice.User.id);
                 foreach (var item in products.ToList())
                 {
-                    invoice.Products.Add(db.Products.Find(item.id));
-                    Product p = new Product();
-                    p = db.Products.Find(item.id);
-                    if (p.Type == "محصول")
+                    invoice.Products.Add(db.CatalogItems.Find(item.Id));
+                    CatalogItem p = new CatalogItem();
+                    p = db.CatalogItems.Find(item.Id);
+                    if (p.Kind == ItemKind.Good)
                     {
-                        p.Total -= item.Count;
+                        p.Stock -= item.Count;
                     }
                     
                 }

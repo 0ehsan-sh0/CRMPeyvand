@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace DAL
 {
-    public class ProductDAL
+    public class CatalogItemDAL
     {
         DB db = new DB();
-        public string Create(Product p)
+        public string Create(CatalogItem p)
         {
             try
             {
-                db.Products.Add(p);
+                db.CatalogItems.Add(p);
                 db.SaveChanges();
                 return "ثبت اطلاعات کالا با موفقیت انجام شد";
             }
@@ -54,32 +54,32 @@ namespace DAL
         }
         public List<string> ReadNames()
         {
-            return db.Products.Where(i => i.DeleteStatus == false).Select(i => i.Name).ToList();
+            return db.CatalogItems.Where(i => i.DeleteStatus == false).Select(i => i.Name).ToList();
         }
 
-        public bool Exist(Product p)
+        public bool Exist(CatalogItem p)
         {
-            return db.Products.Any(i => i.Name == p.Name);
+            return db.CatalogItems.Any(i => i.Name == p.Name);
         }
 
 
-        public Product ReadById(int id)
+        public CatalogItem ReadById(int id)
         {
-            return db.Products.Find(id);
+            return db.CatalogItems.Find(id);
         }
 
 
-        public string Update(Product p, int id)
+        public string Update(CatalogItem p, int id)
         {
             try
             {
-                Product product = ReadById(id);
+                CatalogItem product = ReadById(id);
                 if (!product.DeleteStatus)
                 {
                     product.Name = p.Name;
-                    product.Price = p.Price;
-                    product.Type = p.Type;
-                    product.Total = p.Total;
+                    product.SalePrice = p.SalePrice;
+                    product.Kind = p.Kind;
+                    product.Stock = p.Stock;
                     db.SaveChanges();
                     return "ویرایش با موفیقت انجام شد";
                 }
@@ -96,7 +96,7 @@ namespace DAL
         {
             try
             {
-                var q = db.Products.Where(i => i.DeleteStatus == false && i.id == id).FirstOrDefault();
+                var q = db.CatalogItems.Where(i => i.DeleteStatus == false && i.Id == id).FirstOrDefault();
                 if (q != null)
                 {
                     q.DeleteStatus = true;
@@ -132,22 +132,22 @@ namespace DAL
 
 
 
-        public List<Product> ReadByTotal()
+        public List<CatalogItem> ReadByTotal()
         {
-            return db.Products.Where(i => i.DeleteStatus == false && i.Total != 0).ToList();
+            return db.CatalogItems.Where(i => i.DeleteStatus == false && i.Stock != 0).ToList();
         }
 
 
 
-        public Product ReadByName(string product)
+        public CatalogItem ReadByName(string product)
         {
-            return db.Products.Where(i => i.DeleteStatus == false && i.Name == product).SingleOrDefault();
+            return db.CatalogItems.Where(i => i.DeleteStatus == false && i.Name == product).SingleOrDefault();
         }
 
 
         public string ProductsCount()
         {
-            return db.Products.Where(i => i.DeleteStatus == false).Count().ToString();
+            return db.CatalogItems.Where(i => i.DeleteStatus == false).Count().ToString();
         }
 
     }

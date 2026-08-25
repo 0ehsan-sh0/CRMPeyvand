@@ -45,7 +45,7 @@ namespace CRMPeyvand
             dg.CanUserAddRows = false;
             DGVAutoSizeColumnFill(dg);
         }
-        public static void dgvFiller(DataGrid dg, List<Product> lst)
+        public static void dgvFiller(DataGrid dg, List<CatalogItem> lst)
         {
             dg.DataContext = null;
             dg.ItemsSource = lst;

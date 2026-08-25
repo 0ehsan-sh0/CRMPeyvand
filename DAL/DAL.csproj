@@ -62,7 +62,7 @@
     <Compile Include="MessagePanelDAL.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="OffCodeDAL.cs" />
-    <Compile Include="ProductDAL.cs" />
+    <Compile Include="CatalogItemDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RememberMeDAL.cs" />
     <Compile Include="ReminderDAL.cs" />
