@@ -32,3 +32,6 @@ packages/
 # ===== OS junk =====
 Thumbs.db
 Desktop.ini
+
+# SDD scratch workspaces
+.superpowers/
