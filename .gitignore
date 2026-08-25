@@ -1,0 +1,34 @@
+# ===== Visual Studio / MSBuild =====
+.vs/
+.idea/
+.vscode/
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+x64/
+x86/
+build/
+bld/
+
+# Legacy NuGet packages.config restore folder (restore via nuget/dotnet restore)
+packages/
+*.nupkg
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local SQL Server database files
+*.mdf
+*.ldf
+
+# ===== Runtime data (never commit) =====
+# Employee/User photos are copied at runtime next to the executable
+[Uu]ser[Pi]sc/
+
+# ===== OS junk =====
+Thumbs.db
+Desktop.ini

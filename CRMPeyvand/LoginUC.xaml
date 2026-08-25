@@ -1,0 +1,50 @@
+﻿<UserControl xmlns:hc="https://handyorg.github.io/handycontrol"  x:Class="CRMPeyvand.LoginUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CRMPeyvand"
+             mc:Ignorable="d" 
+             FlowDirection="RightToLeft"
+             d:DesignHeight="500" d:DesignWidth="450" Loaded="UserControl_Loaded">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblWelcome" HorizontalAlignment="Center" FontWeight="Bold" FontSize="23" Content="به نرم افزار پیوند خوش آمدید" Foreground="#ffffff" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,0,0,40" Width="294"/>
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblDetails" HorizontalAlignment="Center" FontWeight="Medium" FontSize="18" Content="لطفا نام کاربری و رمز عبور را وارد کنید" Foreground="#ffffff" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,28,0,12" Width="280" Grid.Row="2"/>
+        <hc:PasswordBox x:Name="txtPass" PasswordChar="*" Foreground="Gray" Password="رمز عبور" GotFocus="txtPass_GotFocus" Grid.ColumnSpan="4" Margin="22,43,22,10" Grid.Column="1" Grid.Row="3"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" BorderBrush="White" Grid.ColumnSpan="4" Margin="3,81,2,55" Grid.Row="2" Grid.Column="1" Grid.RowSpan="2">
+            <TextBox Style="{StaticResource InputTextBox}" Background="White" x:Name="txtUserName" Text="نام کاربری" Foreground="Gray" GotFocus="txtUserName_GotFocus"/>
+        </Border>
+
+
+
+        <Border Style="{StaticResource ButtonBorder}" BorderBrush="White" HorizontalAlignment="Center" Height="30" Width="248" Grid.ColumnSpan="4" Margin="0,12,0,42" Grid.Column="1" Grid.Row="4">
+            <Button Style="{StaticResource Button}" Foreground="Black" FontWeight="Bold" Background="White" x:Name="btnLogin" HorizontalAlignment="Center" VerticalAlignment="Center" Width="248" Content="ورود" Click="btnLogin_Click"/>
+        </Border>
+
+        <Image Source="/Images/UserWhite.png" Grid.Column="1" Grid.ColumnSpan="4" Margin="58,20,58,20" Grid.RowSpan="3" />
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="20" Width="20" Margin="21,60,34,4" Grid.Row="4" Grid.Column="2" MouseLeftButtonDown="IsChecked_MouseLeftButtonDown" Fill="#4A8FE7"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="6" Width="20" Height="20" x:Name="IsChecked" Grid.Row="4" Margin="21,60,34,4" Grid.Column="2" MouseLeftButtonDown="IsChecked_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="IsCheckedImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="2" Content="مرا به خاطر بسپار" Foreground="White" HorizontalAlignment="Left" Grid.Row="4" VerticalAlignment="Top" Margin="47,56,0,0" Grid.ColumnSpan="2" Grid.RowSpan="2" Width="100"/>
+
+
+    </Grid>
+</UserControl>

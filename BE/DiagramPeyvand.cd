@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="BE.Activity" Collapsed="true">
+    <Position X="6.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEBAAAAAAAAAEAAAAAAAAAAAAAAAAAAARAAAGAAAgA=</HashCode>
+      <FileName>Activity.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Customer" />
+      <Property Name="User" />
+      <Property Name="ActivityCategory" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.ActivityCategory" Collapsed="true">
+    <Position X="8.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAABAAAIAAAgA=</HashCode>
+      <FileName>ActivityCategory.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Activities" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.User" Collapsed="true">
+    <Position X="6.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgIAAAIAAAAAAAAAAAAQAAAAAAAACARAAAKAAAgA=</HashCode>
+      <FileName>User.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="UserGroup" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Activities" />
+      <Property Name="Reminders" />
+      <Property Name="Invoices" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Reminder" Collapsed="true">
+    <Position X="6.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABQAAAAAAAAEAAAAAAAAAAAAAAAAAAABAAAGAAQgA=</HashCode>
+      <FileName>Reminder.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="User" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.Product" Collapsed="true">
+    <Position X="3.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAAAAAAQAAAAAQAAAARAAACAAAgA=</HashCode>
+      <FileName>Product.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Invoices" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Invoice" Collapsed="true">
+    <Position X="3.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEBAAAAAAAABAAAAgAAAAAAAAAAQAIAABAAACABAgQ=</HashCode>
+      <FileName>Invoice.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Customer" />
+      <Property Name="User" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Products" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Customer" Collapsed="true">
+    <Position X="3.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAABAAIKAAAgA=</HashCode>
+      <FileName>Customer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Invoices" />
+      <Property Name="Activities" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.UserAccessRole" Collapsed="true">
+    <Position X="10.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAABAAIAAAAAAAAAAAAAAAEAAAAAAAAABAIAAAgA=</HashCode>
+      <FileName>UserAccessRole.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="UserGroup" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.UserGroup" Collapsed="true">
+    <Position X="8.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>UserGroup.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Users" />
+      <Property Name="UserAccessRoles" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.OffCode" Collapsed="true">
+    <Position X="1.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAQAAAEAAAAAgAAAAAAAAAAAAABAACCAAAhA=</HashCode>
+      <FileName>OffCode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BE.Message" Collapsed="true">
+    <Position X="1.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAABAAACAAAgA=</HashCode>
+      <FileName>Message.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

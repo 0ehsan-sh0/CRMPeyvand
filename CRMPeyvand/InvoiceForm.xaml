@@ -1,0 +1,171 @@
+﻿<Window x:Class="CRMPeyvand.InvoiceForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CRMPeyvand"
+        mc:Ignorable="d"
+                ResizeMode="NoResize"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        AllowsTransparency="True"
+        FlowDirection="RightToLeft"
+
+        Title="InvoiceForm" Height="600" Width="1260" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <!--Background-->
+        <Border Grid.ColumnSpan="12" Grid.RowSpan="12" BorderThickness="5" BorderBrush="#eeeeee" CornerRadius="10">
+            <Rectangle Fill="#eeeeee"/>
+        </Border>
+        <!--Background-->
+
+        <!--Create Invoice-->
+        <GroupBox Style="{StaticResource GroupBox}" Header="ایجاد فاکتور" Grid.ColumnSpan="12" Grid.RowSpan="7" Margin="10,5,10,15" />
+
+        <GroupBox Style="{StaticResource GroupBox}" BorderBrush="#4A8FE7" Header="جزئیات فاکتور" Grid.ColumnSpan="8" Grid.RowSpan="7" Margin="52,25,21,25" Grid.Column="4" />
+
+
+        <Label Style="{StaticResource TextBoxLabel}"  Content="شماره تلفن مشتری :" HorizontalAlignment="Right" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,37,73,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="32,0,0,0">
+            <hc:ComboBox Style="{StaticResource ComboBox}" IsEditable="True" x:Name="txtCustomer" Padding="0,5,0,0" SelectionChanged="txtCustomer_SelectionChanged" TabIndex="0"/>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}"  Content="انتخاب کالاها :" HorizontalAlignment="Right" Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,28,1,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="4" Margin="32,26,0,0">
+            <hc:ComboBox Style="{StaticResource ComboBox}" IsEditable="True" x:Name="txtProduct" Padding="0,5,0,0" SelectionChanged="txtProduct_SelectionChanged" TabIndex="1"/>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}"  Content="تعداد :" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,22,40,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="4" Margin="32,20,93,0" Grid.Row="2">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtCount" TabIndex="2" TextChanged="txtCount_TextChanged"/>
+        </Border>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Grid.Row="2" Margin="17,25,63,0" Grid.Column="4" MouseLeftButtonDown="AddProductToList_MouseLeftButtonDown" Cursor="Hand"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" x:Name="AddProductToList" BorderThickness="2" BorderBrush="#4A8FE7" Grid.Row="2" Margin="17,23,63,2" MouseLeftButtonDown="AddProductToList_MouseLeftButtonDown" Grid.Column="4">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Source="/Images/Plus.png" x:Name="AddProductToListImage" Visibility="Visible"/>
+        </Border>
+
+        <Border Style="{StaticResource DataGridBorder}" Grid.ColumnSpan="5" Margin="20,11,63,25" Grid.RowSpan="4" Grid.Row="3">
+            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvProduts">
+                <DataGrid.ContextMenu>
+                    <ContextMenu Style="{StaticResource ContextMenu}">
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miDelete" Header="حذف محصولات" Click="miDelete_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Delete.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False"  Content="اقا/خانم" HorizontalAlignment="Left" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="4" VerticalAlignment="Top" Margin="70,4,0,0"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblName" Grid.ColumnSpan="2"  Content="" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="5" VerticalAlignment="Top" Margin="17,4,0,0"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False"  Content="با شماره تماس" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="6" VerticalAlignment="Top" Margin="70,4,0,0" Grid.ColumnSpan="2"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblPhone" Grid.ColumnSpan="2" Content="" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="7" VerticalAlignment="Top" Margin="70,5,0,0"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False"  Content="در تاریخ" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="8" VerticalAlignment="Top" Margin="74,4,0,0" Grid.ColumnSpan="2"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblDate" Grid.ColumnSpan="2"  Content="" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="9" VerticalAlignment="Top" Margin="58,6,0,0"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False" Content="محصولات زیر را خریداری کرده اند." HorizontalAlignment="Left" Grid.Row="2" Grid.Column="4" VerticalAlignment="Top" Grid.ColumnSpan="3" Margin="70,0,0,0"/>
+
+        <ListBox Style="{StaticResource ListBox}" FontSize="13" FontFamily="Shabnam FD" x:Name="lstResult" Grid.ColumnSpan="4" Margin="73,36,52,37" Grid.RowSpan="5" Grid.Row="2" Grid.Column="4"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False" Content="جمع مبلغ خرید" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="7" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="76,47,0,0" Grid.RowSpan="2"/>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="15" FontWeight="Bold" x:Name="lblTotalPrice" Content="0" FlowDirection="LeftToRight" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="10" VerticalAlignment="Top" Margin="0,0,31,0" RenderTransformOrigin="0.675,0.317" Grid.ColumnSpan="3"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False" Content="مبلغ تخفیف" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="7" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="76,30,0,0" Grid.RowSpan="2"/>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="15" FontWeight="Bold" IsEnabled="False" x:Name="lblOff" Content="0" FlowDirection="LeftToRight" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="10" VerticalAlignment="Top" Margin="0,33,21,0" RenderTransformOrigin="0.675,0.317" Grid.RowSpan="2"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="10" Width="90" Grid.ColumnSpan="2" Margin="89,31,31,39" Grid.Row="3" Grid.RowSpan="2">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtOff" TabIndex="3" ToolTip="کد تخفیف" LostFocus="txtOff_LostFocus"/>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}" IsEnabled="False" Content="مبلغ نهایی" HorizontalAlignment="Left" Grid.Row="4" Grid.Column="7" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="76,14,0,0"/>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="15" FontWeight="Bold" x:Name="lblFinalPrice" Content="0" FlowDirection="LeftToRight" HorizontalAlignment="Right" Grid.Row="4" Grid.Column="11" VerticalAlignment="Top" Margin="0,17,31,0" RenderTransformOrigin="0.675,0.317"/>
+
+        <Border Style="{StaticResource ButtonBorder}" Height="50" Grid.Column="9" Margin="61,10,45,40" Grid.RowSpan="2" Grid.Row="5" Grid.ColumnSpan="2">
+            <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت فاکتور" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center" TabIndex="4" Click="btnAdd_Click"/>
+        </Border>
+
+        <Image Source="/Images/Printer.png" x:Name="Print" Grid.Column="10" Margin="104,6,46,34" Grid.RowSpan="2" Grid.Row="5" Grid.ColumnSpan="2" ToolTip="چاپ فاکتور" Cursor="Hand" MouseLeftButtonDown="Print_MouseLeftButtonDown"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Grid.Row="5" Margin="82,25,103,0" MouseLeftButtonDown="IsCheckedOut_MouseLeftButtonDown" Grid.Column="7" Grid.ColumnSpan="2"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" x:Name="IsCheckedOut" Grid.Row="5" Margin="82,25,103,0" MouseLeftButtonDown="IsCheckedOut_MouseLeftButtonDown" Grid.Column="7" Grid.ColumnSpan="2">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="IsCheckedOutImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="chkbxLabel" FontSize="15" Grid.Column="8" Grid.ColumnSpan="2" Content="وضعیت پرداخت" HorizontalAlignment="Left" Grid.Row="5" VerticalAlignment="Top" Margin="2,22,0,0" Grid.RowSpan="2" MouseLeftButtonDown="IsCheckedOut_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblOffError" Content="" FontSize="10" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="8" VerticalAlignment="Top" Margin="33,26,0,0" Grid.ColumnSpan="4" Width="357" Foreground="DarkRed"/>
+
+        <!--Create Invoice-->
+
+        <!--جستجوی فاکتور-->
+        <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی بین فاکتور ها" Grid.Row="6" Grid.RowSpan="3" Grid.ColumnSpan="12" Margin="10,37,10,38"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12"  HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="7" Grid.RowSpan="2" Margin="30,22,0,0" Width="1200">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSearch" TabIndex="4" ToolTip="جستجو بر اساس شماره فاکتور" TextChanged="txtSearch_TextChanged"/>
+        </Border>
+        <Image Source="/Images/Search.png" Grid.Column="11" Grid.Row="7" Height="25" Margin="0,25,0,0"/>
+        <!--جستجوی فاکتور-->
+
+        <!--نمایش فاکتور-->
+        <Border Style="{StaticResource DataGridBorder}" Grid.ColumnSpan="12" Margin="10,20,10,45" Grid.RowSpan="4" Grid.Row="8">
+            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvInvoices" ContextMenuOpening="dgvInvoices_ContextMenuOpening">
+                <DataGrid.ContextMenu>
+                    <ContextMenu Style="{StaticResource ContextMenu}">
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miDeleteInvoice" Header="حذف فاکتور" Click="miDeleteInvoice_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Delete.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miDone" Header="پرداخت شد" Click="miDone_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Checked.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </Border>
+        <!--نمایش فاکتور-->
+
+        <!--منوی پایین-->
+        <Image Style="{StaticResource BackToHomeImage}" x:Name="BackToHome" MouseLeftButtonDown="BackToHome_MouseLeftButtonDown"/>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="14" Grid.Column="0" Grid.ColumnSpan="2" Content="تعداد فاکتور های ثبت شده :" HorizontalAlignment="Left" Grid.Row="11" VerticalAlignment="Center" Margin="10,0,0,0" Grid.RowSpan="1" />
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblCount" FontSize="20" FontWeight="Bold" Grid.Column="2" Grid.ColumnSpan="3" Content="0" HorizontalAlignment="Left" Grid.Row="11" VerticalAlignment="Center" Margin="4,0,0,0"/>
+        <!--منوی پایین-->
+    </Grid>
+</Window>

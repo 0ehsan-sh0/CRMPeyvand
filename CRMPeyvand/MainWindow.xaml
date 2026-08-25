@@ -1,0 +1,145 @@
+﻿<Window x:Class="CRMPeyvand.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CRMPeyvand"
+        mc:Ignorable="d"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        AllowsTransparency="True"
+      
+        Title="MainWindow" Height="720" Width="1280" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
+    
+    <Grid x:Name="MainGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="111"/>
+            <ColumnDefinition Width="111"/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="85"/>
+            <ColumnDefinition Width="85"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition Height="60"/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Border Grid.ColumnSpan="12" Grid.RowSpan="12" BorderThickness="5" BorderBrush="#e2e2e2" CornerRadius="10">
+            <Rectangle Fill="#EEEEEE"/>
+        </Border>
+        <!--منوی اصلی-->
+        <Border Grid.ColumnSpan="2" Grid.RowSpan="12" Grid.Column="10" BorderThickness="5" BorderBrush="#F9FAFB" CornerRadius="0,10,10,0">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Image Source="/Images/Exit.png" Name="Exit" Grid.Row="11" Grid.Column="11" Height="35" Cursor="Hand" MouseLeftButtonDown="Exit_MouseDown" ToolTip="خروج E"/>
+        <Image Source="/Images/Settings.png" x:Name="SettingIcon" Grid.Row="11" Grid.Column="10" Height="35" Cursor="Hand" ToolTip="تنظیمات S" MouseLeftButtonDown="SettingIcon_MouseLeftButtonDown"/>
+        <Border Grid.ColumnSpan="1" Grid.Column="11" Height="30" Width="30" Margin="44,0,0,0" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Image Source="/Images/User.png" Name="UserImage" Height="26" Cursor="Hand" ToolTip="اطلاعات کاربری"/>
+        </Border>
+        <Image Source="/Images/Logout.png" Grid.Row="11" Grid.Column="10" Grid.ColumnSpan="2" Height="35" Cursor="Hand" ToolTip="خروج از حساب کابری L" MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblUsername" Content="" FontFamily="Shabnam FD" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,42,0" FlowDirection="RightToLeft" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="13" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" ToolTip="اطلاعات کاربری" Width="128"/>
+        <!--بخش های مختلف برنامه در منوی اصلی-->
+        <Image Source="/Images/Customers.png" x:Name="CustomerFormIcon" MouseLeftButtonDown="CustomerFormIcon_MouseLeftButtonDown" Grid.Column="11" Grid.Row="2" Grid.ColumnSpan="1" Height="34" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" ToolTip="کلید میانبر C"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="CustomerFormLabel" Content="مدیریت مشتریان" FontFamily="Shabnam FD" Grid.Row="2" MouseLeftButtonDown="CustomerFormIcon_MouseLeftButtonDown" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" ToolTip="کلید میانبر C"/>
+
+        <Image Source="/Images/Sell.png" x:Name="ProductIcon" MouseLeftButtonDown="ProductIcon_MouseLeftButtonDown" Grid.Column="11" Grid.Row="3" Grid.ColumnSpan="1" Height="34" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" ToolTip="کلید میانبر P"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="ProductLabel" Content="مدیریت کالاها" MouseLeftButtonDown="ProductIcon_MouseLeftButtonDown" FontFamily="Shabnam FD" Grid.Row="3" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" ToolTip="کلید میانبر P"/>
+
+        <Image Source="/Images/Today customers.png" x:Name="UserIcon" Grid.Column="11" Grid.Row="4" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="UserIcon_MouseLeftButtonDown" ToolTip="کلید میانبر U"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="UserLabel" Content="مدیریت کاربران" FontFamily="Shabnam FD" Grid.Row="4" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" MouseLeftButtonDown="UserIcon_MouseLeftButtonDown" ToolTip="کلید میانبر U"/>
+
+        <Image Source="/Images/Calendar.png" x:Name="ActivitiesIcon" Grid.Column="11" Grid.Row="5" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" Cursor="Hand" ToolTip="کلید میانبر A"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="ActivitiesLabel" Content="فعالیت ها" FontFamily="Shabnam FD" Grid.Row="5" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand" ToolTip="کلید میانبر A"/>
+
+        <Image Source="/Images/Notification 1.png" x:Name="ReminderFormIcon" Grid.Column="11" Grid.Row="6" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" MouseLeftButtonDown="ReminderFormIcon_MouseLeftButtonDown" Cursor="Hand" ToolTip="کلید میانبر R"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="ReminderFormLabel" Content="یادآوری" FontFamily="Shabnam FD" Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseLeftButtonDown="ReminderFormIcon_MouseLeftButtonDown" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" ToolTip="کلید میانبر R"/>
+
+        <Image Source="/Images/printer.png" x:Name="InvoiceIcon" Grid.Column="11" Grid.Row="7" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="InvoiceIcon_MouseLeftButtonDown" ToolTip="کلید میانبر F"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="InvoiceLabel" Content="فاکتور ها" FontFamily="Shabnam FD" Grid.Row="7" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" MouseLeftButtonDown="InvoiceIcon_MouseLeftButtonDown" ToolTip="کلید میانبر F"/>
+
+        <Image Source="/Images/message.png" Grid.Column="11" x:Name="SMSIcon" Grid.Row="8" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="SMSIcon_MouseLeftButtonDown" ToolTip="کلید میانبر M"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="SMSLabel" Content="ارسال پیامک" FontFamily="Shabnam FD" Grid.Row="8" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseLeftButtonDown="SMSIcon_MouseLeftButtonDown" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" Cursor="Hand" ToolTip="کلید میانبر M"/>
+
+        <Image Source="/Images/Fully Charged.png" x:Name="ReportIcon" Grid.Column="11" Grid.Row="9" Grid.ColumnSpan="1" Height="36" Width="45" Margin="19,0,21,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="ReportIcon_MouseLeftButtonDown" ToolTip="کلید میانبر G"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="ReportLabel" Content="گزارشات" FontFamily="Shabnam FD" Grid.Row="9" Grid.ColumnSpan="2" Grid.Column="10" Height="40" Margin="0,20,64,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="11" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" FontWeight="Bold" MouseLeftButtonDown="ReportIcon_MouseLeftButtonDown" Cursor="Hand" ToolTip="کلید میانبر G"/>
+
+
+        <!--کارت اول-->
+        <Border Grid.Column="6" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="85,10,20,20" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Border Grid.Column="9" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="1" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="15,30,46,0" VerticalAlignment="Top">
+        </Border>
+        <Image Source="/Images/Customers.png" Grid.Column="9" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="1" Height="45" Width="45" Margin="18,0,48,10" VerticalAlignment="Center"/>
+        <Label Style="{StaticResource MainWindowLabels}" Content="تعداد مشتریان" Grid.Column="8" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="13" Foreground="#A6B6FF" FontFamily="Shabnam FD" FontWeight="Bold" Margin="88,6,0,0"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblCustomersCount" Content="0" Grid.Column="8" Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="42" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,30,40,0"/>
+
+
+        <!--کارت دوم-->
+        <Border Grid.Column="3" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="55,10,55,20" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Border Grid.Column="5" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="91,30,81,0" VerticalAlignment="Top">
+        </Border>
+        <Image Source="/Images/Sell.png" Grid.Column="5" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Height="40" Width="40" Margin="96,35,86,0" VerticalAlignment="Top"/>
+        <Label Style="{StaticResource MainWindowLabels}" Content="فروش امروز" Grid.Column="5" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="13" Foreground="#A6B6FF" FontFamily="Shabnam FD" FontWeight="Bold" Margin="70,6,0,0"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="TodaySells" Content="0" Grid.Column="5" Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="42" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,30,77,0"/>
+
+        <!--کارت سوم-->
+        <Border Grid.Column="0" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="20,11,85,19" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Border Grid.Column="2" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="1" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="56,31,5,0" VerticalAlignment="Top">
+        </Border>
+        <Image Source="/Images/Sell.png" Grid.Column="2" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="1" Height="40" Width="40" Margin="60,36,11,0" VerticalAlignment="Top"/>
+        <Label Style="{StaticResource MainWindowLabels}" Content="فروش هفت روز گذشته" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" Foreground="#A6B6FF" FontFamily="Shabnam FD" FontWeight="Bold" Margin="85,0,0,0" Width="137"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblCountSellsWeek" Content="0" Grid.Column="1" Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="42" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,31,5,0"/>
+        <!--ساعت-->
+        <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="1" Grid.ColumnSpan="4" Margin="20,16,85,4" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Image Source="/Images/Time.png" Grid.Column="2" Grid.ColumnSpan="2" Height="40" Width="40" Margin="0 ,16,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.568,-0.078"/>
+        <TextBlock x:Name="TimeText" FontSize="20" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Text="ساعت" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,23,0,0" Grid.ColumnSpan="3"/>
+
+        <!--منوی برنامه-->
+        <Border Grid.Column="3" Grid.Row="0" Grid.RowSpan="1" Grid.ColumnSpan="7" Margin="55,16,20,4" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Image Source="/Images/PeyvandLogo.png" Name="icon" Grid.Column="9" Height="32" Margin="44,20,34,0" VerticalAlignment="Top"/>
+        <Image  Source="/Images/Info.png" Grid.Column="3" Height="24" Margin="74,24,13,0" VerticalAlignment="Top" RenderTransformOrigin="0.952,0.617" Cursor="Hand" MouseLeftButtonDown="Image_MouseLeftButtonDown_1"/>
+        <Label Style="{StaticResource MainWindowLabels}" Content="پیوند" Grid.Column="8" Margin="108,18,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="18" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Grid.ColumnSpan="2"/>
+        <!--جزِییات روز-->
+        <Border Grid.Column="0" Grid.RowSpan="7" Grid.Row="5" Grid.ColumnSpan="10" Margin="20,0,20,20" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+            <Rectangle Fill="#F9FAFB"/>
+        </Border>
+        <Image Source="/Images/Notification 1.png" x:Name="today_reminders" Grid.Row="5" Grid.Column="9" Height="40" Width="40" Margin="34,14,37,0" VerticalAlignment="Top" MouseLeftButtonDown="today_reminders_MouseDown" Cursor="Hand"/>
+        <Label Style="{StaticResource MainWindowLabels}" Content="یادآور ها" Grid.Column="8" Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="10" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,22,71,0" Grid.ColumnSpan="2" MouseLeftButtonDown="today_reminders_MouseDown" Cursor="Hand"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblReminderStatus" Grid.Column="3" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Grid.ColumnSpan="4" Grid.RowSpan="2" Margin="0,40,0,0"/>
+
+        <!--line-->
+        <Border Grid.Column="8" x:Name="RemindersLine" Grid.RowSpan="1" Grid.Row="5" Grid.ColumnSpan="2" Margin="88,57,23,0" Height="3" Width="50" BorderBrush="#4A8FE7 " BorderThickness="1" CornerRadius="1">
+            <Rectangle Fill="#4A8FE7"/>
+        </Border>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblReminder" Content="تعداد یادآور های امروز :" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.Row="5" Grid.Column="1" Height="40" Margin="0,16,62,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand" Grid.ColumnSpan="2"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblReminderCount" Content="0" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.ColumnSpan="2" Grid.Row="5" Height="40" Margin="0,17,101,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand"/>
+
+    </Grid>
+</Window>

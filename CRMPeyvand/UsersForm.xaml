@@ -1,0 +1,438 @@
+﻿<Window x:Class="CRMPeyvand.UsersForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CRMPeyvand"
+        mc:Ignorable="d"
+                ResizeMode="NoResize"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        AllowsTransparency="True"
+        FlowDirection="RightToLeft"
+
+        Title="UsersForm" Height="600" Width="1260" Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <!--Background-->
+        <Border Grid.ColumnSpan="12" Grid.RowSpan="12" BorderThickness="5" BorderBrush="#eeeeee" CornerRadius="10">
+            <Rectangle Fill="#eeeeee"/>
+        </Border>
+        <!--Background-->
+
+        <!--ایجاد کاربر-->
+        <GroupBox Style="{StaticResource GroupBox}" Header="ایجاد کاربر" Grid.ColumnSpan="12" Grid.RowSpan="5" Margin="10,5,10,15" />
+
+        <Label Style="{StaticResource TextBoxLabel}"  Content="نام نام خانوادگی :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,37,0,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="25,0,0,0">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtName" TabIndex="0" ToolTip="نام را فارسی وارد کنید" TextChanged="txtName_TextChanged"/>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="نام کاربری :" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Top" Margin="20,33,0,0" Grid.ColumnSpan="2"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="25,0,0,0">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUsername" TabIndex="1"/>
+        </Border>
+
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="کلمه عبور :" HorizontalAlignment="Right" Grid.Row="2" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,34,16,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="2" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="25,0,0,0">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtPass" TabIndex="2" TextChanged="txtPass_TextChanged"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblPassWarn" Foreground="Red" Grid.Column="1" Grid.ColumnSpan="3" Content="" FontSize="10 " HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Center" Margin="21,0,0,0"/>
+
+
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="تکرار کلمه عبور :" HorizontalAlignment="Right" Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,33,94,0" Grid.ColumnSpan="2"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="25,0,0,0">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReapetPass" TabIndex="3"/>
+        </Border>
+        <Border Grid.Column="4" Grid.ColumnSpan="2" BorderBrush="#eeeeee" BorderThickness="2" CornerRadius="4" Width="170" Height="30" Margin="20,34,20,36" Grid.RowSpan="2">
+            <ComboBox Style="{StaticResource ComboBox}" x:Name="cbUserGroup" TabIndex="4" IsEditable="True" SelectionChanged="cbUserGroup_SelectionChanged"/>
+        </Border>
+        <Border Grid.Column="4" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="4" VerticalAlignment="Top" HorizontalAlignment="Center" Height="150" Width="150" BorderBrush="#4A8FE7" BorderThickness="3" CornerRadius="6" Margin="0,20,0,0">
+            <Image Source="/Images/User.png" x:Name="picBoxUser" Stretch="Fill" ToolTip=" برای وارد کردن عکس کاربر کلیک کنید" MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
+        </Border>
+        <Image Source="/Images/User.png" Visibility="Hidden" x:Name="SourceOfImage"/>
+        <!--btnAdd-->
+        <Border Style="{StaticResource ButtonBorder}" x:Name="btnAddBorder" Grid.Column="6" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Center" Margin="6,0,0,0" >
+            <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت" TabIndex="5" Width="85" Height="40" Click="btnAdd_Click"/>
+        </Border>
+        <!--btnAdd-->
+
+        <!--نمایش کاربران-->
+        <Border Style="{StaticResource DataGridBorder}" Grid.Column="7" Grid.ColumnSpan="5" Grid.Row="0" Grid.RowSpan="5"  Margin="0,25,20,25">
+            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvUsers" ContextMenuOpening="dgvUsers_ContextMenuOpening">
+                <DataGrid.ContextMenu>
+                    <ContextMenu Style="{StaticResource ContextMenu}">
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miEdit" Header="ویرایش اطلاعات کاربر" Click="miEdit_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Edit.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miDelete" Header="حذف کاربر" Click="miDelete_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Delete.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miShow" Header="نمایش عکس کاربر" Click="miShow_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Display.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </Border>
+        <!--نمایش کاربران-->
+
+        <!--ایجاد کاربر-->
+
+        <!--مدیریت گروه های کاربری-->
+        <GroupBox Style="{StaticResource GroupBox}" Header="مدیریت گروه های کاربری" Grid.ColumnSpan="12" Grid.Row="4" Grid.RowSpan="8" Margin="10,0,10,15" Height="345" VerticalAlignment="Bottom" />
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="نام گروه کاربری :" HorizontalAlignment="Left" Grid.Row="5" VerticalAlignment="Top" Margin="20,15,0,0" Grid.ColumnSpan="2"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="5" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="5" Margin="25,15,0,0" Width="470">
+            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUserGroupName" TabIndex="6"/>
+        </Border>
+
+        <Image  Source="/Images/Info.png" x:Name="Info" Grid.Column="5" Height="24" Margin="63,18,87,0" VerticalAlignment="Top" RenderTransformOrigin="0.952,0.617" Cursor="Hand" MouseLeftButtonDown="Info_MouseLeftButtonDown" Grid.Row="5" Grid.ColumnSpan="2"/>
+
+
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="دسترسی کلی" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="20,15,0,0" Grid.ColumnSpan="2"/>
+        <!--Checkboxes <<<<<-->
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="20" Width="20" Margin="31,20,54,10" Grid.Row="6" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnter_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="6" Width="20" Height="20" x:Name="cbEnter" Grid.Row="6" Margin="31,20,54,10" Grid.Column="1" MouseLeftButtonDown="cbEnter_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="cbEnterImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="1" Content="ورود" Cursor="Hand" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="55,15,0,0" MouseLeftButtonDown="cbEnter_MouseLeftButtonDown"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="20" Width="20" Margin="6,20,79,10" Grid.Row="6" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAdd_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="6" Width="20" Height="20" x:Name="cbAdd" Grid.Row="6" Margin="6,20,79,10" Grid.Column="2" MouseLeftButtonDown="cbAdd_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="cbAddImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="2" Grid.ColumnSpan="2" Cursor="Hand" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="30,15,0,0" MouseLeftButtonDown="cbAdd_MouseLeftButtonDown"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="20" Width="20" Margin="31,20,54,10" Grid.Row="6" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEdit_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="6" Width="20" Height="20" x:Name="cbEdit" Grid.Row="6" Margin="31,20,54,10" Grid.Column="3" MouseLeftButtonDown="cbEdit_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="cbEditImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="3" Grid.ColumnSpan="2" Cursor="Hand" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="55,15,0,0" MouseLeftButtonDown="cbEdit_MouseLeftButtonDown"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="20" Width="20" Margin="58,20,27,10" Grid.Row="6" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDelete_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="6" Width="20" Height="20" x:Name="cbDelete" Grid.Row="6" Margin="58,20,27,10" Grid.Column="4" MouseLeftButtonDown="cbDelete_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="cbDeleteImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Grid.ColumnSpan="2" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Cursor="Hand" Margin="83,15,0,0" MouseLeftButtonDown="cbDelete_MouseLeftButtonDown"/>
+
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="6" Content="تمامی دسترسی ها" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="17,16,0,0" MouseLeftButtonDown="cbAllCheckBoxes_MouseLeftButtonDown" Cursor="Hand"/>
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Margin="92,15,93,10" Grid.Row="6" Grid.Column="5" ToolTip="تایید کاربر" Grid.ColumnSpan="2" MouseLeftButtonDown="cbAllCheckBoxes_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}"  x:Name="cbAllCheckBoxes" Grid.Row="6" Margin="92,15,93,10" Grid.Column="5" Grid.ColumnSpan="2" MouseLeftButtonDown="cbAllCheckBoxes_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" x:Name="cbAllCheckBoxesImage"/>
+        </Border>
+
+        <!--Small Checkboxes <<<<<-->
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblCustomersAccess" FontSize="10" Grid.Column="0" Content="بخش مشتریان" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="23,5,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,11,58,24" Grid.Row="7" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterCustomer_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterCustomer" Grid.Row="7" Margin="32,11,58,24" Grid.Column="1" MouseLeftButtonDown="cbEnterCustomer_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterCustomerImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="53,6,0,0" MouseLeftButtonDown="cbEnterCustomer_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,11,73,24" Grid.Row="7" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddCustomer_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddCustomer" Grid.Row="7" Margin="17,11,73,24" Grid.Column="2" MouseLeftButtonDown="cbAddCustomer_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddCustomerImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="37,7,0,0" MouseLeftButtonDown="cbAddCustomer_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,10,51,24" Grid.Row="7" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditCustomer_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditCustomer" Grid.Row="7" Margin="39,10,51,24" Grid.Column="3" MouseLeftButtonDown="cbEditCustomer_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditCustomerImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="59,6,0,0" MouseLeftButtonDown="cbEditCustomer_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,11,20,24" Grid.Row="7" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteCustomer_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteCustomer" Grid.Row="7" Margin="70,11,20,24" Grid.Column="4" MouseLeftButtonDown="cbDeleteCustomer_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteCustomerImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="91,7,0,0" MouseLeftButtonDown="cbDeleteCustomer_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblProductsAccess" FontSize="10" Grid.Column="0" Content="بخش کالاها" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="23,25,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,30,58,5" Grid.Row="7" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterProduct_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterProduct" Grid.Row="7" Margin="32,30,58,5" Grid.Column="1" MouseLeftButtonDown="cbEnterProduct_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterProductImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="53,25,0,0" MouseLeftButtonDown="cbEnterProduct_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,30,73,5" Grid.Row="7" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddProduct_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddProduct" Grid.Row="7" Margin="17,30,73,5" Grid.Column="2" MouseLeftButtonDown="cbAddProduct_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddProductImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="37,26,0,0" MouseLeftButtonDown="cbAddProduct_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,30,51,5" Grid.Row="7" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditProduct_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditProduct" Grid.Row="7" Margin="39,30,51,5" Grid.Column="3" MouseLeftButtonDown="cbEditProduct_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditProductImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="59,25,0,0" MouseLeftButtonDown="cbEditProduct_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,30,20,5" Grid.Row="7" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteProduct_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteProduct" Grid.Row="7" Margin="70,30,20,5" Grid.Column="4" MouseLeftButtonDown="cbDeleteProduct_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteProductImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="91,26,0,0" MouseLeftButtonDown="cbDeleteProduct_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoicesAccess" FontSize="10" Grid.Column="0" Content="بخش فاکتورها" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="23,44,0,0" Grid.RowSpan="2"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,48,58,37" Grid.Row="7" Grid.Column="1" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterInvoice_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterInvoice" Grid.Row="7" Margin="32,48,58,37" Grid.Column="1" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterInvoice_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterInvoiceImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="7" VerticalAlignment="Top" Margin="53,43,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterInvoice_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,48,73,37" Grid.Row="7" Grid.Column="2" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbAddInvoice_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddInvoice" Grid.Row="7" Margin="17,48,73,37" Grid.Column="2" Grid.RowSpan="2" MouseLeftButtonDown="cbAddInvoice_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddInvoiceImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="37,44,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbAddInvoice_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,48,51,37" Grid.Row="7" Grid.Column="3" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEditInvoice_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditInvoice" Grid.Row="7" Margin="39,48,51,37" Grid.Column="3" Grid.RowSpan="2" MouseLeftButtonDown="cbEditInvoice_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditInvoiceImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="59,43,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEditInvoice_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,48,20,37" Grid.Row="7" Grid.Column="4" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteInvoice_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteInvoice" Grid.Row="7" Margin="70,48,20,37" Grid.Column="4" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteInvoice_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteInvoiceImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="7" VerticalAlignment="Top" Margin="91,44,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteInvoice_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblActivitiesAccess" FontSize="10" Grid.Column="0" Content="بخش فعالیت ها" HorizontalAlignment="Left" Grid.Row="8" VerticalAlignment="Center" Margin="23,0,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,17,58,18" Grid.Row="8" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterActivity_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterActivity" Grid.Row="8" Margin="32,17,58,18" Grid.Column="1" MouseLeftButtonDown="cbEnterActivity_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterActivityImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="8" VerticalAlignment="Center" Margin="53,0,0,0" MouseLeftButtonDown="cbEnterActivity_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,17,73,18" Grid.Row="8" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddActivity_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddActivity" Grid.Row="8" Margin="17,17,73,18" Grid.Column="2" MouseLeftButtonDown="cbAddActivity_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddActivityImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Center" Margin="37,0,0,0" MouseLeftButtonDown="cbAddActivity_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,17,51,18" Grid.Row="8" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditActivity_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditActivity" Grid.Row="8" Margin="39,17,51,18" Grid.Column="3" MouseLeftButtonDown="cbEditActivity_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditActivityImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Center" Margin="59,0,0,0" MouseLeftButtonDown="cbEditActivity_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,17,20,18" Grid.Row="8" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteActivity_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteActivity" Grid.Row="8" Margin="70,17,20,18" Grid.Column="4" MouseLeftButtonDown="cbDeleteActivity_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteActivityImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Center" Margin="91,0,0,0" MouseLeftButtonDown="cbDeleteActivity_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblRemindersAccess" FontSize="10" Grid.Column="0" Content="بخش یادآور ها" HorizontalAlignment="Left" Grid.Row="8" VerticalAlignment="Top" Margin="23,32,0,0" Grid.RowSpan="2"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,36,58,49" Grid.Row="8" Grid.Column="1" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReminder_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterReminder" Grid.Row="8" Margin="32,36,58,49" Grid.Column="1" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReminder_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterReminderImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="8" VerticalAlignment="Top" Margin="53,32,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReminder_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,36,73,49" Grid.Row="8" Grid.Column="2" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReminder_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddReminder" Grid.Row="8" Margin="17,36,73,49" Grid.Column="2" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReminder_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddReminderImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Top" Margin="37,32,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReminder_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,36,51,49" Grid.Row="8" Grid.Column="3" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReminder_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditReminder" Grid.Row="8" Margin="39,36,51,49" Grid.Column="3" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReminder_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditReminderImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Top" Margin="59,32,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReminder_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,36,20,49" Grid.Row="8" Grid.Column="4" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReminder_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteReminder" Grid.Row="8" Margin="70,36,20,49" Grid.Column="4" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReminder_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteReminderImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="8" VerticalAlignment="Top" Margin="91,32,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReminder_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblUsersAccess" FontSize="10" Grid.Column="0" Content="بخش کاربران" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="23,1,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,5,58,30" Grid.Row="9" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterUser_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterUser" Grid.Row="9" Margin="32,5,58,30" Grid.Column="1" MouseLeftButtonDown="cbEnterUser_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterUserImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="53,1,0,0" MouseLeftButtonDown="cbEnterUser_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,5,73,30" Grid.Row="9" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddUser_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddUser" Grid.Row="9" Margin="17,5,73,30" Grid.Column="2" MouseLeftButtonDown="cbAddUser_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddUserImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="37,1,0,0" MouseLeftButtonDown="cbAddUser_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,5,51,30" Grid.Row="9" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditUser_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditUser" Grid.Row="9" Margin="39,5,51,30" Grid.Column="3" MouseLeftButtonDown="cbEditUser_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditUserImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="59,1,0,0" MouseLeftButtonDown="cbEditUser_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,5,20,30" Grid.Row="9" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteUser_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteUser" Grid.Row="9" Margin="70,5,20,30" Grid.Column="4" MouseLeftButtonDown="cbDeleteUser_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteUserImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="91,1,0,0" MouseLeftButtonDown="cbDeleteUser_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblMessagesAccess" FontSize="10" Grid.Column="0" Content="پنل پیامکی" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="23,21,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,25,58,10" Grid.Row="9" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterMessage_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterMessage" Grid.Row="9" Margin="32,25,58,10" Grid.Column="1" MouseLeftButtonDown="cbEnterMessage_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterMessageImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="53,21,0,0" MouseLeftButtonDown="cbEnterMessage_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,25,73,10" Grid.Row="9" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddMessage_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddMessage" Grid.Row="9" Margin="17,25,73,10" Grid.Column="2" MouseLeftButtonDown="cbAddMessage_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddMessageImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="37,21,0,0" MouseLeftButtonDown="cbAddMessage_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,25,51,10" Grid.Row="9" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditMessage_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditMessage" Grid.Row="9" Margin="39,25,51,10" Grid.Column="3" MouseLeftButtonDown="cbEditMessage_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditMessageImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="59,21,0,0" MouseLeftButtonDown="cbEditMessage_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,25,20,10" Grid.Row="9" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteMessage_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteMessage" Grid.Row="9" Margin="70,25,20,10" Grid.Column="4" MouseLeftButtonDown="cbDeleteMessage_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteMessageImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="91,21,0,0" MouseLeftButtonDown="cbDeleteMessage_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblReportsAccess" FontSize="10" Grid.Column="0" Content="بخش گزارشات" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="23,41,0,0" Grid.RowSpan="2"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,45,58,40" Grid.Row="9" Grid.Column="1" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReport_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterReport" Grid.Row="9" Margin="32,45,58,40" Grid.Column="1" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReport_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterReportImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="9" VerticalAlignment="Top" Margin="53,41,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEnterReport_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,45,73,40" Grid.Row="9" Grid.Column="2" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReport_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddReport" Grid.Row="9" Margin="17,45,73,40" Grid.Column="2" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReport_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddReportImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="37,41,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbAddReport_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,45,51,40" Grid.Row="9" Grid.Column="3" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReport_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditReport" Grid.Row="9" Margin="39,45,51,40" Grid.Column="3" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReport_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditReportImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="59,41,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbEditReport_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,45,20,40" Grid.Row="9" Grid.Column="4" ToolTip="تایید کاربر" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReport_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteReport" Grid.Row="9" Margin="70,45,20,40" Grid.Column="4" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReport_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteReportImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="9" VerticalAlignment="Top" Margin="91,41,0,0" Grid.RowSpan="2" MouseLeftButtonDown="cbDeleteReport_MouseLeftButtonDown" Cursor="Hand"/>
+
+
+
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblSettingAccess" FontSize="10" Grid.Column="0" Content="بخش تنظیمات" HorizontalAlignment="Left" Grid.Row="10" VerticalAlignment="Top" Margin="23,10,0,0"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="32,14,58,21" Grid.Row="10" Grid.Column="1" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEnterSetting_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEnterSetting" Grid.Row="10" Margin="32,14,58,21" Grid.Column="1" MouseLeftButtonDown="cbEnterSetting_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEnterSettingImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="1" Content="ورود" HorizontalAlignment="Left" Grid.Row="10" VerticalAlignment="Top" Margin="53,10,0,0" MouseLeftButtonDown="cbEnterSetting_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="17,14,73,21" Grid.Row="10" Grid.Column="2" ToolTip="تایید کاربر" MouseLeftButtonDown="cbAddSetting_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbAddSetting" Grid.Row="10" Margin="17,14,73,21" Grid.Column="2" MouseLeftButtonDown="cbAddSetting_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbAddSettingImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="2" Content="افزودن اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="10" VerticalAlignment="Top" Margin="37,10,0,0" MouseLeftButtonDown="cbAddSetting_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="39,14,51,21" Grid.Row="10" Grid.Column="3" ToolTip="تایید کاربر" MouseLeftButtonDown="cbEditSetting_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbEditSetting" Grid.Row="10" Margin="39,14,51,21" Grid.Column="3" MouseLeftButtonDown="cbEditSetting_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbEditSettingImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="3" Content="ویرایش اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="10" VerticalAlignment="Top" Margin="59,10,0,0" MouseLeftButtonDown="cbEditSetting_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <Rectangle Style="{StaticResource PersonalizeCheckBoxRectangle}" Height="15" Width="15" Margin="70,14,20,21" Grid.Row="10" Grid.Column="4" ToolTip="تایید کاربر" MouseLeftButtonDown="cbDeleteSetting_MouseLeftButtonDown"/>
+        <Border Style="{StaticResource PersonalizeCheckBoxBorder}" CornerRadius="4" Width="15" Height="15" x:Name="cbDeleteSetting" Grid.Row="10" Margin="70,14,20,21" Grid.Column="4" MouseLeftButtonDown="cbDeleteSetting_MouseLeftButtonDown">
+            <Image Style="{StaticResource PersonalizeCheckBoxImage}" Width="20" x:Name="cbDeleteSettingImage"/>
+        </Border>
+        <Label Style="{StaticResource TextBoxLabel}" FontSize="10" Grid.Column="4" Content="حذف اطلاعات" HorizontalAlignment="Left" Grid.ColumnSpan="2" Grid.Row="10" VerticalAlignment="Top" Margin="91,10,0,0" MouseLeftButtonDown="cbDeleteSetting_MouseLeftButtonDown" Cursor="Hand"/>
+
+        <!--Small Checkboxes >>>>>-->
+        <!--Checkboxes >>>>>-->
+        <!--btnAddUserGroup-->
+        <Border Style="{StaticResource ButtonBorder}" x:Name="btnAddUserGroupBorder" Grid.Column="6" HorizontalAlignment="Left" Grid.Row="8" VerticalAlignment="Center" >
+            <Button Style="{StaticResource Button}" FontSize="10" x:Name="btnAddUserGroup" Content="ایجاد گروه کاربری" TabIndex="7" Width="85" Height="40" Click="btnAddUserGroup_Click"/>
+        </Border>
+        <!--btnAddUserGroup-->
+
+        <!--نمایش کاربران-->
+        <Border Style="{StaticResource DataGridBorder}" Grid.Column="7" Grid.ColumnSpan="5" Grid.Row="5" Grid.RowSpan="6"  Margin="0,15,20,0">
+            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvUserGroups" TabIndex="6" ContextMenuOpening="dgvUserGroups_ContextMenuOpening">
+                <DataGrid.ContextMenu>
+                    <ContextMenu Style="{StaticResource ContextMenu}">
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miEditUserGroup" Header="ویرایش گروه کاربری" Click="miEditUserGroup_Click">
+                            <MenuItem.Icon>
+                                <Image Source="/Images/Edit.png"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </Border>
+        <!--نمایش کاربران-->
+        <!--مدیریت گروه های کاربری-->
+        <!--منوی پایین-->
+        <Image Style="{StaticResource BackToHomeImage}" x:Name="BackToHome" MouseLeftButtonDown="BackToHome_MouseLeftButtonDown" Grid.Column="11" Margin="37,45,12,15" Grid.Row="10" Grid.RowSpan="2"/>
+        <!--منوی پایین-->
+
+    </Grid>
+</Window>
