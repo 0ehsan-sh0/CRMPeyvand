@@ -39,7 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BehComponents">
-      <HintPath>..\..\BehComponents.dll</HintPath>
+      <HintPath>..\libs\BehComponents.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
@@ -48,7 +48,7 @@
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="FoxLearn.License">
-      <HintPath>..\..\CRMFinalProject\PersetionLayerCRM\bin\Debug\FoxLearn.License.dll</HintPath>
+      <HintPath>..\libs\FoxLearn.License.dll</HintPath>
     </Reference>
     <Reference Include="HandyControl, Version=3.4.0.0, Culture=neutral, PublicKeyToken=45be8712787a1e5b, processorArchitecture=MSIL">
       <HintPath>..\packages\HandyControls.3.4.4\lib\net472\HandyControl.dll</HintPath>
