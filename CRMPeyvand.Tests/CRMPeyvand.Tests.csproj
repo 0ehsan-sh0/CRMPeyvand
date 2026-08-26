@@ -19,4 +19,8 @@
     <ProjectReference Include="..\BLL\BLL.csproj" />
     <ProjectReference Include="..\DAL\DAL.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CRMPeyvand\PersianCulture.cs" Link="PersianCulture.cs" />
+  </ItemGroup>
 </Project>
