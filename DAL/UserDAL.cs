@@ -44,7 +44,8 @@ namespace DAL
                 user1.UserGroup = db.UserGroups.Find(user.UserGroup.id);
                 user1.Name = user.Name;
                 user1.UserName = user.UserName;
-                user1.Password = user.Password;
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                    user1.Password = user.Password;
                 user1.Picture = user.Picture;
                 db.SaveChanges();
                 return "اطلاعات با موفقیت ویرایش شد";
@@ -90,9 +91,9 @@ namespace DAL
         {
             return db.Users.Where(i => i.DeleteStatus == false).Select(i => i.UserName).ToList();
         }
-        public User Login(string UserName, string Password)
+        public User FindByUserName(string UserName)
         {
-            return db.Users.Include("UserGroup").Where(i => i.UserName == UserName && i.Password == Password).SingleOrDefault();
+            return db.Users.Include("UserGroup").FirstOrDefault(i => i.UserName == UserName && !i.DeleteStatus);
         }
         public bool Access(User user, string Section, int number)
         {
