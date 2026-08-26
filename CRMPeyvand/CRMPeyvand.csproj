@@ -47,9 +47,6 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="FoxLearn.License">
-      <HintPath>..\libs\FoxLearn.License.dll</HintPath>
-    </Reference>
     <Reference Include="HandyControl, Version=3.4.0.0, Culture=neutral, PublicKeyToken=45be8712787a1e5b, processorArchitecture=MSIL">
       <HintPath>..\packages\HandyControls.3.4.4\lib\net472\HandyControl.dll</HintPath>
     </Reference>
@@ -131,9 +128,6 @@
     <Compile Include="DataBaseForm.xaml.cs">
       <DependentUpon>DataBaseForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LisenceForm.xaml.cs">
-      <DependentUpon>LisenceForm.xaml</DependentUpon>
-    </Compile>
     <Compile Include="LoginForm.xaml.cs">
       <DependentUpon>LoginForm.xaml</DependentUpon>
     </Compile>
@@ -195,10 +189,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="InvoiceForm.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LisenceForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
