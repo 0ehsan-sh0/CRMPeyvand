@@ -13,8 +13,7 @@ namespace BLL
         public static string Hash(string password)
         {
             byte[] salt = new byte[SaltSizeBytes];
-            using (var rng = new RNGCryptoServiceProvider())
-                rng.GetBytes(salt);
+            RandomNumberGenerator.Fill(salt);
             return Encode(password, salt, Iterations);
         }
 
@@ -41,13 +40,10 @@ namespace BLL
 
         private static string Encode(string password, byte[] salt, int iterations)
         {
-            using (var derive = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
-            {
-                byte[] key = derive.GetBytes(KeySizeBytes);
-                return Prefix + ":" + iterations + ":"
-                     + Convert.ToBase64String(salt) + ":"
-                     + Convert.ToBase64String(key);
-            }
+            byte[] key = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, KeySizeBytes);
+            return Prefix + ":" + iterations + ":"
+                 + Convert.ToBase64String(salt) + ":"
+                 + Convert.ToBase64String(key);
         }
 
         private static bool SlowEquals(string left, string right)
