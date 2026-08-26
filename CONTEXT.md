@@ -54,6 +54,10 @@ A kind of action on a Section: View, Create, Edit, Delete.
 Permission for one User Group to perform one Operation within one Section.
 _Avoid_: UserAccessRole (legacy shape)
 
+**First Run**:
+The state of the app before any User exists; on First Run the app demands creating the first User instead of showing login.
+_Avoid_: Activation, License (retired legacy concepts)
+
 ### Work Tracking & Messaging
 
 **Activity**:
