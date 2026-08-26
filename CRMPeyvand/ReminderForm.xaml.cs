@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش یادآور ها", 2))
+            if (!AccessGuard.Can(u, Section.Reminders, Operation.Create))
             {
                 btnAddReminder.IsEnabled = false;
                 Add = false;
@@ -46,7 +47,7 @@ namespace CRMPeyvand
                 btnAddReminder.IsEnabled = true;
                 Add = true;
             }
-            if (!Ubll.Access(u, "بخش یادآور ها", 3))
+            if (!AccessGuard.Can(u, Section.Reminders, Operation.Edit))
             {
                 miEdit.IsEnabled = false;
             }
@@ -54,7 +55,7 @@ namespace CRMPeyvand
             {
                 miEdit.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش یادآور ها", 4))
+            if (!AccessGuard.Can(u, Section.Reminders, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
             }

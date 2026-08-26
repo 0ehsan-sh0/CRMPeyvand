@@ -16,7 +16,14 @@ namespace DAL
         {
             try
             {
+                var grants = userGroup.AccessGrants ?? new List<AccessGrant>();
+                userGroup.AccessGrants = new List<AccessGrant>();
                 db.UserGroups.Add(userGroup);
+                foreach (var grant in grants)
+                {
+                    grant.UserGroup = userGroup;
+                    userGroup.AccessGrants.Add(grant);
+                }
                 db.SaveChanges();
                 return "ثبت گروه کاربری با موفقیت انجام شد";
             }
@@ -28,7 +35,7 @@ namespace DAL
         }
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)  Title AS [نام گروه کاربری]\r\nFROM          dbo.UserGroups where (dbo.UserGroups.Title <> N'مدیریت') ORDER BY id DESC";
+            string Query = "SELECT   TOP (1000)  Title AS [نام گروه کاربری]\r\nFROM          dbo.UserGroups where (dbo.UserGroups.IsBuiltIn = 0) ORDER BY id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
@@ -37,26 +44,25 @@ namespace DAL
             sqlAdapter.Fill(dataset);
             return dataset.Tables[0];
         }
-        public string Update(string title, List<UserAccessRole> uar)
+        public void Update(int groupId, string title, List<AccessGrant> grants)
         {
-            try
+            using (var db = new DB())
             {
-                UserGroup ug = db.UserGroups.Include("UserAccessRoles").Where(g => g.Title == title).FirstOrDefault();
-                foreach (var item in uar.ToList())
-                {
-                    UserAccessRole q = db.UserAccessRoles.Find(item.id);
-                    q.CanEnter = item.CanEnter;
-                    q.CanDelete = item.CanDelete;
-                    q.CanUpdate = item.CanUpdate;
-                    q.CanCreate = item.CanCreate;
-                    ug.UserAccessRoles.Add(q);
-                }
+                var group = db.UserGroups.Include("AccessGrants")
+                                         .SingleOrDefault(g => g.id == groupId);
+                if (group == null || group.IsBuiltIn)
+                    return;
+
+                group.Title = title;
+                db.AccessGrants.RemoveRange(group.AccessGrants.ToList());
+                foreach (var grant in grants)
+                    db.AccessGrants.Add(new AccessGrant
+                    {
+                        Section = grant.Section,
+                        Operation = grant.Operation,
+                        UserGroup = group,
+                    });
                 db.SaveChanges();
-                return "ویرایش با موفیقت انجام شد";
-            }
-            catch (Exception e)
-            {
-                return "ثبت اطلاعات با مشکلی روبرو شد لطفا برسی کنید:\n" + e.Message;
             }
         }
 
@@ -66,7 +72,7 @@ namespace DAL
         }
         public List<string> ReadTitles()
         {
-            return db.UserGroups.Where(i => i.Title != "مدیریت").Select(x => x.Title).ToList();
+            return db.UserGroups.Where(i => !i.IsBuiltIn).Select(x => x.Title).ToList();
         }
         public bool ReadByTitle(string Title)
         {
@@ -75,12 +81,12 @@ namespace DAL
 
         public UserGroup ReadBySingelTitle(string title)
         {
-            return db.UserGroups.Include("UserAccessRoles").Where(x => x.Title == title).SingleOrDefault();
+            return db.UserGroups.Include("AccessGrants").Where(x => x.Title == title).SingleOrDefault();
         }
-        public UserGroup AdminUserGruop()
+        public static UserGroup AdminUserGroup()
         {
-            var q = db.UserGroups.FirstOrDefault();
-            return q;
+            using (var db = new DB())
+                return db.UserGroups.SingleOrDefault(g => g.IsBuiltIn);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace DAL
         public DbSet<User> Users { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
-        public DbSet<UserAccessRole> UserAccessRoles { get; set; }
+        public DbSet<AccessGrant> AccessGrants { get; set; }
         public DbSet<OffCode> OffCodes { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<MessagePanel> MessagePanels { get; set; }

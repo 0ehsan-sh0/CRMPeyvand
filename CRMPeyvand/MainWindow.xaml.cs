@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using BE;
+using Section = BE.Section;
 using BLL;
 
 namespace CRMPeyvand
@@ -51,7 +52,7 @@ namespace CRMPeyvand
             #region CanEnter
             if (loggedInUser != null)
             {
-                if (!Ubll.Access(loggedInUser, "بخش مشتریان", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Customers, Operation.View))
                 {
                     EnterC = false;
                     CustomerFormIcon.IsEnabled = false;
@@ -68,7 +69,7 @@ namespace CRMPeyvand
                     CustomerFormLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش کالاها", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.CatalogItems, Operation.View))
                 {
                     EnterP = false;
                     ProductIcon.IsEnabled = false;
@@ -85,7 +86,7 @@ namespace CRMPeyvand
                     ProductLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش فاکتورها", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Invoices, Operation.View))
                 {
                     EnterF = false;
                     InvoiceIcon.IsEnabled = false;
@@ -102,7 +103,7 @@ namespace CRMPeyvand
                     InvoiceLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش فعالیت ها", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Activities, Operation.View))
                 {
                     EnterA = false;
                     ActivitiesIcon.IsEnabled = false;
@@ -119,7 +120,7 @@ namespace CRMPeyvand
                     ActivitiesLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش یادآور ها", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Reminders, Operation.View))
                 {
                     EnterR = false;
                     ReminderFormIcon.IsEnabled = false;
@@ -136,7 +137,7 @@ namespace CRMPeyvand
                     ReminderFormLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش کاربران", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Users, Operation.View))
                 {
                     EnterU = false;
                     UserIcon.IsEnabled = false;
@@ -153,7 +154,7 @@ namespace CRMPeyvand
                     UserLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "پنل پیامکی", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.SmsPanel, Operation.View))
                 {
                     EnterM = false;
                     SMSIcon.IsEnabled = false;
@@ -170,7 +171,7 @@ namespace CRMPeyvand
                     SMSLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش گزارشات", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Reports, Operation.View))
                 {
                     EnterG = false;
                     ReportIcon.IsEnabled = false;
@@ -187,7 +188,7 @@ namespace CRMPeyvand
                     ReportLabel.Opacity = 1;
                 }
 
-                if (!Ubll.Access(loggedInUser, "بخش تنظیمات", 1))
+                if (!AccessGuard.Can(loggedInUser, Section.Settings, Operation.View))
                 {
                     EnterS = false;
                     SettingIcon.IsEnabled = false;

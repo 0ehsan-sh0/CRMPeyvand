@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessGrant.cs" />
     <Compile Include="Activity.cs" />
     <Compile Include="ActivityCategory.cs" />
     <Compile Include="CatalogItem.cs" />
@@ -52,11 +53,12 @@
     <Compile Include="Message.cs" />
     <Compile Include="MessagePanel.cs" />
     <Compile Include="OffCode.cs" />
+    <Compile Include="Operation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RememberMe.cs" />
     <Compile Include="Reminder.cs" />
+    <Compile Include="Section.cs" />
     <Compile Include="User.cs" />
-    <Compile Include="UserAccessRole.cs" />
     <Compile Include="UserGroup.cs" />
   </ItemGroup>
   <ItemGroup>

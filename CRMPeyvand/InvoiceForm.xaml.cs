@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using Stimulsoft.Report;
 using System;
@@ -124,7 +125,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش فاکتورها", 2))
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Create))
             {
                 btnAdd.IsEnabled = false;
                 Print.IsEnabled = false;
@@ -134,13 +135,23 @@ namespace CRMPeyvand
                 btnAdd.IsEnabled = true;
                 Print.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش فاکتورها", 4))
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Edit))
+            {
+                miDone.IsEnabled = false;
+            }
+            else
+            {
+                miDone.IsEnabled = true;
+            }
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
+                miDeleteInvoice.IsEnabled = false;
             }
             else
             {
                 miDelete.IsEnabled = true;
+                miDeleteInvoice.IsEnabled = true;
             }
 
             txtCustomer.ItemsSource = Cbll.ReadPhoneNumbers();
@@ -233,6 +244,10 @@ namespace CRMPeyvand
 
         private void miDeleteInvoice_Click(object sender, RoutedEventArgs e)
         {
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
+            {
+                return;
+            }
             MessageBoxResult DeleteConfirmation = MessageBox.Show("آیا از عملیات حذف مطمعن هستید ؟", "هشدار", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {

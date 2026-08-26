@@ -44,6 +44,10 @@ An employee account that logs into the CRM.
 **User Group**:
 A named group of Users; Access Grants attach to the group and apply to its members.
 
+**Built-in Administrator Group**:
+The User Group created automatically on First Run holding every Access Grant; hidden from lists and protected from edit and deletion in the UI.
+_Avoid_: مدیریت title convention, superuser
+
 **Section**:
 A functional area of the app that access is granted on (e.g., Customers, Invoices, Users).
 
@@ -55,7 +59,7 @@ Permission for one User Group to perform one Operation within one Section.
 _Avoid_: UserAccessRole (legacy shape)
 
 **First Run**:
-The state of the app before any User exists; on First Run the app demands creating the first User instead of showing login.
+The state of the app before any User exists; on First Run the app demands creating the first User and seeds the Built-in Administrator Group instead of showing login.
 _Avoid_: Activation, License (retired legacy concepts)
 
 ### Work Tracking & Messaging

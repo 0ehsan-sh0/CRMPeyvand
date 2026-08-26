@@ -44,7 +44,8 @@ namespace DAL
                 user1.UserGroup = db.UserGroups.Find(user.UserGroup.id);
                 user1.Name = user.Name;
                 user1.UserName = user.UserName;
-                user1.Password = user.Password;
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                    user1.Password = user.Password;
                 user1.Picture = user.Picture;
                 db.SaveChanges();
                 return "اطلاعات با موفقیت ویرایش شد";
@@ -60,7 +61,7 @@ namespace DAL
         }
         public DataTable Read()
         {
-            string Query = "SELECT    TOP (1000)  dbo.Users.Name AS نام, dbo.Users.UserName AS [نام کاربری], dbo.UserGroups.Title AS [گروه کاربری], dbo.Users.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Users INNER JOIN\r\n                      dbo.UserGroups ON dbo.Users.UserGroup_id = dbo.UserGroups.id\r\nWHERE      (dbo.Users.DeleteStatus = 0) and (dbo.UserGroups.Title <> N'مدیریت') ORDER BY dbo.Users.id DESC";
+            string Query = "SELECT    TOP (1000)  dbo.Users.Name AS نام, dbo.Users.UserName AS [نام کاربری], dbo.UserGroups.Title AS [گروه کاربری], dbo.Users.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Users INNER JOIN\r\n                      dbo.UserGroups ON dbo.Users.UserGroup_id = dbo.UserGroups.id\r\nWHERE      (dbo.Users.DeleteStatus = 0) and (dbo.UserGroups.IsBuiltIn = 0) ORDER BY dbo.Users.id DESC";
             string connectionStringText = DB.ConnectionString;
             SqlConnection connection = new SqlConnection(connectionStringText);
             var sqlAdapter = new SqlDataAdapter(Query, connection);
@@ -90,31 +91,9 @@ namespace DAL
         {
             return db.Users.Where(i => i.DeleteStatus == false).Select(i => i.UserName).ToList();
         }
-        public User Login(string UserName, string Password)
+        public User FindByUserName(string UserName)
         {
-            return db.Users.Include("UserGroup").Where(i => i.UserName == UserName && i.Password == Password).SingleOrDefault();
-        }
-        public bool Access(User user, string Section, int number)
-        {
-            //Accecc Rols In Enter Software
-            UserGroup ug = db.UserGroups.Include("UserAccessRoles").Where(i => i.id == user.UserGroup.id).FirstOrDefault();
-            UserAccessRole role = ug.UserAccessRoles.Where(x => x.Section == Section).FirstOrDefault();
-            if (number == 1)
-            {
-                return role.CanEnter;
-            }
-            else if (number == 2)
-            {
-                return role.CanCreate;
-            }
-            else if (number == 3)
-            {
-                return role.CanUpdate;
-            }
-            else
-            {
-                return role.CanDelete;
-            }
+            return db.Users.Include("UserGroup").FirstOrDefault(i => i.UserName == UserName && !i.DeleteStatus);
         }
         public List<User> ReadInvoicesList()
         {

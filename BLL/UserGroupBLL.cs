@@ -43,13 +43,13 @@ namespace BLL
         {
             return dal.ReadBySingelTitle(title);
         }
-        public string Update(string title, List<UserAccessRole> uar)
+        public void Update(int groupId, string title, List<AccessGrant> grants)
         {
-            return dal.Update(title, uar);
+            dal.Update(groupId, title, grants);
         }
-        public UserGroup AdminUserGruop()
+        public UserGroup AdminUserGroup()
         {
-            return dal.AdminUserGruop();
+            return UserGroupDAL.AdminUserGroup();
         }
     }
 }

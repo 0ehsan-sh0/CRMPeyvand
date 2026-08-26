@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش مشتریان", 2))
+            if (!AccessGuard.Can(u, Section.Customers, Operation.Create))
             {
                 btnAddProduct.IsEnabled = false;
             }
@@ -49,7 +50,7 @@ namespace CRMPeyvand
             {
                 btnAddProduct.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش مشتریان", 3))
+            if (!AccessGuard.Can(u, Section.Customers, Operation.Edit))
             {
                 EditCustomerMI.IsEnabled = false;
             }
@@ -57,7 +58,7 @@ namespace CRMPeyvand
             {
                 EditCustomerMI.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش مشتریان", 4))
+            if (!AccessGuard.Can(u, Section.Customers, Operation.Delete))
             {
                 DeleteCustomer.IsEnabled = false;
             }
@@ -93,7 +94,7 @@ namespace CRMPeyvand
                     MessageBox.Show(bll.Update(c, customer.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     PublicMethods.dgvFiller(dgvCustomer, bll.Read());
                     btnAddProduct.Content = "ثبت مشتری";
-                    if (!Ubll.Access(u, "بخش مشتریان", 2))
+                    if (!AccessGuard.Can(u, Section.Customers, Operation.Create))
                     {
                         btnAddProduct.IsEnabled = false;
                     }

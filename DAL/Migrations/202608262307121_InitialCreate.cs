@@ -8,6 +8,46 @@ namespace DAL.Migrations
         public override void Up()
         {
             CreateTable(
+                "dbo.AccessGrants",
+                c => new
+                    {
+                        id = c.Int(nullable: false, identity: true),
+                        Section = c.Int(nullable: false),
+                        Operation = c.Int(nullable: false),
+                        UserGroup_id = c.Int(),
+                    })
+                .PrimaryKey(t => t.id)
+                .ForeignKey("dbo.UserGroups", t => t.UserGroup_id)
+                .Index(t => t.UserGroup_id);
+            
+            CreateTable(
+                "dbo.UserGroups",
+                c => new
+                    {
+                        id = c.Int(nullable: false, identity: true),
+                        Title = c.String(),
+                        IsBuiltIn = c.Boolean(nullable: false),
+                    })
+                .PrimaryKey(t => t.id);
+            
+            CreateTable(
+                "dbo.Users",
+                c => new
+                    {
+                        id = c.Int(nullable: false, identity: true),
+                        Name = c.String(),
+                        UserName = c.String(),
+                        Password = c.String(),
+                        Picture = c.String(),
+                        RegDate = c.DateTime(nullable: false),
+                        DeleteStatus = c.Boolean(nullable: false),
+                        UserGroup_id = c.Int(),
+                    })
+                .PrimaryKey(t => t.id)
+                .ForeignKey("dbo.UserGroups", t => t.UserGroup_id)
+                .Index(t => t.UserGroup_id);
+            
+            CreateTable(
                 "dbo.Activities",
                 c => new
                     {
@@ -100,23 +140,6 @@ namespace DAL.Migrations
                 .PrimaryKey(t => t.Id);
             
             CreateTable(
-                "dbo.Users",
-                c => new
-                    {
-                        id = c.Int(nullable: false, identity: true),
-                        Name = c.String(),
-                        UserName = c.String(),
-                        Password = c.String(),
-                        Picture = c.String(),
-                        RegDate = c.DateTime(nullable: false),
-                        DeleteStatus = c.Boolean(nullable: false),
-                        UserGroup_id = c.Int(),
-                    })
-                .PrimaryKey(t => t.id)
-                .ForeignKey("dbo.UserGroups", t => t.UserGroup_id)
-                .Index(t => t.UserGroup_id);
-            
-            CreateTable(
                 "dbo.Reminders",
                 c => new
                     {
@@ -132,31 +155,6 @@ namespace DAL.Migrations
                 .PrimaryKey(t => t.id)
                 .ForeignKey("dbo.Users", t => t.User_id)
                 .Index(t => t.User_id);
-            
-            CreateTable(
-                "dbo.UserGroups",
-                c => new
-                    {
-                        id = c.Int(nullable: false, identity: true),
-                        Title = c.String(),
-                    })
-                .PrimaryKey(t => t.id);
-            
-            CreateTable(
-                "dbo.UserAccessRoles",
-                c => new
-                    {
-                        id = c.Int(nullable: false, identity: true),
-                        Section = c.String(),
-                        CanEnter = c.Boolean(nullable: false),
-                        CanCreate = c.Boolean(nullable: false),
-                        CanUpdate = c.Boolean(nullable: false),
-                        CanDelete = c.Boolean(nullable: false),
-                        UserGroup_id = c.Int(),
-                    })
-                .PrimaryKey(t => t.id)
-                .ForeignKey("dbo.UserGroups", t => t.UserGroup_id)
-                .Index(t => t.UserGroup_id);
             
             CreateTable(
                 "dbo.MessagePanels",
@@ -213,18 +211,16 @@ namespace DAL.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.Users", "UserGroup_id", "dbo.UserGroups");
-            DropForeignKey("dbo.UserAccessRoles", "UserGroup_id", "dbo.UserGroups");
             DropForeignKey("dbo.Reminders", "User_id", "dbo.Users");
-            DropForeignKey("dbo.Invoices", "User_id", "dbo.Users");
             DropForeignKey("dbo.Activities", "User_id", "dbo.Users");
+            DropForeignKey("dbo.Invoices", "User_id", "dbo.Users");
             DropForeignKey("dbo.InvoiceLines", "InvoiceId", "dbo.Invoices");
             DropForeignKey("dbo.InvoiceLines", "CatalogItemId", "dbo.CatalogItems");
             DropForeignKey("dbo.Invoices", "Customer_id", "dbo.Customers");
             DropForeignKey("dbo.Activities", "Customer_id", "dbo.Customers");
             DropForeignKey("dbo.Activities", "ActivityCategory_id", "dbo.ActivityCategories");
-            DropIndex("dbo.UserAccessRoles", new[] { "UserGroup_id" });
+            DropForeignKey("dbo.AccessGrants", "UserGroup_id", "dbo.UserGroups");
             DropIndex("dbo.Reminders", new[] { "User_id" });
-            DropIndex("dbo.Users", new[] { "UserGroup_id" });
             DropIndex("dbo.InvoiceLines", new[] { "CatalogItemId" });
             DropIndex("dbo.InvoiceLines", new[] { "InvoiceId" });
             DropIndex("dbo.Invoices", new[] { "User_id" });
@@ -232,20 +228,22 @@ namespace DAL.Migrations
             DropIndex("dbo.Activities", new[] { "User_id" });
             DropIndex("dbo.Activities", new[] { "Customer_id" });
             DropIndex("dbo.Activities", new[] { "ActivityCategory_id" });
+            DropIndex("dbo.Users", new[] { "UserGroup_id" });
+            DropIndex("dbo.AccessGrants", new[] { "UserGroup_id" });
             DropTable("dbo.RememberMes");
             DropTable("dbo.OffCodes");
             DropTable("dbo.Messages");
             DropTable("dbo.MessagePanels");
-            DropTable("dbo.UserAccessRoles");
-            DropTable("dbo.UserGroups");
             DropTable("dbo.Reminders");
-            DropTable("dbo.Users");
             DropTable("dbo.CatalogItems");
             DropTable("dbo.InvoiceLines");
             DropTable("dbo.Invoices");
             DropTable("dbo.Customers");
             DropTable("dbo.ActivityCategories");
             DropTable("dbo.Activities");
+            DropTable("dbo.Users");
+            DropTable("dbo.UserGroups");
+            DropTable("dbo.AccessGrants");
         }
     }
 }

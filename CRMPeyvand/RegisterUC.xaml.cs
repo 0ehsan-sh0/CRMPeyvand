@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -33,34 +34,23 @@ namespace CRMPeyvand
         UserGroupBLL UGbll = new UserGroupBLL();
         UserBLL uBLL = new UserBLL();
 
-        UserAccessRole FillAccessRole(string Section, bool CanEnter, bool CanCreate, bool CanUpdate, bool CanDelete)
-        {
-            UserAccessRole role = new UserAccessRole();
-            role.Section = Section;
-            role.CanEnter = CanEnter;
-            role.CanCreate = CanCreate;
-            role.CanUpdate = CanUpdate;
-            role.CanDelete = CanDelete;
-            return role;
-
-        }
         UserGroup CreateAdminGroup()
         {
-            UserGroup userGroup = new UserGroup();
-            userGroup.Title = "مدیریت";
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش مشتریان", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش کالاها", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش فاکتورها", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش فعالیت ها", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش یادآور ها", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش کاربران", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("پنل پیامکی", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش گزارشات", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش تنظیمات", true, true, true, true));
-            userGroup.UserAccessRoles.Add(FillAccessRole("بخش تخفیف ها", true, true, true, true));
-            UGbll.Create(userGroup);
+            var grants = Enum.GetValues(typeof(Section)).Cast<Section>()
+                .SelectMany(s => Enum.GetValues(typeof(Operation)).Cast<Operation>()
+                    .Select(o => new AccessGrant { Section = s, Operation = o }))
+                .ToList();
 
-            return UGbll.ReadBySingelTitle(userGroup.Title);
+            var admin = new UserGroup
+            {
+                Title = "مدیریت",           // display text only — identity is IsBuiltIn
+                IsBuiltIn = true,
+                AccessGrants = grants,
+            };
+
+            UGbll.Create(admin);
+
+            return UGbll.AdminUserGroup();
         }
 
         string SavePic(string UserName)

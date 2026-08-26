@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using Stimulsoft.Report;
 using System;
 using System.Collections.Generic;
@@ -29,10 +30,38 @@ namespace CRMPeyvand
             InitializeComponent();
         }
         OffCodeBLL bll = new OffCodeBLL();
+        UserBLL Ubll = new UserBLL();
+        User u = new User();
         bool isPrice1 = false;
         OffCode offcodeEdit = new OffCode();
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            MainWindow w = (MainWindow)Application.Current.MainWindow;
+            u = w.loggedInUser;
+            if (!AccessGuard.Can(u, Section.Discounts, Operation.Create))
+            {
+                btnAdd.IsEnabled = false;
+            }
+            else
+            {
+                btnAdd.IsEnabled = true;
+            }
+            if (!AccessGuard.Can(u, Section.Discounts, Operation.Edit))
+            {
+                miEdit.IsEnabled = false;
+            }
+            else
+            {
+                miEdit.IsEnabled = true;
+            }
+            if (!AccessGuard.Can(u, Section.Discounts, Operation.Delete))
+            {
+                miDelete.IsEnabled = false;
+            }
+            else
+            {
+                miDelete.IsEnabled = true;
+            }
             IsCheckedImage.Visibility = Visibility.Visible;
             txtPrice.IsEnabled = false;
             DatePicker.SelectedDate = null;

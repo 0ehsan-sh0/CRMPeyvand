@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,7 +107,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش تنظیمات", 2))
+            if (!AccessGuard.Can(u, Section.Settings, Operation.Create))
             {
                 Grid grid = this.FindName("MainGrid") as Grid;
                 for (int i = grid.Children.Count - 1; i >= 0; i--)
