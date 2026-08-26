@@ -129,7 +129,7 @@ CRMPeyvand (Solution)
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/ehsansh/CRMPeyvand.git
+git clone https://github.com/0ehsan-sh0/CRMPeyvand.git
 cd CRMPeyvand
 ```
 
