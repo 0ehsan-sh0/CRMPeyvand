@@ -117,16 +117,20 @@ namespace CRMPeyvand
                         u.Password = txtPass.Password;
                         u.RegDate = DateTime.Now;
                         u.Picture = SavePic(txtUserName.Text);
-                        MessageBox.Show(uBLL.Create(u), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                        this.Visibility = Visibility.Hidden;
-                        LoginUC luc = new LoginUC();
-                        Grid.SetRow(luc, 1);
-                        Grid.SetColumn(luc, 0);
-                        Grid.SetColumnSpan(luc, 12);
-                        Grid.SetRowSpan(luc, 12);
-                        luc.HorizontalAlignment = HorizontalAlignment.Center;
-                        luc.VerticalAlignment = VerticalAlignment.Center;
-                        ((Panel)this.Parent).Children.Add(luc);
+                        string result = uBLL.Create(u);
+                        MessageBox.Show(result, "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                        if (result == "ثبت اطلاعات با موفقیت انجام شد")
+                        {
+                            this.Visibility = Visibility.Hidden;
+                            LoginUC luc = new LoginUC();
+                            Grid.SetRow(luc, 1);
+                            Grid.SetColumn(luc, 0);
+                            Grid.SetColumnSpan(luc, 12);
+                            Grid.SetRowSpan(luc, 12);
+                            luc.HorizontalAlignment = HorizontalAlignment.Center;
+                            luc.VerticalAlignment = VerticalAlignment.Center;
+                            ((Panel)this.Parent).Children.Add(luc);
+                        }
                     }
                     else
                     {
