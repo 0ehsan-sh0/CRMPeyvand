@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +43,7 @@ namespace CRMPeyvand
                 u = bll.Login(txtUserName.Text, txtPass.Password);
                 if (u != null)
                 {
-                    LoginForm loginForm = ((LoginForm)Application.Current.Windows.OfType<Window>().Where(i => i.IsActive).FirstOrDefault());
+                    var loginForm = Window.GetWindow(this) as LoginForm;
                     if (IsCheckedImage.Visibility == Visibility.Visible)
                     {
                         RememberMe rememberMe = new RememberMe();
@@ -59,13 +59,16 @@ namespace CRMPeyvand
                             rememberMe.IsRemembered = false;
                             RMbll.Create(rememberMe);
                         }
-                        
                     }
-                    loginForm.Close();
+
                     MainWindow w = (MainWindow)Application.Current.MainWindow;
-                    w.loggedInUser = u;
-                    w.LoadPage();
-                    w.Visibility = Visibility.Visible;
+                    if (w != null)
+                    {
+                        w.loggedInUser = u;
+                        w.LoadPage();
+                        w.Visibility = Visibility.Visible;
+                    }
+                    loginForm?.Close();
                     MessageBox.Show("به نرم افزار خوش آمدید", "خوش آمد گویی", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else MessageBox.Show("نام کاربری یا رمز عبور اشتباه است", "اخطار", MessageBoxButton.OK, MessageBoxImage.Error);

@@ -228,44 +228,93 @@ namespace CRMPeyvand
         {
             if (loggedInUser != null)
             {
-                lblUsername.Content = loggedInUser.Name;
-                UserImage.Source = new BitmapImage(new Uri(loggedInUser.Picture));
-                TodaySells.Content = Dbll.SellsCountToday();
-                lblCustomersCount.Content = Dbll.CustomersCount();
-                lblCountSellsWeek.Content = Dbll.SellsCountWeek();
-                lblReminderCount.Content = Dbll.UserReminderCount(loggedInUser);
+                lblUsername.Content = loggedInUser.Name ?? "";
+
+                // Safe user avatar loading with fallback
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(loggedInUser.Picture) && System.IO.File.Exists(loggedInUser.Picture))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(loggedInUser.Picture, UriKind.RelativeOrAbsolute);
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        UserImage.Source = bitmap;
+                    }
+                    else
+                    {
+                        UserImage.Source = new BitmapImage(new Uri("/Images/User.png", UriKind.RelativeOrAbsolute));
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        UserImage.Source = new BitmapImage(new Uri("/Images/User.png", UriKind.RelativeOrAbsolute));
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                try
+                {
+                    TodaySells.Content = Dbll.SellsCountToday();
+                    lblCustomersCount.Content = Dbll.CustomersCount();
+                    lblCountSellsWeek.Content = Dbll.SellsCountWeek();
+                    lblReminderCount.Content = Dbll.UserReminderCount(loggedInUser);
+                }
+                catch
+                {
+                }
+
                 int a = 0;
                 // Get the Grid from the MainWindow. 
                 Grid grid = this.FindName("MainGrid") as Grid;
 
-                // Loop through all the children of the Grid. 
-                for (int i = grid.Children.Count - 1; i >= 0; i--)
+                if (grid != null)
                 {
-                    // Check if the child is a UserControl. 
-                    if (grid.Children[i] is UserControl)
+                    // Loop through all the children of the Grid. 
+                    for (int i = grid.Children.Count - 1; i >= 0; i--)
                     {
-                        // Remove the UserControl from the Grid. 
-                        grid.Children.RemoveAt(i);
+                        // Check if the child is a ReminderUC. 
+                        if (grid.Children[i] is ReminderUC)
+                        {
+                            grid.Children.RemoveAt(i);
+                        }
                     }
                 }
-                foreach (var item in Dbll.GetUserReminder(loggedInUser))
+
+                try
                 {
-                    if (a < 5)
+                    var userReminders = Dbll.GetUserReminder(loggedInUser);
+                    if (userReminders != null)
                     {
-                        //For UoseControl Reminder
-                        ReminderUC uC_Reminder = new ReminderUC();
-                        uC_Reminder.txtReminderTitle.Text = item.Title;
-                        uC_Reminder.txtReminderInfo.Text = item.Info;
-                        uC_Reminder.ReminderID.Text = item.id.ToString();
-                        // Add in Children
-                        Grid.SetRow(uC_Reminder, 6 + a);
-                        Grid.SetColumn(uC_Reminder, 0);
-                        Grid.SetColumnSpan(uC_Reminder, 10);
-                        uC_Reminder.Width = 1050;
-                        MainGrid.Children.Add(uC_Reminder);
-                        a++;
+                        foreach (var item in userReminders)
+                        {
+                            if (a < 5)
+                            {
+                                //For UserControl Reminder
+                                ReminderUC uC_Reminder = new ReminderUC();
+                                uC_Reminder.txtReminderTitle.Text = item.Title;
+                                uC_Reminder.txtReminderInfo.Text = item.Info;
+                                uC_Reminder.ReminderID.Text = item.id.ToString();
+                                // Add in Children
+                                Grid.SetRow(uC_Reminder, 6 + a);
+                                Grid.SetColumn(uC_Reminder, 0);
+                                Grid.SetColumnSpan(uC_Reminder, 10);
+                                uC_Reminder.Width = 1050;
+                                MainGrid.Children.Add(uC_Reminder);
+                                a++;
+                            }
+                        }
                     }
                 }
+                catch
+                {
+                }
+
                 if (a == 0)
                 {
                     lblReminderStatus.Content = "...در حال حاضر شما یادآوری برای امروز ندارید";

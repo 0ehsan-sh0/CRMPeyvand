@@ -11,67 +11,106 @@ namespace DAL
 {
     public class DashboardDAL
     {
-        DB db = new DB();
         public string CustomersCount()
         {
-            return db.Customers.Where(i => i.DeleteStatus == false).Count().ToString();
+            try
+            {
+                using (var db = new DB())
+                {
+                    return db.Customers.Count(i => i.DeleteStatus == false).ToString();
+                }
+            }
+            catch
+            {
+                return "0";
+            }
         }
-
 
         public string SellsCountToday()
         {
-            int sum = 0;
-            foreach (var item in db.Invoices.Where(i => i.DeleteStatus == false))
+            try
             {
-                if (item.RegDate.Date == DateTime.Today)
+                using (var db = new DB())
                 {
-                    sum = sum + 1;
+                    DateTime today = DateTime.Today;
+                    return db.Invoices.Count(i => i.DeleteStatus == false && System.Data.Entity.DbFunctions.TruncateTime(i.RegDate) == today).ToString();
                 }
             }
-            return sum.ToString();
+            catch
+            {
+                return "0";
+            }
         }
+
         public string SellsCountWeek()
         {
-            string queryString = "SELECT COUNT(*) \r\nFROM Invoices \r\nWHERE (DeleteStatus = 0) AND Invoices.RegDate BETWEEN DATEADD(WEEK, -1, GETDATE()) AND GETDATE()";
-            string connectionString = DB.ConnectionString;
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                SqlCommand command = new SqlCommand(queryString, connection);
-                connection.Open();
-                int countResult = (int)command.ExecuteScalar();
-                connection.Close();
-                return countResult.ToString();
+                string queryString = "SELECT COUNT(*) FROM Invoices WHERE (DeleteStatus = 0) AND Invoices.RegDate BETWEEN DATEADD(WEEK, -1, GETDATE()) AND GETDATE()";
+                string connectionString = DB.ConnectionString;
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                    object countResult = command.ExecuteScalar();
+                    return countResult != null ? countResult.ToString() : "0";
+                }
             }
-
+            catch
+            {
+                return "0";
+            }
         }
+
         public string UserReminderCount(User u)
         {
-            User q = db.Users.Include("Reminders").Where(i => i.id == u.id).FirstOrDefault();
-            int a = 0;
-            foreach (var item in q.Reminders)
+            if (u == null) return "0";
+            try
             {
-                if (item.RemindDate.Date == DateTime.Today && item.IsReminded == false && item.DeleteStatus == false)
+                using (var db = new DB())
                 {
-                    a++;
+                    DateTime today = DateTime.Today;
+                    return db.Reminders.Count(i => i.User.id == u.id && i.DeleteStatus == false && i.IsReminded == false && System.Data.Entity.DbFunctions.TruncateTime(i.RemindDate) == today).ToString();
                 }
             }
-            return a.ToString();
+            catch
+            {
+                return "0";
+            }
         }
+
         public List<Reminder> GetUserReminder(User user)
         {
-            List<Reminder> reminders = new List<Reminder>();
-            foreach (var item in db.Reminders.Include("User").Where(i => i.User.id == user.id).ToList())
+            if (user == null) return new List<Reminder>();
+            try
             {
-                if (item.RemindDate.Date == DateTime.Today && item.IsReminded == false && item.DeleteStatus == false)
+                using (var db = new DB())
                 {
-                   reminders.Add(item);
+                    DateTime today = DateTime.Today;
+                    return db.Reminders.Include("User")
+                        .Where(i => i.User.id == user.id && i.DeleteStatus == false && i.IsReminded == false && System.Data.Entity.DbFunctions.TruncateTime(i.RemindDate) == today)
+                        .ToList();
                 }
             }
-            return reminders;
+            catch
+            {
+                return new List<Reminder>();
+            }
         }
+
         public bool PanelIsActive()
         {
-            return db.MessagePanels.Count() > 0;
+            try
+            {
+                using (var db = new DB())
+                {
+                    return db.MessagePanels.Any();
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

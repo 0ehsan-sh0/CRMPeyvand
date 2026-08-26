@@ -1,4 +1,4 @@
-﻿using HandyControl.Tools;
+using HandyControl.Tools;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -17,6 +17,14 @@ namespace CRMPeyvand
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            this.ShutdownMode = ShutdownMode.OnMainWindowClose;
+
+            this.DispatcherUnhandledException += (sender, args) =>
+            {
+                MessageBox.Show("خطایی در برنامه رخ داده است:\n" + args.Exception.Message, "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+                args.Handled = true;
+            };
+
             PersianCulture culture = new PersianCulture();
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = culture;
