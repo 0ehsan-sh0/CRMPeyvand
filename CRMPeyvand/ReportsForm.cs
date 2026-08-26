@@ -59,10 +59,21 @@ namespace CRMPeyvand
             public int Count { get; set; }
         }
         
+        private static string GetReportPath(string mrtFileName)
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "Reports", mrtFileName);
+            if (File.Exists(path))
+                return path;
+            string devPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\Reports", mrtFileName));
+            if (File.Exists(devPath))
+                return devPath;
+            return path;
+        }
+
         private void RenderAndShowReport(string mrtFileName)
         {
             StiReport sti = new StiReport();
-            string path = System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\" + mrtFileName);
+            string path = GetReportPath(mrtFileName);
             sti.Load(path);
             string connStr = ConfigurationManager.ConnectionStrings["conStr"]?.ConnectionString;
             if (!string.IsNullOrEmpty(connStr))
@@ -149,7 +160,7 @@ namespace CRMPeyvand
                 }
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
-                sti.Load(Path.GetFullPath(Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\UsersSells.mrt")));
+                sti.Load(GetReportPath("UsersSells.mrt"));
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
@@ -178,7 +189,7 @@ namespace CRMPeyvand
                 }
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
-                sti.Load(Path.GetFullPath(Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\UserActivities.mrt")));
+                sti.Load(GetReportPath("UserActivities.mrt"));
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
@@ -202,7 +213,7 @@ namespace CRMPeyvand
                 }
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
-                sti.Load(Path.GetFullPath(Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\CustomersD.mrt")));
+                sti.Load(GetReportPath("CustomersD.mrt"));
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");

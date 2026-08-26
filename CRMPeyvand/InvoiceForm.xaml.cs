@@ -1,4 +1,4 @@
-﻿using BE;
+using BE;
 using Section = BE.Section;
 using BLL;
 using Stimulsoft.Report;
@@ -45,6 +45,18 @@ namespace CRMPeyvand
         UserBLL Ubll = new UserBLL();
         User u = new User();
         OffCode off = new OffCode();
+
+        private static string GetReportPath(string mrtFileName)
+        {
+            string path = System.IO.Path.Combine(AppContext.BaseDirectory, "Reports", mrtFileName);
+            if (System.IO.File.Exists(path))
+                return path;
+            string devPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, @"..\..\..\Reports", mrtFileName));
+            if (System.IO.File.Exists(devPath))
+                return devPath;
+            return path;
+        }
+
         string countOff()
         {
             if (cbCustomer != null)
@@ -303,7 +315,7 @@ namespace CRMPeyvand
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\InvoicePrint.mrt")));
+                sti.Load(GetReportPath("InvoicePrint.mrt"));
                 sti.Dictionary.Variables["InvoiceNum"].Value = savedInvoice.id.ToString();
                 sti.Dictionary.Variables["Date"].Value = lblDate.Content.ToString();
                 sti.Dictionary.Variables["CustomerName"].Value = lblName.Content.ToString();
