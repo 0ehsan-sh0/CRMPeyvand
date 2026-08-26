@@ -1,4 +1,4 @@
-﻿using BE;
+using BE;
 using Section = BE.Section;
 using BLL;
 using Microsoft.Win32;
@@ -73,7 +73,15 @@ namespace CRMPeyvand
             for (int i = 0; i < AllSections.Length; i++)
                 PermissionGrid.RowDefinitions.Add(NewRow());
 
-            Place(new TextBlock { Text = "بخش", FontWeight = FontWeights.Bold }, 0, 0);
+            Place(new TextBlock
+            {
+                Text = "بخش",
+                FontWeight = FontWeights.Bold,
+                FontSize = 12,
+                FontFamily = new FontFamily("Shabnam FD"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(4, 0, 4, 0)
+            }, 0, 0);
 
             foreach (var op in AllOperations)
             {
@@ -82,7 +90,10 @@ namespace CRMPeyvand
                 {
                     Content = OperationCaption(captured),
                     FontWeight = FontWeights.Bold,
+                    FontSize = 11,
+                    FontFamily = new FontFamily("Shabnam FD"),
                     HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
                 };
                 header.Click += (s, e) => SetColumn(captured, header.IsChecked == true);
                 Place(header, 0, Array.IndexOf(AllOperations, captured) + 1);
@@ -94,12 +105,23 @@ namespace CRMPeyvand
                 string caption;
                 if (!SectionCaptions.TryGetValue(section, out caption))
                     caption = section.ToString();
-                Place(new TextBlock { Text = caption }, r + 1, 0);
+                Place(new TextBlock
+                {
+                    Text = caption,
+                    FontSize = 11,
+                    FontFamily = new FontFamily("Shabnam FD"),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(4, 0, 4, 0)
+                }, r + 1, 0);
 
                 var cells = new Dictionary<Operation, CheckBox>();
                 foreach (var op in AllOperations)
                 {
-                    var cell = new CheckBox { HorizontalAlignment = HorizontalAlignment.Center };
+                    var cell = new CheckBox
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
                     cells[op] = cell;
                     Place(cell, r + 1, Array.IndexOf(AllOperations, op) + 1);
                 }

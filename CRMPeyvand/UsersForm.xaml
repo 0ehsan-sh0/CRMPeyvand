@@ -121,18 +121,23 @@
 
         <Image  Source="/Images/Info.png" x:Name="Info" Grid.Column="5" Height="24" Margin="63,18,87,0" VerticalAlignment="Top" RenderTransformOrigin="0.952,0.617" Cursor="Hand" MouseLeftButtonDown="Info_MouseLeftButtonDown" Grid.Row="5" Grid.ColumnSpan="2"/>
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="دسترسی کلی" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Top" Margin="20,15,0,0" Grid.ColumnSpan="2"/>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="دسترسی کلی :" HorizontalAlignment="Left" Grid.Row="6" VerticalAlignment="Center" Margin="20,0,0,0" Grid.ColumnSpan="2"/>
         <!--Checkboxes <<<<<-->
-        <CheckBox x:Name="cbAll" Content="همه" FontWeight="Bold" Margin="0,4,0,4"/>
-        <Grid x:Name="PermissionGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="90"/>
-            </Grid.ColumnDefinitions>
-        </Grid>
+        <CheckBox x:Name="cbAll" Content="انتخاب همه" FontWeight="Bold" FontFamily="Shabnam FD" FontSize="11" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="25,0,0,0"/>
+        
+        <Border Grid.Row="7" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="6" Margin="20,5,10,15" Background="#F9FAFB" BorderBrush="#dcdcdc" BorderThickness="1" CornerRadius="6">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
+                <Grid x:Name="PermissionGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </ScrollViewer>
+        </Border>
 
         <!--Small Checkboxes >>>>>-->
         <!--Checkboxes >>>>>-->
