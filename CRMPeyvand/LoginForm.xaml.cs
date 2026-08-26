@@ -30,7 +30,7 @@ namespace CRMPeyvand
             InitializeComponent();
         }
         UserBLL userBLL = new UserBLL();
-        bool _IsActive;
+        bool _HasAnyUser;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             //t1.Enabled = true;
@@ -56,7 +56,7 @@ namespace CRMPeyvand
             {
                 if (i == 40)
                 {
-                    _IsActive = userBLL.IsActive();
+                    _HasAnyUser = userBLL.HasAnyUser();
                 }
                 (sender as BackgroundWorker).ReportProgress(i);
                 Thread.Sleep(25);
@@ -71,7 +71,7 @@ namespace CRMPeyvand
                 pbLoad.Visibility = Visibility.Hidden;
                 lblLoad.Visibility = Visibility.Hidden;
                 imgLoad.Visibility = Visibility.Hidden;
-                if (_IsActive)
+                if (_HasAnyUser)
                 {
                     LoginUC Luc = new LoginUC();
                     Grid.SetRow(Luc, 1);

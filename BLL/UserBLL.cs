@@ -26,9 +26,9 @@ namespace BLL
             }
 
         }
-        public bool IsActive()
+        public bool HasAnyUser()
         {
-            return dal.IsActive();
+            return dal.HasAnyUser();
         }
 
         public List<string> ReadUserNamesList()

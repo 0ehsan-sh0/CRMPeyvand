@@ -82,7 +82,7 @@ namespace DAL
                 return "حذف اطلاعات با مشکلی روبرو شد لطفا برسی کنید:\n" + e.Message;
             }
         }
-        public bool IsActive()
+        public bool HasAnyUser()
         {
             return db.Users.Any();
         }
