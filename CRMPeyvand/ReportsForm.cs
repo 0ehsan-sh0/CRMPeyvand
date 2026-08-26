@@ -1,10 +1,12 @@
-﻿using BE;
+using BE;
 using BLL;
 using HandyControl.Controls;
 using Stimulsoft.Report;
+using Stimulsoft.Report.Dictionary;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
@@ -57,56 +59,52 @@ namespace CRMPeyvand
             public int Count { get; set; }
         }
         
+        private void RenderAndShowReport(string mrtFileName)
+        {
+            StiReport sti = new StiReport();
+            string path = System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\" + mrtFileName);
+            sti.Load(path);
+            string connStr = ConfigurationManager.ConnectionStrings["conStr"]?.ConnectionString;
+            if (!string.IsNullOrEmpty(connStr))
+            {
+                foreach (var database in sti.Dictionary.Databases.OfType<Stimulsoft.Report.Dictionary.StiSqlDatabase>())
+                {
+                    database.ConnectionString = connStr;
+                }
+            }
+            if (sti.Dictionary.Variables.Contains("Date"))
+            {
+                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
+            }
+            sti.Render();
+            sti.Show();
+        }
+
         private void pictureBox2_Click(object sender, EventArgs e)
         {
             if (rbPrintCustomer.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\Customers.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
+                RenderAndShowReport("Customers.mrt");
             }
             else if (rbPrintActivities.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\Activities.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
-
+                RenderAndShowReport("Activities.mrt");
             }
             else if (rbPrintThisWeek.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\LastWeekInvoices.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
+                RenderAndShowReport("LastWeekInvoices.mrt");
             }
             else if (rbPrintThismonth.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\LastMonthInvoices.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
+                RenderAndShowReport("LastMonthInvoices.mrt");
             }
             else if (rbPrintThisYear.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\LastYearInvoices.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
+                RenderAndShowReport("LastYearInvoices.mrt");
             }
             else if (rbPrintProducts.Checked)
             {
-                StiReport sti = new StiReport();
-                sti.Load(System.IO.Path.GetFullPath(System.IO.Path.GetFullPath(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString()).ToString()) + @"\Reports\ProductsTotal.mrt")));
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-                sti.Render();
-                sti.Show();
+                RenderAndShowReport("ProductsTotal.mrt");
             }
         }
 
