@@ -42,126 +42,123 @@ namespace CRMPeyvand
         string username;
         User u = new User();
         bool Add;
-        UserAccessRole FillAccessRole(string Section, Image CanEnter, Image CanCreate, Image CanUpdate, Image CanDelete)
+
+        private static readonly Section[] AllSections = (Section[])Enum.GetValues(typeof(Section));
+        private static readonly Operation[] AllOperations = (Operation[])Enum.GetValues(typeof(Operation));
+
+        private readonly Dictionary<Section, Dictionary<Operation, CheckBox>> _cells =
+            new Dictionary<Section, Dictionary<Operation, CheckBox>>();
+
+        private static readonly Dictionary<Section, string> SectionCaptions = new Dictionary<Section, string>
         {
-            UserAccessRole role = new UserAccessRole();
-            role.Section = Section;
-            if (CanEnter.Visibility == Visibility.Visible)
-            {
-                role.CanEnter = true;
-            }
-            else if (CanEnter.Visibility == Visibility.Hidden)
-            {
-                role.CanEnter = false;
-            }
+            { Section.Customers, "بخش مشتریان" },
+            { Section.CatalogItems, "بخش کالاها" },
+            { Section.Invoices, "بخش فاکتورها" },
+            { Section.Activities, "بخش فعالیت ها" },
+            { Section.Reminders, "بخش یادآور ها" },
+            { Section.Users, "بخش کاربران" },
+            { Section.SmsPanel, "پنل پیامکی" },
+            { Section.Reports, "بخش گزارشات" },
+            { Section.Settings, "بخش تنظیمات" },
+            { Section.Discounts, "بخش تخفیف ها" },
+        };
 
-            if (CanCreate.Visibility == Visibility.Visible)
-            {
-                role.CanCreate = true;
-            }
-            else if (CanCreate.Visibility == Visibility.Hidden)
-            {
-                role.CanCreate = false;
-            }
-
-            if (CanUpdate.Visibility == Visibility.Visible)
-            {
-                role.CanUpdate = true;
-            }
-            else if (CanUpdate.Visibility == Visibility.Hidden)
-            {
-                role.CanUpdate = false;
-            }
-
-            if (CanDelete.Visibility == Visibility.Visible)
-            {
-                role.CanDelete = true;
-            }
-            else if (CanDelete.Visibility == Visibility.Hidden)
-            {
-                role.CanDelete = false;
-            }
-            return role;
-
-        }
-        UserAccessRole FillAccessRoleForUpdate(UserAccessRole uar, Image CanEnter, Image CanCreate, Image CanUpdate, Image CanDelete)
+        private void BuildPermissionMatrix()
         {
-            if (CanEnter.Visibility == Visibility.Visible)
+            _cells.Clear();
+            PermissionGrid.Children.Clear();
+            PermissionGrid.RowDefinitions.Clear();
+
+            PermissionGrid.RowDefinitions.Add(NewRow());
+            for (int i = 0; i < AllSections.Length; i++)
+                PermissionGrid.RowDefinitions.Add(NewRow());
+
+            Place(new TextBlock { Text = "بخش", FontWeight = FontWeights.Bold }, 0, 0);
+
+            foreach (var op in AllOperations)
             {
-                uar.CanEnter = true;
-            }
-            else if (CanEnter.Visibility == Visibility.Hidden)
-            {
-                uar.CanEnter = false;
+                var captured = op;
+                var header = new CheckBox
+                {
+                    Content = OperationCaption(captured),
+                    FontWeight = FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                };
+                header.Click += (s, e) => SetColumn(captured, header.IsChecked == true);
+                Place(header, 0, Array.IndexOf(AllOperations, captured) + 1);
             }
 
-            if (CanCreate.Visibility == Visibility.Visible)
+            for (int r = 0; r < AllSections.Length; r++)
             {
-                uar.CanCreate = true;
-            }
-            else if (CanCreate.Visibility == Visibility.Hidden)
-            {
-                uar.CanCreate = false;
+                var section = AllSections[r];
+                Place(new TextBlock { Text = SectionCaptions[section] }, r + 1, 0);
+
+                var cells = new Dictionary<Operation, CheckBox>();
+                foreach (var op in AllOperations)
+                {
+                    var cell = new CheckBox { HorizontalAlignment = HorizontalAlignment.Center };
+                    cells[op] = cell;
+                    Place(cell, r + 1, Array.IndexOf(AllOperations, op) + 1);
+                }
+                _cells[section] = cells;
             }
 
-            if (CanUpdate.Visibility == Visibility.Visible)
+            cbAll.Click += (s, e) =>
             {
-                uar.CanUpdate = true;
-            }
-            else if (CanUpdate.Visibility == Visibility.Hidden)
-            {
-                uar.CanUpdate = false;
-            }
-
-            if (CanDelete.Visibility == Visibility.Visible)
-            {
-                uar.CanDelete = true;
-            }
-            else if (CanDelete.Visibility == Visibility.Hidden)
-            {
-                uar.CanDelete = false;
-            }
-            return uar;
+                foreach (var op in AllOperations)
+                    SetColumn(op, cbAll.IsChecked == true);
+            };
         }
 
-        void FillForUpdate(Image CanEnter, Image CanCreate, Image CanUpdate, Image CanDelete, bool CanEnterB, bool CanCreateB, bool CanUpdateB, bool CanDeleteB)
+        private static RowDefinition NewRow()
         {
-            if (CanEnterB)
-            {
-                CanEnter.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CanEnter.Visibility = Visibility.Hidden;
-            }
+            return new RowDefinition { Height = new GridLength(28) };
+        }
 
-            if (CanCreateB)
-            {
-                CanCreate.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CanCreate.Visibility = Visibility.Hidden;
-            }
+        private void Place(FrameworkElement element, int row, int column)
+        {
+            Grid.SetRow(element, row);
+            Grid.SetColumn(element, column);
+            PermissionGrid.Children.Add(element);
+        }
 
-            if (CanUpdateB)
-            {
-                CanUpdate.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CanUpdate.Visibility = Visibility.Hidden;
-            }
+        private void SetColumn(Operation operation, bool value)
+        {
+            foreach (var cells in _cells.Values)
+                cells[operation].IsChecked = value;
+        }
 
-            if (CanDeleteB)
+        private static string OperationCaption(Operation operation)
+        {
+            switch (operation)
             {
-                CanDelete.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CanDelete.Visibility = Visibility.Hidden;
+                case Operation.View: return "مشاهده";
+                case Operation.Create: return "ایجاد";
+                case Operation.Edit: return "ویرایش";
+                default: return "حذف";
             }
         }
+
+        private List<AccessGrant> CollectGrants()
+        {
+            var grants = new List<AccessGrant>();
+            foreach (var section in AllSections)
+                foreach (var op in AllOperations)
+                    if (_cells[section][op].IsChecked == true)
+                        grants.Add(new AccessGrant { Section = section, Operation = op });
+            return grants;
+        }
+
+        private void ApplyGrants(IEnumerable<AccessGrant> grants)
+        {
+            var present = new HashSet<Tuple<Section, Operation>>(
+                grants.Select(g => Tuple.Create(g.Section, g.Operation)));
+
+            foreach (var section in AllSections)
+                foreach (var op in AllOperations)
+                    _cells[section][op].IsChecked = present.Contains(Tuple.Create(section, op));
+        }
+
         string SavePic(string UserName)
         {
             //Run NewFolder Pic + Selectd Target => @\UserPisc\
@@ -209,74 +206,6 @@ namespace CRMPeyvand
             return path + PicName;
         }
 
-        void ClearCB()
-        {
-            cbAllCheckBoxesImage.Visibility = Visibility.Hidden;
-
-            cbDeleteImage.Visibility = Visibility.Hidden;
-            cbDeleteActivityImage.Visibility = Visibility.Hidden;
-            cbDeleteCustomerImage.Visibility = Visibility.Hidden;
-            cbDeleteInvoiceImage.Visibility = Visibility.Hidden;
-            cbDeleteMessageImage.Visibility = Visibility.Hidden;
-            cbDeleteProductImage.Visibility = Visibility.Hidden;
-            cbDeleteReminderImage.Visibility = Visibility.Hidden;
-            cbDeleteReportImage.Visibility = Visibility.Hidden;
-            cbDeleteSettingImage.Visibility = Visibility.Hidden;
-            cbDeleteUserImage.Visibility = Visibility.Hidden;
-
-            cbEditImage.Visibility = Visibility.Hidden;
-            cbEditActivityImage.Visibility = Visibility.Hidden;
-            cbEditCustomerImage.Visibility = Visibility.Hidden;
-            cbEditInvoiceImage.Visibility = Visibility.Hidden;
-            cbEditMessageImage.Visibility = Visibility.Hidden;
-            cbEditProductImage.Visibility = Visibility.Hidden;
-            cbEditReminderImage.Visibility = Visibility.Hidden;
-            cbEditReportImage.Visibility = Visibility.Hidden;
-            cbEditSettingImage.Visibility = Visibility.Hidden;
-            cbEditUserImage.Visibility = Visibility.Hidden;
-
-            cbAddImage.Visibility = Visibility.Hidden;
-            cbAddActivityImage.Visibility = Visibility.Hidden;
-            cbAddCustomerImage.Visibility = Visibility.Hidden;
-            cbAddInvoiceImage.Visibility = Visibility.Hidden;
-            cbAddMessageImage.Visibility = Visibility.Hidden;
-            cbAddProductImage.Visibility = Visibility.Hidden;
-            cbAddReminderImage.Visibility = Visibility.Hidden;
-            cbAddReportImage.Visibility = Visibility.Hidden;
-            cbAddSettingImage.Visibility = Visibility.Hidden;
-            cbAddUserImage.Visibility = Visibility.Hidden;
-
-            cbEnterImage.Visibility = Visibility.Hidden;
-            cbEnterActivityImage.Visibility = Visibility.Hidden;
-            cbEnterCustomerImage.Visibility = Visibility.Hidden;
-            cbEnterInvoiceImage.Visibility = Visibility.Hidden;
-            cbEnterMessageImage.Visibility = Visibility.Hidden;
-            cbEnterProductImage.Visibility = Visibility.Hidden;
-            cbEnterReminderImage.Visibility = Visibility.Hidden;
-            cbEnterReportImage.Visibility = Visibility.Hidden;
-            cbEnterSettingImage.Visibility = Visibility.Hidden;
-            cbEnterUserImage.Visibility = Visibility.Hidden;
-
-        }
-        void ChangeVisibility(Image image)
-        {
-            if (image.Visibility == Visibility.Hidden)
-            {
-                image.Visibility = Visibility.Visible;
-            }
-            else if (image.Visibility == Visibility.Visible)
-            {
-                image.Visibility = Visibility.Hidden;
-            }
-        }
-        void ChangeVisibilityToVisible(Image image)
-        {
-            if (image.Visibility == Visibility.Hidden)
-            {
-                image.Visibility = Visibility.Visible;
-            }
-        }
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
@@ -316,6 +245,8 @@ namespace CRMPeyvand
             PublicMethods.dgvFiller(dgvUsers, bll.Read());
             PublicMethods.dgvFiller(dgvUserGroups, UGbll.Read());
             PublicMethods.DGVAutoSizeColumnFill(dgvUsers);
+            
+            BuildPermissionMatrix();
         }
 
 
@@ -323,630 +254,7 @@ namespace CRMPeyvand
         {
             this.Close();
         }
-        //cbEvents <<<<<
-        #region AllCheckBoxes
-        private void cbEnter_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (cbEnterImage.Visibility == Visibility.Hidden)
-            {
-                cbEnterImage.Visibility = Visibility.Visible;
-                cbEnterActivityImage.Visibility = Visibility.Visible;
-                cbEnterCustomerImage.Visibility = Visibility.Visible;
-                cbEnterInvoiceImage.Visibility = Visibility.Visible;
-                cbEnterMessageImage.Visibility = Visibility.Visible;
-                cbEnterProductImage.Visibility = Visibility.Visible;
-                cbEnterReminderImage.Visibility = Visibility.Visible;
-                cbEnterReportImage.Visibility = Visibility.Visible;
-                cbEnterSettingImage.Visibility = Visibility.Visible;
-                cbEnterUserImage.Visibility = Visibility.Visible;
 
-            }
-            else if (cbEnterImage.Visibility == Visibility.Visible)
-            {
-                cbEnterImage.Visibility = Visibility.Hidden;
-                cbEnterActivityImage.Visibility = Visibility.Hidden;
-                cbEnterCustomerImage.Visibility = Visibility.Hidden;
-                cbEnterInvoiceImage.Visibility = Visibility.Hidden;
-                cbEnterMessageImage.Visibility = Visibility.Hidden;
-                cbEnterProductImage.Visibility = Visibility.Hidden;
-                cbEnterReminderImage.Visibility = Visibility.Hidden;
-                cbEnterReportImage.Visibility = Visibility.Hidden;
-                cbEnterSettingImage.Visibility = Visibility.Hidden;
-                cbEnterUserImage.Visibility = Visibility.Hidden;
-
-                cbAddImage.Visibility = Visibility.Hidden;
-                cbAddActivityImage.Visibility = Visibility.Hidden;
-                cbAddCustomerImage.Visibility = Visibility.Hidden;
-                cbAddInvoiceImage.Visibility = Visibility.Hidden;
-                cbAddMessageImage.Visibility = Visibility.Hidden;
-                cbAddProductImage.Visibility = Visibility.Hidden;
-                cbAddReminderImage.Visibility = Visibility.Hidden;
-                cbAddReportImage.Visibility = Visibility.Hidden;
-                cbAddSettingImage.Visibility = Visibility.Hidden;
-                cbAddUserImage.Visibility = Visibility.Hidden;
-
-                cbEditImage.Visibility = Visibility.Hidden;
-                cbEditActivityImage.Visibility = Visibility.Hidden;
-                cbEditCustomerImage.Visibility = Visibility.Hidden;
-                cbEditInvoiceImage.Visibility = Visibility.Hidden;
-                cbEditMessageImage.Visibility = Visibility.Hidden;
-                cbEditProductImage.Visibility = Visibility.Hidden;
-                cbEditReminderImage.Visibility = Visibility.Hidden;
-                cbEditReportImage.Visibility = Visibility.Hidden;
-                cbEditSettingImage.Visibility = Visibility.Hidden;
-                cbEditUserImage.Visibility = Visibility.Hidden;
-
-                cbDeleteImage.Visibility = Visibility.Hidden;
-                cbDeleteActivityImage.Visibility = Visibility.Hidden;
-                cbDeleteCustomerImage.Visibility = Visibility.Hidden;
-                cbDeleteInvoiceImage.Visibility = Visibility.Hidden;
-                cbDeleteMessageImage.Visibility = Visibility.Hidden;
-                cbDeleteProductImage.Visibility = Visibility.Hidden;
-                cbDeleteReminderImage.Visibility = Visibility.Hidden;
-                cbDeleteReportImage.Visibility = Visibility.Hidden;
-                cbDeleteSettingImage.Visibility = Visibility.Hidden;
-                cbDeleteUserImage.Visibility = Visibility.Hidden;
-
-                cbAllCheckBoxesImage.Visibility = Visibility.Hidden;
-            }
-
-        }
-
-        private void cbAdd_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (cbAddImage.Visibility == Visibility.Hidden)
-            {
-                cbAddImage.Visibility = Visibility.Visible;
-                cbAddActivityImage.Visibility = Visibility.Visible;
-                cbAddCustomerImage.Visibility = Visibility.Visible;
-                cbAddInvoiceImage.Visibility = Visibility.Visible;
-                cbAddMessageImage.Visibility = Visibility.Visible;
-                cbAddProductImage.Visibility = Visibility.Visible;
-                cbAddReminderImage.Visibility = Visibility.Visible;
-                cbAddReportImage.Visibility = Visibility.Visible;
-                cbAddSettingImage.Visibility = Visibility.Visible;
-                cbAddUserImage.Visibility = Visibility.Visible;
-
-                cbEnterImage.Visibility = Visibility.Visible;
-                cbEnterActivityImage.Visibility = Visibility.Visible;
-                cbEnterCustomerImage.Visibility = Visibility.Visible;
-                cbEnterInvoiceImage.Visibility = Visibility.Visible;
-                cbEnterMessageImage.Visibility = Visibility.Visible;
-                cbEnterProductImage.Visibility = Visibility.Visible;
-                cbEnterReminderImage.Visibility = Visibility.Visible;
-                cbEnterReportImage.Visibility = Visibility.Visible;
-                cbEnterSettingImage.Visibility = Visibility.Visible;
-                cbEnterUserImage.Visibility = Visibility.Visible;
-
-
-            }
-            else if (cbAddImage.Visibility == Visibility.Visible)
-            {
-                cbAddImage.Visibility = Visibility.Hidden;
-                cbAddActivityImage.Visibility = Visibility.Hidden;
-                cbAddCustomerImage.Visibility = Visibility.Hidden;
-                cbAddInvoiceImage.Visibility = Visibility.Hidden;
-                cbAddMessageImage.Visibility = Visibility.Hidden;
-                cbAddProductImage.Visibility = Visibility.Hidden;
-                cbAddReminderImage.Visibility = Visibility.Hidden;
-                cbAddReportImage.Visibility = Visibility.Hidden;
-                cbAddSettingImage.Visibility = Visibility.Hidden;
-                cbAddUserImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEdit_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (cbEditImage.Visibility == Visibility.Hidden)
-            {
-                cbEditImage.Visibility = Visibility.Visible;
-                cbEditActivityImage.Visibility = Visibility.Visible;
-                cbEditCustomerImage.Visibility = Visibility.Visible;
-                cbEditInvoiceImage.Visibility = Visibility.Visible;
-                cbEditMessageImage.Visibility = Visibility.Visible;
-                cbEditProductImage.Visibility = Visibility.Visible;
-                cbEditReminderImage.Visibility = Visibility.Visible;
-                cbEditReportImage.Visibility = Visibility.Visible;
-                cbEditSettingImage.Visibility = Visibility.Visible;
-                cbEditUserImage.Visibility = Visibility.Visible;
-
-                cbEnterImage.Visibility = Visibility.Visible;
-                cbEnterActivityImage.Visibility = Visibility.Visible;
-                cbEnterCustomerImage.Visibility = Visibility.Visible;
-                cbEnterInvoiceImage.Visibility = Visibility.Visible;
-                cbEnterMessageImage.Visibility = Visibility.Visible;
-                cbEnterProductImage.Visibility = Visibility.Visible;
-                cbEnterReminderImage.Visibility = Visibility.Visible;
-                cbEnterReportImage.Visibility = Visibility.Visible;
-                cbEnterSettingImage.Visibility = Visibility.Visible;
-                cbEnterUserImage.Visibility = Visibility.Visible;
-
-
-            }
-            else if (cbEditImage.Visibility == Visibility.Visible)
-            {
-                cbEditImage.Visibility = Visibility.Hidden;
-                cbEditActivityImage.Visibility = Visibility.Hidden;
-                cbEditCustomerImage.Visibility = Visibility.Hidden;
-                cbEditInvoiceImage.Visibility = Visibility.Hidden;
-                cbEditMessageImage.Visibility = Visibility.Hidden;
-                cbEditProductImage.Visibility = Visibility.Hidden;
-                cbEditReminderImage.Visibility = Visibility.Hidden;
-                cbEditReportImage.Visibility = Visibility.Hidden;
-                cbEditSettingImage.Visibility = Visibility.Hidden;
-                cbEditUserImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbDelete_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (cbDeleteImage.Visibility == Visibility.Hidden)
-            {
-                cbDeleteImage.Visibility = Visibility.Visible;
-                cbDeleteActivityImage.Visibility = Visibility.Visible;
-                cbDeleteCustomerImage.Visibility = Visibility.Visible;
-                cbDeleteInvoiceImage.Visibility = Visibility.Visible;
-                cbDeleteMessageImage.Visibility = Visibility.Visible;
-                cbDeleteProductImage.Visibility = Visibility.Visible;
-                cbDeleteReminderImage.Visibility = Visibility.Visible;
-                cbDeleteReportImage.Visibility = Visibility.Visible;
-                cbDeleteSettingImage.Visibility = Visibility.Visible;
-                cbDeleteUserImage.Visibility = Visibility.Visible;
-
-                cbEnterImage.Visibility = Visibility.Visible;
-                cbEnterActivityImage.Visibility = Visibility.Visible;
-                cbEnterCustomerImage.Visibility = Visibility.Visible;
-                cbEnterInvoiceImage.Visibility = Visibility.Visible;
-                cbEnterMessageImage.Visibility = Visibility.Visible;
-                cbEnterProductImage.Visibility = Visibility.Visible;
-                cbEnterReminderImage.Visibility = Visibility.Visible;
-                cbEnterReportImage.Visibility = Visibility.Visible;
-                cbEnterSettingImage.Visibility = Visibility.Visible;
-                cbEnterUserImage.Visibility = Visibility.Visible;
-
-
-            }
-            else if (cbDeleteImage.Visibility == Visibility.Visible)
-            {
-                cbDeleteImage.Visibility = Visibility.Hidden;
-                cbDeleteActivityImage.Visibility = Visibility.Hidden;
-                cbDeleteCustomerImage.Visibility = Visibility.Hidden;
-                cbDeleteInvoiceImage.Visibility = Visibility.Hidden;
-                cbDeleteMessageImage.Visibility = Visibility.Hidden;
-                cbDeleteProductImage.Visibility = Visibility.Hidden;
-                cbDeleteReminderImage.Visibility = Visibility.Hidden;
-                cbDeleteReportImage.Visibility = Visibility.Hidden;
-                cbDeleteSettingImage.Visibility = Visibility.Hidden;
-                cbDeleteUserImage.Visibility = Visibility.Hidden;
-
-            }
-
-
-        }
-
-        private void cbAllCheckBoxes_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (cbAllCheckBoxesImage.Visibility == Visibility.Hidden)
-            {
-                cbAllCheckBoxesImage.Visibility = Visibility.Visible;
-
-                cbDeleteImage.Visibility = Visibility.Visible;
-                cbDeleteActivityImage.Visibility = Visibility.Visible;
-                cbDeleteCustomerImage.Visibility = Visibility.Visible;
-                cbDeleteInvoiceImage.Visibility = Visibility.Visible;
-                cbDeleteMessageImage.Visibility = Visibility.Visible;
-                cbDeleteProductImage.Visibility = Visibility.Visible;
-                cbDeleteReminderImage.Visibility = Visibility.Visible;
-                cbDeleteReportImage.Visibility = Visibility.Visible;
-                cbDeleteSettingImage.Visibility = Visibility.Visible;
-                cbDeleteUserImage.Visibility = Visibility.Visible;
-
-                cbEditImage.Visibility = Visibility.Visible;
-                cbEditActivityImage.Visibility = Visibility.Visible;
-                cbEditCustomerImage.Visibility = Visibility.Visible;
-                cbEditInvoiceImage.Visibility = Visibility.Visible;
-                cbEditMessageImage.Visibility = Visibility.Visible;
-                cbEditProductImage.Visibility = Visibility.Visible;
-                cbEditReminderImage.Visibility = Visibility.Visible;
-                cbEditReportImage.Visibility = Visibility.Visible;
-                cbEditSettingImage.Visibility = Visibility.Visible;
-                cbEditUserImage.Visibility = Visibility.Visible;
-
-                cbAddImage.Visibility = Visibility.Visible;
-                cbAddActivityImage.Visibility = Visibility.Visible;
-                cbAddCustomerImage.Visibility = Visibility.Visible;
-                cbAddInvoiceImage.Visibility = Visibility.Visible;
-                cbAddMessageImage.Visibility = Visibility.Visible;
-                cbAddProductImage.Visibility = Visibility.Visible;
-                cbAddReminderImage.Visibility = Visibility.Visible;
-                cbAddReportImage.Visibility = Visibility.Visible;
-                cbAddSettingImage.Visibility = Visibility.Visible;
-                cbAddUserImage.Visibility = Visibility.Visible;
-
-                cbEnterImage.Visibility = Visibility.Visible;
-                cbEnterActivityImage.Visibility = Visibility.Visible;
-                cbEnterCustomerImage.Visibility = Visibility.Visible;
-                cbEnterInvoiceImage.Visibility = Visibility.Visible;
-                cbEnterMessageImage.Visibility = Visibility.Visible;
-                cbEnterProductImage.Visibility = Visibility.Visible;
-                cbEnterReminderImage.Visibility = Visibility.Visible;
-                cbEnterReportImage.Visibility = Visibility.Visible;
-                cbEnterSettingImage.Visibility = Visibility.Visible;
-                cbEnterUserImage.Visibility = Visibility.Visible;
-
-
-
-            }
-            else if (cbAllCheckBoxesImage.Visibility == Visibility.Visible)
-            {
-                cbAllCheckBoxesImage.Visibility = Visibility.Hidden;
-
-                cbDeleteImage.Visibility = Visibility.Hidden;
-                cbDeleteActivityImage.Visibility = Visibility.Hidden;
-                cbDeleteCustomerImage.Visibility = Visibility.Hidden;
-                cbDeleteInvoiceImage.Visibility = Visibility.Hidden;
-                cbDeleteMessageImage.Visibility = Visibility.Hidden;
-                cbDeleteProductImage.Visibility = Visibility.Hidden;
-                cbDeleteReminderImage.Visibility = Visibility.Hidden;
-                cbDeleteReportImage.Visibility = Visibility.Hidden;
-                cbDeleteSettingImage.Visibility = Visibility.Hidden;
-                cbDeleteUserImage.Visibility = Visibility.Hidden;
-
-                cbEditImage.Visibility = Visibility.Hidden;
-                cbEditActivityImage.Visibility = Visibility.Hidden;
-                cbEditCustomerImage.Visibility = Visibility.Hidden;
-                cbEditInvoiceImage.Visibility = Visibility.Hidden;
-                cbEditMessageImage.Visibility = Visibility.Hidden;
-                cbEditProductImage.Visibility = Visibility.Hidden;
-                cbEditReminderImage.Visibility = Visibility.Hidden;
-                cbEditReportImage.Visibility = Visibility.Hidden;
-                cbEditSettingImage.Visibility = Visibility.Hidden;
-                cbEditUserImage.Visibility = Visibility.Hidden;
-
-                cbAddImage.Visibility = Visibility.Hidden;
-                cbAddActivityImage.Visibility = Visibility.Hidden;
-                cbAddCustomerImage.Visibility = Visibility.Hidden;
-                cbAddInvoiceImage.Visibility = Visibility.Hidden;
-                cbAddMessageImage.Visibility = Visibility.Hidden;
-                cbAddProductImage.Visibility = Visibility.Hidden;
-                cbAddReminderImage.Visibility = Visibility.Hidden;
-                cbAddReportImage.Visibility = Visibility.Hidden;
-                cbAddSettingImage.Visibility = Visibility.Hidden;
-                cbAddUserImage.Visibility = Visibility.Hidden;
-
-                cbEnterImage.Visibility = Visibility.Hidden;
-                cbEnterActivityImage.Visibility = Visibility.Hidden;
-                cbEnterCustomerImage.Visibility = Visibility.Hidden;
-                cbEnterInvoiceImage.Visibility = Visibility.Hidden;
-                cbEnterMessageImage.Visibility = Visibility.Hidden;
-                cbEnterProductImage.Visibility = Visibility.Hidden;
-                cbEnterReminderImage.Visibility = Visibility.Hidden;
-                cbEnterReportImage.Visibility = Visibility.Hidden;
-                cbEnterSettingImage.Visibility = Visibility.Hidden;
-                cbEnterUserImage.Visibility = Visibility.Hidden;
-
-
-            }
-
-        }
-
-        #endregion
-        #region EnterCheckboxes
-        private void cbEnterCustomer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterCustomerImage);
-            if (cbEnterCustomerImage.Visibility == Visibility.Hidden)
-            {
-                cbAddCustomerImage.Visibility = Visibility.Hidden;
-                cbEditCustomerImage.Visibility = Visibility.Hidden;
-                cbDeleteCustomerImage.Visibility = Visibility.Hidden;
-
-            }
-        }
-
-        private void cbEnterProduct_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterProductImage);
-            if (cbEnterProductImage.Visibility == Visibility.Hidden)
-            {
-                cbAddProductImage.Visibility = Visibility.Hidden;
-                cbEditProductImage.Visibility = Visibility.Hidden;
-                cbDeleteProductImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterInvoice_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterInvoiceImage);
-            if (cbEnterInvoiceImage.Visibility == Visibility.Hidden)
-            {
-                cbAddInvoiceImage.Visibility = Visibility.Hidden;
-                cbEditInvoiceImage.Visibility = Visibility.Hidden;
-                cbDeleteInvoiceImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterActivity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterActivityImage);
-            if (cbEnterActivityImage.Visibility == Visibility.Hidden)
-            {
-                cbAddActivityImage.Visibility = Visibility.Hidden;
-                cbEditActivityImage.Visibility = Visibility.Hidden;
-                cbDeleteActivityImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterReminder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterReminderImage);
-            if (cbEnterReminderImage.Visibility == Visibility.Hidden)
-            {
-                cbAddReminderImage.Visibility = Visibility.Hidden;
-                cbEditReminderImage.Visibility = Visibility.Hidden;
-                cbDeleteReminderImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterUser_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterUserImage);
-            if (cbEnterUserImage.Visibility == Visibility.Hidden)
-            {
-                cbAddUserImage.Visibility = Visibility.Hidden;
-                cbEditUserImage.Visibility = Visibility.Hidden;
-                cbDeleteUserImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterMessage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterMessageImage);
-            if (cbEnterMessageImage.Visibility == Visibility.Hidden)
-            {
-                cbAddMessageImage.Visibility = Visibility.Hidden;
-                cbEditMessageImage.Visibility = Visibility.Hidden;
-                cbDeleteProductImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterReport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterReportImage);
-            if (cbEnterReportImage.Visibility == Visibility.Hidden)
-            {
-                cbAddReportImage.Visibility = Visibility.Hidden;
-                cbEditReportImage.Visibility = Visibility.Hidden;
-                cbDeleteReportImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        private void cbEnterSetting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEnterSettingImage);
-            if (cbEnterSettingImage.Visibility == Visibility.Hidden)
-            {
-                cbAddSettingImage.Visibility = Visibility.Hidden;
-                cbEditSettingImage.Visibility = Visibility.Hidden;
-                cbDeleteSettingImage.Visibility = Visibility.Hidden;
-
-            }
-
-        }
-
-        #endregion
-        #region AddCheckboxes
-        private void cbAddCustomer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddCustomerImage);
-            ChangeVisibilityToVisible(cbEnterCustomerImage);
-        }
-
-        private void cbAddProduct_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddProductImage);
-            ChangeVisibilityToVisible(cbEnterProductImage);
-        }
-
-        private void cbAddInvoice_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddInvoiceImage);
-            ChangeVisibilityToVisible(cbEnterInvoiceImage);
-
-        }
-
-        private void cbAddActivity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddActivityImage);
-            ChangeVisibilityToVisible(cbEnterActivityImage);
-
-        }
-
-        private void cbAddReminder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddReminderImage);
-            ChangeVisibilityToVisible(cbEnterReminderImage);
-
-        }
-
-        private void cbAddUser_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddUserImage);
-            ChangeVisibilityToVisible(cbEnterUserImage);
-
-        }
-
-        private void cbAddMessage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddMessageImage);
-            ChangeVisibilityToVisible(cbEnterMessageImage);
-
-
-        }
-
-        private void cbAddReport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddReportImage);
-            ChangeVisibilityToVisible(cbEnterReportImage);
-
-        }
-
-        private void cbAddSetting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbAddSettingImage);
-            ChangeVisibilityToVisible(cbEnterSettingImage);
-
-        }
-
-        #endregion
-        #region EditCheckBoxes
-
-        private void cbEditCustomer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditCustomerImage);
-            ChangeVisibilityToVisible(cbEnterCustomerImage);
-        }
-
-        private void cbEditProduct_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditProductImage);
-            ChangeVisibilityToVisible(cbEnterProductImage);
-
-        }
-
-        private void cbEditInvoice_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditInvoiceImage);
-            ChangeVisibilityToVisible(cbEnterInvoiceImage);
-
-        }
-
-        private void cbEditActivity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditActivityImage);
-            ChangeVisibilityToVisible(cbEnterActivityImage);
-
-        }
-
-        private void cbEditReminder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditReminderImage);
-            ChangeVisibilityToVisible(cbEnterReminderImage);
-
-        }
-
-        private void cbEditUser_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditUserImage);
-            ChangeVisibilityToVisible(cbEnterUserImage);
-
-        }
-
-        private void cbEditMessage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditMessageImage);
-            ChangeVisibilityToVisible(cbEnterMessageImage);
-        }
-
-        private void cbEditReport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditReportImage);
-            ChangeVisibilityToVisible(cbEnterReportImage);
-        }
-
-        private void cbEditSetting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbEditSettingImage);
-            ChangeVisibilityToVisible(cbEnterSettingImage);
-        }
-
-
-        #endregion
-        #region DeleteCheckBoxes
-        private void cbDeleteCustomer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteCustomerImage);
-            ChangeVisibilityToVisible(cbEnterCustomerImage);
-        }
-
-        private void cbDeleteProduct_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteProductImage);
-            ChangeVisibilityToVisible(cbEnterProductImage);
-
-        }
-
-        private void cbDeleteInvoice_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteInvoiceImage);
-            ChangeVisibilityToVisible(cbEnterInvoiceImage);
-
-        }
-
-        private void cbDeleteActivity_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteActivityImage);
-            ChangeVisibilityToVisible(cbEnterActivityImage);
-
-        }
-
-        private void cbDeleteReminder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteReminderImage);
-            ChangeVisibilityToVisible(cbEnterReminderImage);
-
-        }
-
-        private void cbDeleteUser_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteUserImage);
-            ChangeVisibilityToVisible(cbEnterUserImage);
-
-        }
-
-        private void cbDeleteMessage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteMessageImage);
-            ChangeVisibilityToVisible(cbEnterMessageImage);
-        }
-
-        private void cbDeleteReport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteReportImage);
-            ChangeVisibilityToVisible(cbEnterReportImage);
-
-
-        }
-
-        private void cbDeleteSetting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ChangeVisibility(cbDeleteSettingImage);
-            ChangeVisibilityToVisible(cbEnterSettingImage);
-
-        }
-
-
-
-        #endregion
-        //cbEvents >>>>>
         private void Image_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             ofd.Filter = "JPG(*.JPG)|*.JPG";
@@ -967,82 +275,62 @@ namespace CRMPeyvand
             if (txtName.Text != "" && txtUsername.Text != "" && ugUser != null && picBoxUser.Source.ToString() != SourceOfImage.Source.ToString())
             {
 
-                u.Password = txtReapetPass.Text;
-                u.RegDate = DateTime.Now;
-                if (txtPass.Text.Length > 8 && txtPass.Text.Length < 32 && txtReapetPass.Text != "")
+                string password = txtPass.Password;
+                string repeat = txtReapetPass.Password;
+                bool editing = userEdit != null;
+
+                if (!editing || password.Length > 0)
                 {
-                    if (txtPass.Text == txtReapetPass.Text)
+                    if (password.Length < 8 || password.Length > 32)
                     {
-
-                        if (btnAdd.Content.ToString() == "ثبت")
-                        {
-                            u.Picture = SavePic(txtUsername.Text);
-                            u.UserGroup = ugUser;
-                            MessageBox.Show(bll.Create(u), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                            txtName.Clear();
-                            txtPass.Clear();
-                            txtReapetPass.Clear();
-                            txtUsername.Clear();
-                            txtUserGroupName.Clear();
-                            picBoxUser.Source = SourceOfImage.Source;
-                            cbUserGroup.Text = "";
-                            ugEdit = null;
-                            PublicMethods.dgvFiller(dgvUsers, bll.Read());
-                            txtName.Focus();
-                        }
-                        else
-                        {
-
-                            u.Picture = SavePic(txtUsername.Text);
-                            u.UserGroup = ugUser;
-                            MessageBox.Show(bll.Update(u, userEdit.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                            picBoxUser.Source = SourceOfImage.Source;
-                            txtUsername.IsEnabled = true;
-                            txtName.Clear();
-                            txtPass.Clear();
-                            txtReapetPass.Clear();
-                            txtUsername.Clear();
-                            txtUserGroupName.Clear();
-                            cbUserGroup.Text = "";
-                            ugEdit = null;
-                            btnAdd.Content = "ثبت";
-                            btnAdd.IsEnabled = Add;
-                            PublicMethods.dgvFiller(dgvUsers, bll.Read());
-                            txtName.Focus();
-                        }
+                        MessageBox.Show("رمز عبور باید بین ۸ تا ۳۲ کاراکتر باشد");
+                        return;
                     }
-                    else
+                    if (password != repeat)
                     {
-                        MessageBox.Show("کلمه عبور با تکرار وارد شده آن مطابقت ندارد");
+                        MessageBox.Show("تکرار رمز عبور با رمز عبور مطابقت ندارد");
+                        return;
                     }
-
                 }
 
+                u.Password = password.Length > 0 ? password : null;
+
+                if (btnAdd.Content.ToString() == "ثبت")
+                {
+                    u.Picture = SavePic(txtUsername.Text);
+                    u.UserGroup = ugUser;
+                    MessageBox.Show(bll.Create(u), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                    txtName.Clear();
+                    txtPass.Clear();
+                    txtReapetPass.Clear();
+                    txtUsername.Clear();
+                    txtUserGroupName.Clear();
+                    picBoxUser.Source = SourceOfImage.Source;
+                    cbUserGroup.Text = "";
+                    ugEdit = null;
+                    PublicMethods.dgvFiller(dgvUsers, bll.Read());
+                    txtName.Focus();
+                }
                 else
                 {
-                    if (btnAdd.Content.ToString() == "ویرایش")
-                    {
 
-                        u.UserGroup = ugUser;
-                        u.Picture = SavePicUpdate(txtUsername.Text);
-                        MessageBox.Show(bll.Update(u, userEdit.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                        picBoxUser.Source = SourceOfImage.Source;
-                        txtUsername.IsEnabled = true;
-                        txtName.Clear();
-                        txtPass.Clear();
-                        txtReapetPass.Clear();
-                        txtUsername.Clear();
-                        txtUserGroupName.Clear();
-                        cbUserGroup.Text = "";
-                        ugEdit = null;
-                        btnAdd.Content = "ثبت";
-                        btnAdd.IsEnabled = Add;
-                        PublicMethods.dgvFiller(dgvUsers, bll.Read());
-                        txtName.Focus();
-                    }
+                    u.Picture = SavePic(txtUsername.Text);
+                    u.UserGroup = ugUser;
+                    MessageBox.Show(bll.Update(u, userEdit.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                    picBoxUser.Source = SourceOfImage.Source;
+                    txtUsername.IsEnabled = true;
+                    txtName.Clear();
+                    txtPass.Clear();
+                    txtReapetPass.Clear();
+                    txtUsername.Clear();
+                    txtUserGroupName.Clear();
+                    cbUserGroup.Text = "";
+                    ugEdit = null;
+                    btnAdd.Content = "ثبت";
+                    btnAdd.IsEnabled = Add;
+                    PublicMethods.dgvFiller(dgvUsers, bll.Read());
+                    txtName.Focus();
                 }
-
-
 
             }
             else
@@ -1096,9 +384,9 @@ namespace CRMPeyvand
             PublicMethods.FilterPersian(t);
         }
 
-        private void txtPass_TextChanged(object sender, TextChangedEventArgs e)
+        private void txtPass_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            if (txtPass.Text.Length > 8 && txtPass.Text.Length < 32)
+            if (txtPass.Password.Length > 8 && txtPass.Password.Length < 32)
             {
                 lblPassWarn.Content = "";
             }
@@ -1107,78 +395,28 @@ namespace CRMPeyvand
 
         private void btnAddUserGroup_Click(object sender, RoutedEventArgs e)
         {
-            if (txtUserGroupName.Text != "" && btnAddUserGroup.Content.ToString() == "ایجاد گروه کاربری")
+            if (string.IsNullOrWhiteSpace(txtUserGroupName.Text))
             {
-                UserGroup ug = new UserGroup();
-                ug.Title = txtUserGroupName.Text;
-                //Customer >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblCustomersAccess.Content.ToString(), cbEnterCustomerImage, cbAddCustomerImage, cbEditCustomerImage, cbDeleteCustomerImage));
-                //Product >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblProductsAccess.Content.ToString(), cbEnterProductImage, cbAddProductImage, cbEditProductImage, cbDeleteProductImage));
-                //Setting >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblSettingAccess.Content.ToString(), cbEnterSettingImage, cbAddSettingImage, cbEditSettingImage, cbDeleteSettingImage));
-                //Activity >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblActivitiesAccess.Content.ToString(), cbEnterActivityImage, cbAddActivityImage, cbEditActivityImage, cbDeleteActivityImage));
-                //Invoice >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblInvoicesAccess.Content.ToString(), cbEnterInvoiceImage, cbAddInvoiceImage, cbEditInvoiceImage, cbDeleteInvoiceImage));
-                //Message >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblMessagesAccess.Content.ToString(), cbEnterMessageImage, cbAddMessageImage, cbEditMessageImage, cbDeleteMessageImage));
-                //Reminder >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblRemindersAccess.Content.ToString(), cbEnterReminderImage, cbAddReminderImage, cbEditReminderImage, cbDeleteReminderImage));
-                //Report >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblReportsAccess.Content.ToString(), cbEnterReportImage, cbAddReportImage, cbEditReportImage, cbDeleteReportImage));
-                //User >>>
-                ug.UserAccessRoles.Add(FillAccessRole(lblUsersAccess.Content.ToString(), cbEnterUserImage, cbAddUserImage, cbEditUserImage, cbDeleteUserImage));
+                MessageBox.Show("عنوان گروه را وارد کنید");
+                return;
+            }
 
-                MessageBox.Show(UGbll.Create(ug), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                ClearCB();
+            if (btnAddUserGroup.Content.ToString() == "ایجاد گروه کاربری")
+            {
+                UGbll.Create(new UserGroup { Title = txtUserGroupName.Text.Trim(), IsBuiltIn = false, AccessGrants = CollectGrants() });
+                ClearMatrix();
                 PublicMethods.dgvFiller(dgvUserGroups, UGbll.Read());
                 txtUserGroupName.Focus();
             }
-            else if (txtUserGroupName.Text != "" && btnAddUserGroup.Content.ToString() == "ویرایش")
+            else if (btnAddUserGroup.Content.ToString() == "ویرایش")
             {
-                foreach (var item in ugEdit.UserAccessRoles)
+                if (ugEdit.IsBuiltIn)
                 {
-                    if (item.Section == "بخش مشتریان")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterCustomerImage, cbAddCustomerImage, cbEditCustomerImage, cbDeleteCustomerImage);
-                    }
-                    else if (item.Section == "بخش کالاها")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterProductImage, cbAddProductImage, cbEditProductImage, cbDeleteProductImage);
-                    }
-                    else if (item.Section == "بخش فاکتورها")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterInvoiceImage, cbAddInvoiceImage, cbEditInvoiceImage, cbDeleteInvoiceImage);
-                    }
-                    else if (item.Section == "بخش فعالیت ها")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterActivityImage, cbAddActivityImage, cbEditActivityImage, cbDeleteActivityImage);
-                    }
-                    else if (item.Section == "بخش یادآور ها")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterReminderImage, cbAddReminderImage, cbEditReminderImage, cbDeleteReminderImage);
-                    }
-                    else if (item.Section == "بخش کاربران")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterUserImage, cbAddUserImage, cbEditUserImage, cbDeleteUserImage);
-                    }
-                    else if (item.Section == "پنل پیامکی")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterMessageImage, cbAddMessageImage, cbEditMessageImage, cbDeleteMessageImage);
-                    }
-                    else if (item.Section == "بخش گزارشات")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterReportImage, cbAddReportImage, cbEditReportImage, cbDeleteReportImage);
-                    }
-                    else if (item.Section == "بخش تنظیمات")
-                    {
-                        FillAccessRoleForUpdate(item, cbEnterSettingImage, cbAddSettingImage, cbEditSettingImage, cbDeleteSettingImage);
-                    }
-
+                    MessageBox.Show("گروه پیش‌فرض قابل ویرایش نیست");
+                    return;
                 }
-                MessageBox.Show(UGbll.Update(ugEdit.Title, ugEdit.UserAccessRoles), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                ClearCB();
+                UGbll.Update(ugEdit.id, ugEdit.Title, CollectGrants());
+                ClearMatrix();
                 btnAddUserGroup.Content = "ایجاد گروه کاربری";
                 btnAddUserGroup.IsEnabled = Add;
                 txtUserGroupName.Text = "";
@@ -1188,51 +426,24 @@ namespace CRMPeyvand
             else MessageBox.Show("لطفا نام گروه کاربری را خالی نگذارید");
         }
 
+        private void ClearMatrix()
+        {
+            foreach (var section in AllSections)
+                foreach (var op in AllOperations)
+                    _cells[section][op].IsChecked = false;
+            cbAll.IsChecked = false;
+        }
+
         private void miEditUserGroup_Click(object sender, RoutedEventArgs e)
         {
+            if (ugEdit.IsBuiltIn)
+            {
+                MessageBox.Show("گروه پیش‌فرض قابل ویرایش نیست");
+                return;
+            }
             txtUserGroupName.Text = ugEdit.Title;
             txtUserGroupName.IsEnabled = false;
-            foreach (var item in ugEdit.UserAccessRoles)
-            {
-                if (item.Section == "بخش مشتریان")
-                {
-                    FillForUpdate(cbEnterCustomerImage, cbAddCustomerImage, cbEditCustomerImage, cbDeleteCustomerImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش کالاها")
-                {
-                    FillForUpdate(cbEnterProductImage, cbAddProductImage, cbEditProductImage, cbDeleteProductImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش فاکتورها")
-                {
-                    FillForUpdate(cbEnterInvoiceImage, cbAddInvoiceImage, cbEditInvoiceImage, cbDeleteInvoiceImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش فعالیت ها")
-                {
-                    FillForUpdate(cbEnterActivityImage, cbAddActivityImage, cbEditActivityImage, cbDeleteActivityImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش یادآور ها")
-                {
-                    FillForUpdate(cbEnterReminderImage, cbAddReminderImage, cbEditReminderImage, cbDeleteReminderImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش کاربران")
-                {
-                    FillForUpdate(cbEnterUserImage, cbAddUserImage, cbEditUserImage, cbDeleteUserImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "پنل پیامکی")
-                {
-                    FillForUpdate(cbEnterMessageImage, cbAddMessageImage, cbEditMessageImage, cbDeleteMessageImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش گزارشات")
-                {
-                    FillForUpdate(cbEnterReportImage, cbAddReportImage, cbEditReportImage, cbDeleteReportImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-                else if (item.Section == "بخش تنظیمات")
-                {
-                    FillForUpdate(cbEnterSettingImage, cbAddSettingImage, cbEditSettingImage, cbDeleteSettingImage, item.CanEnter, item.CanCreate, item.CanUpdate, item.CanDelete);
-                }
-
-            }
-
+            ApplyGrants(ugEdit.AccessGrants);
             btnAddUserGroup.Content = "ویرایش";
             btnAddUserGroup.IsEnabled = true;
         }

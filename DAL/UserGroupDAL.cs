@@ -44,26 +44,25 @@ namespace DAL
             sqlAdapter.Fill(dataset);
             return dataset.Tables[0];
         }
-        public string Update(string title, List<UserAccessRole> uar)
+        public void Update(int groupId, string title, List<AccessGrant> grants)
         {
-            try
+            using (var db = new DB())
             {
-                UserGroup ug = db.UserGroups.Include("UserAccessRoles").Where(g => g.Title == title).FirstOrDefault();
-                foreach (var item in uar.ToList())
-                {
-                    UserAccessRole q = db.UserAccessRoles.Find(item.id);
-                    q.CanEnter = item.CanEnter;
-                    q.CanDelete = item.CanDelete;
-                    q.CanUpdate = item.CanUpdate;
-                    q.CanCreate = item.CanCreate;
-                    ug.UserAccessRoles.Add(q);
-                }
+                var group = db.UserGroups.Include("AccessGrants")
+                                         .SingleOrDefault(g => g.id == groupId);
+                if (group == null || group.IsBuiltIn)
+                    return;
+
+                group.Title = title;
+                db.AccessGrants.RemoveRange(group.AccessGrants.ToList());
+                foreach (var grant in grants)
+                    db.AccessGrants.Add(new AccessGrant
+                    {
+                        Section = grant.Section,
+                        Operation = grant.Operation,
+                        UserGroup = group,
+                    });
                 db.SaveChanges();
-                return "ویرایش با موفیقت انجام شد";
-            }
-            catch (Exception e)
-            {
-                return "ثبت اطلاعات با مشکلی روبرو شد لطفا برسی کنید:\n" + e.Message;
             }
         }
 
