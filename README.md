@@ -2,10 +2,10 @@
 
 <div align="center">
 
-![C#](https://img.shields.io/badge/Language-C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
-![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![C#](https://img.shields.io/badge/Language-C%23%2013-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![WPF](https://img.shields.io/badge/UI-WPF%20%2F%20XAML-0078D7?style=for-the-badge&logo=windows&logoColor=white)
-![Entity Framework](https://img.shields.io/badge/ORM-Entity%20Framework%206-68217A?style=for-the-badge&logo=nuget&logoColor=white)
+![Entity Framework](https://img.shields.io/badge/ORM-Entity%20Framework%206.5-68217A?style=for-the-badge&logo=nuget&logoColor=white)
 ![xUnit](https://img.shields.io/badge/Tests-xUnit%202.9-blue?style=for-the-badge&logo=xunit&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
@@ -96,6 +96,7 @@ CRMPeyvand (Solution)
 - **ADR-0001**: Incremental in-place refactoring preserving Persian UI formatting and legacy flows.
 - **ADR-0002**: Explicit `InvoiceLine` entity replacing implicit join tables for accurate historical pricing and stock decrements.
 - **ADR-0003**: Strongly-typed `(Section, Operation)` permission matrix eliminating magic string comparisons.
+- **ADR-0004**: Modern .NET 10 runtime & SDK-style project system.
 - **ADR-0005**: Cryptographic PBKDF2-SHA256 hashing replacing reversible encoding.
 - **ADR-0006**: Flagged `IsBuiltIn` Administrator group replacing title-string conventions.
 
@@ -105,14 +106,14 @@ CRMPeyvand (Solution)
 
 | Component | Technology / Library |
 |---|---|
-| **Platform** | .NET Framework 4.7.2 |
-| **Language** | C# 10+ |
+| **Platform** | .NET 10 (Windows Desktop) |
+| **Language** | C# 13+ |
 | **UI Framework** | WPF (Windows Presentation Foundation) |
-| **UI Controls** | HandyControl (`v3.4.4`), BehComponents |
-| **Data Access & ORM** | Entity Framework 6 (`v6.4.4`) Code-First |
+| **UI Controls** | HandyControl (`v3.5.3`), BehComponents |
+| **Data Access & ORM** | Entity Framework 6 (`v6.5.1`) & Microsoft.Data.SqlClient |
 | **Database** | Microsoft SQL Server (LocalDB / Express / Standard) |
-| **Charts** | LiveCharts.Wpf (`v0.9.7`) |
-| **Reporting** | Stimulsoft Reports .NET / Win (`v2022.1.1`) |
+| **Charts** | LiveCharts.Wpf (`v0.9.7`), WinForms.DataVisualization (`v1.9.2`) |
+| **Reporting** | Stimulsoft Reports .NET Core / Win (`v2022.1.1`) |
 | **SMS Provider** | IPE.SmsIr (`v1.0.5`) |
 | **Typography** | Shabnam Persian Font (Embedded) |
 | **Testing** | xUnit (`v2.9.2`), Microsoft.NET.Test.Sdk (`v17.11.1`) |
@@ -123,8 +124,7 @@ CRMPeyvand (Solution)
 
 ### Prerequisites
 - **Operating System**: Windows 10 / 11 / Windows Server
-- **IDE**: [Visual Studio 2022](https://visualstudio.microsoft.com/) (with *.NET desktop development* workload)
-- **Runtime**: [.NET Framework 4.7.2 Developer Pack](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
+- **IDE / CLI**: [Visual Studio 2022+](https://visualstudio.microsoft.com/) or [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download)
 - **Database Engine**: Microsoft SQL Server 2016+ or SQL Server LocalDB / Express
 
 ### 1. Clone the Repository
@@ -140,19 +140,16 @@ Open `CRMPeyvand/App.config` and `DAL/App.config` and adjust the connection stri
 <connectionStrings>
   <add name="conStr"
        connectionString="Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true"
-       providerName="System.Data.SqlClient" />
+       providerName="Microsoft.Data.SqlClient" />
 </connectionStrings>
 ```
 
-### 3. Restore NuGet Packages & Build
-You can build using Visual Studio or via the .NET CLI / MSBuild:
+### 3. Restore & Build Solution
+You can build using the .NET CLI:
 
 ```bash
-# Restore NuGet dependencies
-nuget restore CRMPeyvand.sln
-
 # Build Solution
-msbuild CRMPeyvand.sln /p:Configuration=Debug
+dotnet build CRMPeyvand.sln
 ```
 
 ### 4. Apply Database Migrations
@@ -192,7 +189,7 @@ Passed!  - Failed: 0, Passed: 24, Skipped: 0, Total: 24
 
 ### نرم‌افزار مدیریت ارتباط با مشتری و فروش پیوند (<span dir="ltr">CRMPeyvand</span>)
 
-نرم‌افزار **پیوند** یک سیستم جامع، ماژولار و بومی تحت دسکتاپ برای مدیریت امور مشتریان، صدور فاکتورهای فروش با تاریخ شمسی، انبارداری و کاتالوگ کالا و خدمات، ثبت فعالیت‌ها و پیگیری‌ها، ارسال پیامک‌های هوشمند و مدیریت سطوح دسترسی کاربران بر پایه معماری چندلایه <span dir="ltr">(.NET / WPF / EF6)</span> است.
+نرم‌افزار **پیوند** یک سیستم جامع، ماژولار و بومی تحت دسکتاپ برای مدیریت امور مشتریان، صدور فاکتورهای فروش با تاریخ شمسی، انبارداری و کاتالوگ کالا و خدمات، ثبت فعالیت‌ها و پیگیری‌ها، ارسال پیامک‌های هوشمند و مدیریت سطوح دسترسی کاربران بر پایه معماری چندلایه <span dir="ltr">(.NET 10 / WPF / EF 6.5)</span> است.
 
 #### ویژگی‌های کلیدی:
 - **مدیریت پیشرفته مشتریان**: ثبت مشخصات، سوابق خرید، تاریخچه تعاملات و جستجوی لحظه‌ای.
