@@ -49,6 +49,7 @@
     <Compile Include="MessageBLL.cs" />
     <Compile Include="MessagePanelBLL.cs" />
     <Compile Include="OffCodeBLL.cs" />
+    <Compile Include="PasswordHasher.cs" />
     <Compile Include="Pricing.cs" />
     <Compile Include="StockPolicy.cs" />
     <Compile Include="CatalogItemBLL.cs" />
