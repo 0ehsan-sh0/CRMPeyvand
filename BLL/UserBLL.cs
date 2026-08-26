@@ -55,10 +55,6 @@ namespace BLL
                 return null;
             return PasswordHasher.Verify(Password, user.Password) ? user : null;
         }
-        public bool Access(User user, string Section, int number)
-        {
-            return dal.Access(user, Section, number);
-        }
         public List<User> ReadInvoicesList()
         {
             return dal.ReadInvoicesList();

@@ -59,7 +59,6 @@
     <Compile Include="Reminder.cs" />
     <Compile Include="Section.cs" />
     <Compile Include="User.cs" />
-    <Compile Include="UserAccessRole.cs" />
     <Compile Include="UserGroup.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -95,28 +95,6 @@ namespace DAL
         {
             return db.Users.Include("UserGroup").FirstOrDefault(i => i.UserName == UserName && !i.DeleteStatus);
         }
-        public bool Access(User user, string Section, int number)
-        {
-            //Accecc Rols In Enter Software
-            UserGroup ug = db.UserGroups.Include("UserAccessRoles").Where(i => i.id == user.UserGroup.id).FirstOrDefault();
-            UserAccessRole role = ug.UserAccessRoles.Where(x => x.Section == Section).FirstOrDefault();
-            if (number == 1)
-            {
-                return role.CanEnter;
-            }
-            else if (number == 2)
-            {
-                return role.CanCreate;
-            }
-            else if (number == 3)
-            {
-                return role.CanUpdate;
-            }
-            else
-            {
-                return role.CanDelete;
-            }
-        }
         public List<User> ReadInvoicesList()
         {
             return db.Users.Include("Invoices").Where(i => i.DeleteStatus == false).ToList();
