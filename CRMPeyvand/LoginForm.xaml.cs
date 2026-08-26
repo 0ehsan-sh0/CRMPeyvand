@@ -84,7 +84,7 @@ namespace CRMPeyvand
                 }
                 else
                 {
-                    LisenceForm Luc = new LisenceForm();
+                    RegisterUC Luc = new RegisterUC();
                     Grid.SetRow(Luc, 1);
                     Grid.SetColumn(Luc, 0);
                     Grid.SetColumnSpan(Luc, 12);
