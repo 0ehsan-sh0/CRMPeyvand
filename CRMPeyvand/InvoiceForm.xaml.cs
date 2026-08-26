@@ -146,10 +146,12 @@ namespace CRMPeyvand
             if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
+                miDeleteInvoice.IsEnabled = false;
             }
             else
             {
                 miDelete.IsEnabled = true;
+                miDeleteInvoice.IsEnabled = true;
             }
 
             txtCustomer.ItemsSource = Cbll.ReadPhoneNumbers();
@@ -242,6 +244,10 @@ namespace CRMPeyvand
 
         private void miDeleteInvoice_Click(object sender, RoutedEventArgs e)
         {
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
+            {
+                return;
+            }
             MessageBoxResult DeleteConfirmation = MessageBox.Show("آیا از عملیات حذف مطمعن هستید ؟", "هشدار", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {
