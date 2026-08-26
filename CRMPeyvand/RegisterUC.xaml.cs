@@ -117,9 +117,16 @@ namespace CRMPeyvand
                         u.Password = txtPass.Password;
                         u.RegDate = DateTime.Now;
                         u.Picture = SavePic(txtUserName.Text);
-                        MessageBox.Show(uBLL.Create(u) + " لطفا مجددا وارد برنامه شوید", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(uBLL.Create(u), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Visibility = Visibility.Hidden;
-                        Application.Current.Shutdown();
+                        LoginUC luc = new LoginUC();
+                        Grid.SetRow(luc, 1);
+                        Grid.SetColumn(luc, 0);
+                        Grid.SetColumnSpan(luc, 12);
+                        Grid.SetRowSpan(luc, 12);
+                        luc.HorizontalAlignment = HorizontalAlignment.Center;
+                        luc.VerticalAlignment = VerticalAlignment.Center;
+                        ((Panel)this.Parent).Children.Add(luc);
                     }
                     else
                     {
