@@ -91,7 +91,10 @@ namespace CRMPeyvand
             for (int r = 0; r < AllSections.Length; r++)
             {
                 var section = AllSections[r];
-                Place(new TextBlock { Text = SectionCaptions[section] }, r + 1, 0);
+                string caption;
+                if (!SectionCaptions.TryGetValue(section, out caption))
+                    caption = section.ToString();
+                Place(new TextBlock { Text = caption }, r + 1, 0);
 
                 var cells = new Dictionary<Operation, CheckBox>();
                 foreach (var op in AllOperations)
@@ -135,7 +138,8 @@ namespace CRMPeyvand
                 case Operation.View: return "مشاهده";
                 case Operation.Create: return "ایجاد";
                 case Operation.Edit: return "ویرایش";
-                default: return "حذف";
+                case Operation.Delete: return "حذف";
+                default: throw new ArgumentOutOfRangeException(nameof(operation), operation, "Unexpected Operation value");
             }
         }
 

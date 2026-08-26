@@ -81,7 +81,7 @@ namespace DAL
 
         public UserGroup ReadBySingelTitle(string title)
         {
-            return db.UserGroups.Include("UserAccessRoles").Where(x => x.Title == title).SingleOrDefault();
+            return db.UserGroups.Include("AccessGrants").Where(x => x.Title == title).SingleOrDefault();
         }
         public static UserGroup AdminUserGroup()
         {
