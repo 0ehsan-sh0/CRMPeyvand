@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -146,7 +147,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش فعالیت ها", 2))
+            if (!AccessGuard.Can(u, Section.Activities, Operation.Create))
             {
                 btnAdd.IsEnabled = false;
                 Add = false;
@@ -156,7 +157,7 @@ namespace CRMPeyvand
                 btnAdd.IsEnabled = true;
                 Add = true;
             }
-            if (!Ubll.Access(u, "بخش فعالیت ها", 3))
+            if (!AccessGuard.Can(u, Section.Activities, Operation.Edit))
             {
                 miEdit.IsEnabled = false;
             }
@@ -164,7 +165,7 @@ namespace CRMPeyvand
             {
                 miEdit.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش فعالیت ها", 4))
+            if (!AccessGuard.Can(u, Section.Activities, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
             }

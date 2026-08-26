@@ -47,9 +47,9 @@ namespace BLL
         {
             return dal.Update(title, uar);
         }
-        public UserGroup AdminUserGruop()
+        public UserGroup AdminUserGroup()
         {
-            return dal.AdminUserGruop();
+            return UserGroupDAL.AdminUserGroup();
         }
     }
 }

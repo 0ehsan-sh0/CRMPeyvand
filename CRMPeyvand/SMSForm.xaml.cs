@@ -13,6 +13,7 @@ using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using BE;
+using Section = BE.Section;
 using BLL;
 using IPE.SmsIrClient.Models.Requests;
 using IPE.SmsIrClient;
@@ -49,7 +50,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "پنل پیامکی", 2))
+            if (!AccessGuard.Can(u, Section.SmsPanel, Operation.Create))
             {
                 Grid grid = this.FindName("MainGrid") as Grid;
                 for (int i = grid.Children.Count - 1; i >= 0; i--)
@@ -133,6 +134,10 @@ namespace CRMPeyvand
 
         private void btnOffCode_Click(object sender, RoutedEventArgs e)
         {
+            if (!AccessGuard.Can(u, Section.Discounts, Operation.View))
+            {
+                return;
+            }
             OffCodeForm form = new OffCodeForm();
             openform(form);
         }

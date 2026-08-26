@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using Microsoft.Win32;
 using Stimulsoft.Report.Dashboard;
@@ -280,7 +281,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!bll.Access(u, "بخش کاربران", 2))
+            if (!AccessGuard.Can(u, Section.Users, Operation.Create))
             {
                 btnAdd.IsEnabled = false;
                 btnAddUserGroup.IsEnabled = false;
@@ -292,7 +293,7 @@ namespace CRMPeyvand
                 btnAddUserGroup.IsEnabled = true;
                 Add = true;
             }
-            if (!bll.Access(u, "بخش کاربران", 3))
+            if (!AccessGuard.Can(u, Section.Users, Operation.Edit))
             {
                 miEdit.IsEnabled = false;
                 miEditUserGroup.IsEnabled = false;
@@ -302,7 +303,7 @@ namespace CRMPeyvand
                 miEdit.IsEnabled = true;
                 miEditUserGroup.IsEnabled = true;
             }
-            if (!bll.Access(u, "بخش کاربران", 4))
+            if (!AccessGuard.Can(u, Section.Users, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
             }

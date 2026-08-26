@@ -1,4 +1,5 @@
 ﻿using BE;
+using Section = BE.Section;
 using BLL;
 using Stimulsoft.Report;
 using System;
@@ -124,7 +125,7 @@ namespace CRMPeyvand
         {
             MainWindow w = (MainWindow)Application.Current.MainWindow;
             u = w.loggedInUser;
-            if (!Ubll.Access(u, "بخش فاکتورها", 2))
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Create))
             {
                 btnAdd.IsEnabled = false;
                 Print.IsEnabled = false;
@@ -134,7 +135,15 @@ namespace CRMPeyvand
                 btnAdd.IsEnabled = true;
                 Print.IsEnabled = true;
             }
-            if (!Ubll.Access(u, "بخش فاکتورها", 4))
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Edit))
+            {
+                miDone.IsEnabled = false;
+            }
+            else
+            {
+                miDone.IsEnabled = true;
+            }
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
             }
