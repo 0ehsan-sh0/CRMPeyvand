@@ -53,7 +53,7 @@ namespace CRMPeyvand
         {
             this.Close();
         }
-        class UserSells
+        public class UserSells
         {
             public string Name { get; set; }
             public int Count { get; set; }
@@ -75,6 +75,7 @@ namespace CRMPeyvand
             StiReport sti = new StiReport();
             string path = GetReportPath(mrtFileName);
             sti.Load(path);
+            sti.CalculationMode = StiCalculationMode.Interpretation;
             string connStr = ConfigurationManager.ConnectionStrings["conStr"]?.ConnectionString;
             if (!string.IsNullOrEmpty(connStr))
             {
@@ -87,7 +88,8 @@ namespace CRMPeyvand
             {
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
             }
-            sti.Render();
+            sti.Dictionary.Synchronize();
+            sti.Render(false);
             sti.Show();
         }
 
@@ -161,11 +163,13 @@ namespace CRMPeyvand
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
                 sti.Load(GetReportPath("UsersSells.mrt"));
+                sti.CalculationMode = StiCalculationMode.Interpretation;
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.RegBusinessObject("UsersSells", userSells);
-                sti.Render();
+                sti.Dictionary.Synchronize();
+                sti.Render(false);
                 sti.Show();
             }
             else if (rbPrintActivitiesD.Checked)
@@ -190,11 +194,13 @@ namespace CRMPeyvand
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
                 sti.Load(GetReportPath("UserActivities.mrt"));
+                sti.CalculationMode = StiCalculationMode.Interpretation;
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.RegBusinessObject("UserActivities", userSells);
-                sti.Render();
+                sti.Dictionary.Synchronize();
+                sti.Render(false);
                 sti.Show();
             }
             else if (rbPrintCustomerD.Checked)
@@ -214,13 +220,14 @@ namespace CRMPeyvand
                 var usCulture = new CultureInfo("fa-IR");
                 StiReport sti = new StiReport();
                 sti.Load(GetReportPath("CustomersD.mrt"));
+                sti.CalculationMode = StiCalculationMode.Interpretation;
                 sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
                 sti.RegBusinessObject("Customers", customers);
-                sti.Render();
+                sti.Dictionary.Synchronize();
+                sti.Render(false);
                 sti.Show();
-
             }
         }
         private void pictureBox3_Click(object sender, EventArgs e)

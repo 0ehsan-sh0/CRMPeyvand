@@ -23,6 +23,13 @@ using static HandyControl.Tools.Interop.InteropValues;
 
 namespace CRMPeyvand
 {
+    public class InvoiceItemReportDto
+    {
+        public string Name { get; set; }
+        public double Price { get; set; }
+        public int Count { get; set; }
+    }
+
     /// <summary>
     /// Interaction logic for InvoiceForm.xaml
     /// </summary>
@@ -316,18 +323,31 @@ namespace CRMPeyvand
                 lblCount.Content = Ibll.CountInvoices();
                 StiReport sti = new StiReport();
                 sti.Load(GetReportPath("InvoicePrint.mrt"));
-                sti.Dictionary.Variables["InvoiceNum"].Value = savedInvoice.id.ToString();
-                sti.Dictionary.Variables["Date"].Value = lblDate.Content.ToString();
-                sti.Dictionary.Variables["CustomerName"].Value = lblName.Content.ToString();
-                sti.Dictionary.Variables["CustomerPhone"].Value = lblPhone.Content.ToString();
-                sti.Dictionary.Variables["TotalPrice"].Value = lblTotalPrice.Content.ToString();
-                sti.Dictionary.Variables["FinalPrice"].Value = lblFinalPrice.Content.ToString();
-                sti.RegBusinessObject("Product", draftLines.Select(l => new {
-                    Name = l.CatalogItem.Name,
-                    Price = l.UnitPrice,
+                sti.CalculationMode = StiCalculationMode.Interpretation;
+
+                if (sti.Dictionary.Variables.Contains("InvoiceNum"))
+                    sti.Dictionary.Variables["InvoiceNum"].Value = savedInvoice.id.ToString();
+                if (sti.Dictionary.Variables.Contains("Date"))
+                    sti.Dictionary.Variables["Date"].Value = lblDate.Content?.ToString() ?? DateTime.Now.Date.ToString("yyyy/MM/dd");
+                if (sti.Dictionary.Variables.Contains("CustomerName"))
+                    sti.Dictionary.Variables["CustomerName"].Value = lblName.Content?.ToString() ?? "";
+                if (sti.Dictionary.Variables.Contains("CustomerPhone"))
+                    sti.Dictionary.Variables["CustomerPhone"].Value = lblPhone.Content?.ToString() ?? "";
+                if (sti.Dictionary.Variables.Contains("TotalPrice"))
+                    sti.Dictionary.Variables["TotalPrice"].Value = lblTotalPrice.Content?.ToString() ?? "0";
+                if (sti.Dictionary.Variables.Contains("FinalPrice"))
+                    sti.Dictionary.Variables["FinalPrice"].Value = lblFinalPrice.Content?.ToString() ?? "0";
+
+                var reportItems = draftLines.Select(l => new InvoiceItemReportDto
+                {
+                    Name = l.CatalogItem?.Name ?? "",
+                    Price = (double)l.UnitPrice,
                     Count = l.Quantity
-                }).ToList());
-                sti.Render();
+                }).ToList();
+
+                sti.RegBusinessObject("Product", "Product", reportItems);
+                sti.Dictionary.Synchronize();
+                sti.Render(false);
                 sti.Show();
                 dgvProduts.ItemsSource = null;
                 draftLines.Clear();
