@@ -1,4 +1,4 @@
-﻿using BLL;
+using BLL;
 using HandyControl.Tools.Extension;
 using System;
 using System.Collections.Generic;
@@ -52,21 +52,29 @@ namespace CRMPeyvand
         int i;
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
+            var worker = sender as BackgroundWorker;
             for (i = 0; i <= 100; i++)
             {
                 if (i == 40)
                 {
-                    _HasAnyUser = userBLL.HasAnyUser();
+                    try
+                    {
+                        _HasAnyUser = userBLL.HasAnyUser();
+                    }
+                    catch (Exception ex)
+                    {
+                        _HasAnyUser = false;
+                    }
                 }
-                (sender as BackgroundWorker).ReportProgress(i);
-                Thread.Sleep(25);
+                worker?.ReportProgress(i);
+                Thread.Sleep(15);
             }
-            
         }
+
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             pbLoad.Value = e.ProgressPercentage;
-            if (i >= 100)
+            if (e.ProgressPercentage >= 100)
             {
                 pbLoad.Visibility = Visibility.Hidden;
                 lblLoad.Visibility = Visibility.Hidden;
@@ -92,7 +100,6 @@ namespace CRMPeyvand
                     Luc.HorizontalAlignment = HorizontalAlignment.Center;
                     Luc.VerticalAlignment = VerticalAlignment.Center;
                     MainGrid.Children.Add(Luc);
-
                 }
             }
         }
