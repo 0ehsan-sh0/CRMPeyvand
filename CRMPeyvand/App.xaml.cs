@@ -25,6 +25,14 @@ namespace CRMPeyvand
                 args.Handled = true;
             };
 
+            try
+            {
+                Stimulsoft.Report.StiOptions.Engine.ForceInterpretationMode = true;
+            }
+            catch
+            {
+            }
+
             PersianCulture culture = new PersianCulture();
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = culture;

@@ -321,34 +321,57 @@ namespace CRMPeyvand
                 }
                 PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
-                StiReport sti = new StiReport();
-                sti.Load(GetReportPath("InvoicePrint.mrt"));
-                sti.CalculationMode = StiCalculationMode.Interpretation;
-
-                if (sti.Dictionary.Variables.Contains("InvoiceNum"))
-                    sti.Dictionary.Variables["InvoiceNum"].Value = savedInvoice.id.ToString();
-                if (sti.Dictionary.Variables.Contains("Date"))
-                    sti.Dictionary.Variables["Date"].Value = lblDate.Content?.ToString() ?? DateTime.Now.Date.ToString("yyyy/MM/dd");
-                if (sti.Dictionary.Variables.Contains("CustomerName"))
-                    sti.Dictionary.Variables["CustomerName"].Value = lblName.Content?.ToString() ?? "";
-                if (sti.Dictionary.Variables.Contains("CustomerPhone"))
-                    sti.Dictionary.Variables["CustomerPhone"].Value = lblPhone.Content?.ToString() ?? "";
-                if (sti.Dictionary.Variables.Contains("TotalPrice"))
-                    sti.Dictionary.Variables["TotalPrice"].Value = lblTotalPrice.Content?.ToString() ?? "0";
-                if (sti.Dictionary.Variables.Contains("FinalPrice"))
-                    sti.Dictionary.Variables["FinalPrice"].Value = lblFinalPrice.Content?.ToString() ?? "0";
-
-                var reportItems = draftLines.Select(l => new InvoiceItemReportDto
+                try
                 {
-                    Name = l.CatalogItem?.Name ?? "",
-                    Price = (double)l.UnitPrice,
-                    Count = l.Quantity
-                }).ToList();
+                    StiReport sti = new StiReport();
+                    sti.Load(GetReportPath("InvoicePrint.mrt"));
+                    sti.CalculationMode = StiCalculationMode.Interpretation;
 
-                sti.RegBusinessObject("Product", "Product", reportItems);
-                sti.Dictionary.Synchronize();
-                sti.Render(false);
-                sti.Show();
+                    string invNum = savedInvoice.id.ToString();
+                    string invDate = lblDate.Content?.ToString() ?? DateTime.Now.Date.ToString("yyyy/MM/dd");
+                    string custName = lblName.Content?.ToString() ?? "";
+                    string custPhone = lblPhone.Content?.ToString() ?? "";
+                    string totPrice = lblTotalPrice.Content?.ToString() ?? "0";
+                    string finPrice = lblFinalPrice.Content?.ToString() ?? "0";
+
+                    sti["InvoiceNum"] = invNum;
+                    sti["Date"] = invDate;
+                    sti["CustomerName"] = custName;
+                    sti["CustomerPhone"] = custPhone;
+                    sti["TotalPrice"] = totPrice;
+                    sti["FinalPrice"] = finPrice;
+
+                    if (sti.Dictionary.Variables.Contains("InvoiceNum"))
+                        sti.Dictionary.Variables["InvoiceNum"].Value = invNum;
+                    if (sti.Dictionary.Variables.Contains("Date"))
+                        sti.Dictionary.Variables["Date"].Value = invDate;
+                    if (sti.Dictionary.Variables.Contains("CustomerName"))
+                        sti.Dictionary.Variables["CustomerName"].Value = custName;
+                    if (sti.Dictionary.Variables.Contains("CustomerPhone"))
+                        sti.Dictionary.Variables["CustomerPhone"].Value = custPhone;
+                    if (sti.Dictionary.Variables.Contains("TotalPrice"))
+                        sti.Dictionary.Variables["TotalPrice"].Value = totPrice;
+                    if (sti.Dictionary.Variables.Contains("FinalPrice"))
+                        sti.Dictionary.Variables["FinalPrice"].Value = finPrice;
+
+                    var reportItems = draftLines.Select(l => new InvoiceItemReportDto
+                    {
+                        Name = l.CatalogItem?.Name ?? "",
+                        Price = (double)l.UnitPrice,
+                        Count = l.Quantity
+                    }).ToList();
+
+                    sti.RegBusinessObject("", "Product", reportItems);
+                    sti.RegBusinessObject("Product", reportItems);
+                    sti.Dictionary.Synchronize();
+                    sti.Render(false);
+                    sti.Show();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("خطا در چاپ فاکتور:\n" + ex.Message, "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
                 dgvProduts.ItemsSource = null;
                 draftLines.Clear();
                 lstResult.Items.Clear();
