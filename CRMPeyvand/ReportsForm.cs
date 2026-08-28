@@ -1,8 +1,8 @@
 using BE;
 using BLL;
-using HandyControl.Controls;
-using Stimulsoft.Report;
-using Stimulsoft.Report.Dictionary;
+using CRMPeyvand.Reports.Documents;
+using CRMPeyvand.Reports.Models;
+using CRMPeyvand.Reports.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,7 +16,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
-using static Stimulsoft.Report.Func;
 
 namespace CRMPeyvand
 {
@@ -49,79 +48,122 @@ namespace CRMPeyvand
         }
         UserBLL ubll = new UserBLL();
         CustomerBLL Cbll = new CustomerBLL();
+        ActivityBLL abll = new ActivityBLL();
+        CatalogItemBLL pbll = new CatalogItemBLL();
+
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-        public class UserSells
+
+        private static string ToPersianDate(DateTime date)
         {
-            public string Name { get; set; }
-            public int Count { get; set; }
-        }
-        
-        private static string GetReportPath(string mrtFileName)
-        {
-            string path = Path.Combine(AppContext.BaseDirectory, "Reports", mrtFileName);
-            if (File.Exists(path))
-                return path;
-            string devPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\Reports", mrtFileName));
-            if (File.Exists(devPath))
-                return devPath;
-            return path;
+            var pc = new PersianCalendar();
+            return $"{pc.GetYear(date):0000}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
         }
 
-        private void RenderAndShowReport(string mrtFileName)
+        private void GeneratePeriodicSalesReport(string title, DateTime startDate, DateTime endDate, string filePrefix)
         {
-            StiReport sti = new StiReport();
-            string path = GetReportPath(mrtFileName);
-            sti.Load(path);
-            sti.CalculationMode = StiCalculationMode.Interpretation;
-            string connStr = ConfigurationManager.ConnectionStrings["conStr"]?.ConnectionString;
-            if (!string.IsNullOrEmpty(connStr))
+            var users = ubll.ReadInvoicesList();
+            var userSales = new List<UserSalesRowModel>();
+            int rowIdx = 1;
+            foreach (var user in users)
             {
-                foreach (var database in sti.Dictionary.Databases.OfType<Stimulsoft.Report.Dictionary.StiSqlDatabase>())
+                var matching = user.Invoices?
+                    .Where(i => !i.DeleteStatus && i.RegDate.Date >= startDate && i.RegDate.Date <= endDate)
+                    .ToList() ?? new List<Invoice>();
+
+                userSales.Add(new UserSalesRowModel
                 {
-                    database.ConnectionString = connStr;
-                }
+                    RowIndex = rowIdx++,
+                    UserName = user.Name ?? user.UserName ?? "",
+                    InvoicesCount = matching.Count,
+                    TotalAmount = (double)matching.Sum(i => i.Payable)
+                });
             }
-            if (sti.Dictionary.Variables.Contains("Date"))
+
+            var model = new SalesSummaryReportModel
             {
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy/MM/dd");
-            }
-            sti.Dictionary.Synchronize();
-            sti.Render(false);
-            sti.Show();
+                ReportTitle = title,
+                GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                StartDatePersian = ToPersianDate(startDate),
+                EndDatePersian = ToPersianDate(endDate),
+                UserSales = userSales
+            };
+
+            ReportViewerService.OpenReportPdf(new SalesSummaryDocument(model), filePrefix);
         }
 
         private void pictureBox2_Click(object sender, EventArgs e)
         {
             if (rbPrintCustomer.Checked)
             {
-                RenderAndShowReport("Customers.mrt");
+                var customers = Cbll.ReadWithDateTime();
+                var model = new CustomerReportModel
+                {
+                    ReportTitle = "مشتریان ثبت نام شده",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    Customers = customers.Select((c, idx) => new CustomerRowModel
+                    {
+                        RowIndex = idx + 1,
+                        Name = c.Name ?? "",
+                        Phone = c.Phone ?? "",
+                        RegDatePersian = ToPersianDate(c.RegDate)
+                    }).ToList()
+                };
+                ReportViewerService.OpenReportPdf(new CustomerListDocument(model), "Customers");
             }
             else if (rbPrintActivities.Checked)
             {
-                RenderAndShowReport("Activities.mrt");
+                var activities = abll.ReadAllWithDetails();
+                var model = new ActivityReportModel
+                {
+                    ReportTitle = "تمام فعالیت‌های ثبت شده",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    Activities = activities.Select((a, idx) => new ActivityRowModel
+                    {
+                        RowIndex = idx + 1,
+                        CustomerName = a.Customer?.Name ?? "",
+                        UserName = a.User?.Name ?? a.User?.UserName ?? "",
+                        CategoryTitle = a.ActivityCategory?.CategoryName ?? "",
+                        Description = a.Info ?? a.Title ?? "",
+                        DatePersian = ToPersianDate(a.RegDate),
+                        Status = "ثبت شده"
+                    }).ToList()
+                };
+                ReportViewerService.OpenReportPdf(new ActivityListDocument(model), "Activities");
             }
             else if (rbPrintThisWeek.Checked)
             {
-                RenderAndShowReport("LastWeekInvoices.mrt");
+                GeneratePeriodicSalesReport("لیست فروش هفت روز گذشته", DateTime.Now.Date.AddDays(-7), DateTime.Now.Date, "WeeklySales");
             }
             else if (rbPrintThismonth.Checked)
             {
-                RenderAndShowReport("LastMonthInvoices.mrt");
+                GeneratePeriodicSalesReport("لیست فروش ماه گذشته (سی روز گذشته)", DateTime.Now.Date.AddDays(-30), DateTime.Now.Date, "MonthlySales");
             }
             else if (rbPrintThisYear.Checked)
             {
-                RenderAndShowReport("LastYearInvoices.mrt");
+                GeneratePeriodicSalesReport("لیست فروش سال گذشته (365 روز گذشته)", DateTime.Now.Date.AddDays(-365), DateTime.Now.Date, "YearlySales");
             }
             else if (rbPrintProducts.Checked)
             {
-                RenderAndShowReport("ProductsTotal.mrt");
+                var products = pbll.ReadAll();
+                var model = new CatalogItemReportModel
+                {
+                    ReportTitle = "موجودی محصولات انبار",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    Items = products.Select((p, idx) => new CatalogItemRowModel
+                    {
+                        RowIndex = idx + 1,
+                        Name = p.Name ?? "",
+                        Kind = p.Kind == ItemKind.Good ? "کالا" : "خدمات",
+                        Stock = p.Stock,
+                        Price = (double)p.SalePrice
+                    }).ToList()
+                };
+                ReportViewerService.OpenReportPdf(new CatalogItemListDocument(model), "ProductsTotal");
             }
         }
-
-        
 
         private void pictureBox5_Click(object sender, EventArgs e)
         {
@@ -141,93 +183,92 @@ namespace CRMPeyvand
         private void pictureBox4_Click(object sender, EventArgs e)
         {
             chart1.Series["Chart"].Points.Clear();
+            DateTime startDate = Start.SelectedDateInDateTime.Date;
+            DateTime endDate = End.SelectedDateInDateTime.Date;
+
             if (rbPrintInvoicesD.Checked)
             {
-                List<UserSells> userSells = new List<UserSells>();
-                foreach (var item in ubll.ReadInvoicesList())
+                var users = ubll.ReadInvoicesList();
+                var userSales = new List<UserSalesRowModel>();
+                int rowIdx = 1;
+                foreach (var user in users)
                 {
-                    int x = 0;
-                    UserSells usersell = new UserSells();
-                    foreach (var i in item.Invoices)
+                    var matching = user.Invoices?
+                        .Where(i => !i.DeleteStatus && i.RegDate.Date >= startDate && i.RegDate.Date <= endDate)
+                        .ToList() ?? new List<Invoice>();
+
+                    chart1.Series["Chart"].Points.AddXY(user.Name ?? user.UserName, matching.Count);
+                    userSales.Add(new UserSalesRowModel
                     {
-                        if (i.RegDate.Date >= Start.SelectedDateInDateTime.Date && i.RegDate.Date <= End.SelectedDateInDateTime.Date)
-                        {
-                            x++;
-                        }
-                    }
-                    chart1.Series["Chart"].Points.AddXY(item.Name, x);
-                    usersell.Name = item.Name;
-                    usersell.Count = x;
-                    userSells.Add(usersell);
+                        RowIndex = rowIdx++,
+                        UserName = user.Name ?? user.UserName ?? "",
+                        InvoicesCount = matching.Count,
+                        TotalAmount = (double)matching.Sum(i => i.Payable)
+                    });
                 }
-                var usCulture = new CultureInfo("fa-IR");
-                StiReport sti = new StiReport();
-                sti.Load(GetReportPath("UsersSells.mrt"));
-                sti.CalculationMode = StiCalculationMode.Interpretation;
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.RegBusinessObject("UsersSells", userSells);
-                sti.Dictionary.Synchronize();
-                sti.Render(false);
-                sti.Show();
+
+                var model = new SalesSummaryReportModel
+                {
+                    ReportTitle = "گزارش فروش کاربران بر اساس تاریخ",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    StartDatePersian = ToPersianDate(startDate),
+                    EndDatePersian = ToPersianDate(endDate),
+                    UserSales = userSales
+                };
+                ReportViewerService.OpenReportPdf(new SalesSummaryDocument(model), "UsersSells");
             }
             else if (rbPrintActivitiesD.Checked)
             {
-                List<UserSells> userSells = new List<UserSells>();
-                foreach (var item in ubll.ReadActivitiesList())
+                var users = ubll.ReadActivitiesList();
+                var activities = abll.ReadAllWithDetails()
+                    .Where(a => a.RegDate.Date >= startDate && a.RegDate.Date <= endDate)
+                    .ToList();
+
+                foreach (var user in users)
                 {
-                    int x = 0;
-                    UserSells usersell = new UserSells();
-                    foreach (var i in item.Activities)
-                    {
-                        if (i.RegDate.Date >= Start.SelectedDateInDateTime.Date && i.RegDate.Date <= End.SelectedDateInDateTime.Date)
-                        {
-                            x++;
-                        }
-                    }
-                    chart1.Series["Chart"].Points.AddXY(item.Name, x);
-                    usersell.Name = item.Name;
-                    usersell.Count = x;
-                    userSells.Add(usersell);
+                    int count = user.Activities?
+                        .Count(a => !a.DeleteStatus && a.RegDate.Date >= startDate && a.RegDate.Date <= endDate) ?? 0;
+                    chart1.Series["Chart"].Points.AddXY(user.Name ?? user.UserName, count);
                 }
-                var usCulture = new CultureInfo("fa-IR");
-                StiReport sti = new StiReport();
-                sti.Load(GetReportPath("UserActivities.mrt"));
-                sti.CalculationMode = StiCalculationMode.Interpretation;
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.RegBusinessObject("UserActivities", userSells);
-                sti.Dictionary.Synchronize();
-                sti.Render(false);
-                sti.Show();
+
+                var model = new ActivityReportModel
+                {
+                    ReportTitle = "گزارش فعالیت کاربران بر اساس تاریخ",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    StartDatePersian = ToPersianDate(startDate),
+                    EndDatePersian = ToPersianDate(endDate),
+                    Activities = activities.Select((a, idx) => new ActivityRowModel
+                    {
+                        RowIndex = idx + 1,
+                        CustomerName = a.Customer?.Name ?? "",
+                        UserName = a.User?.Name ?? a.User?.UserName ?? "",
+                        CategoryTitle = a.ActivityCategory?.CategoryName ?? "",
+                        Description = a.Info ?? a.Title ?? "",
+                        DatePersian = ToPersianDate(a.RegDate),
+                        Status = "ثبت شده"
+                    }).ToList()
+                };
+                ReportViewerService.OpenReportPdf(new ActivityListDocument(model), "UserActivities");
             }
             else if (rbPrintCustomerD.Checked)
             {
-                List<Customer> customers = new List<Customer>();
-                foreach (var item in Cbll.ReadWithDateTime())
+                var customers = Cbll.ReadWithDateTime()
+                    .Where(c => c.RegDate.Date >= startDate && c.RegDate.Date <= endDate)
+                    .ToList();
+
+                var model = new CustomerReportModel
                 {
-                    Customer customer = new Customer();
-                    if (item.RegDate.Date >= Start.SelectedDateInDateTime.Date && item.RegDate.Date <= End.SelectedDateInDateTime.Date)
+                    ReportTitle = "گزارش مشتریان بر اساس تاریخ",
+                    GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                    Customers = customers.Select((c, idx) => new CustomerRowModel
                     {
-                        customer.Name = item.Name;
-                        customer.Phone = item.Phone;
-                        customer.RegDate = item.RegDate;
-                        customers.Add(customer);
-                    }
-                }
-                var usCulture = new CultureInfo("fa-IR");
-                StiReport sti = new StiReport();
-                sti.Load(GetReportPath("CustomersD.mrt"));
-                sti.CalculationMode = StiCalculationMode.Interpretation;
-                sti.Dictionary.Variables["Date"].Value = DateTime.Now.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["Start"].Value = Start.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.Dictionary.Variables["End"].Value = End.SelectedDateInDateTime.Date.ToString("yyyy,MM,d");
-                sti.RegBusinessObject("Customers", customers);
-                sti.Dictionary.Synchronize();
-                sti.Render(false);
-                sti.Show();
+                        RowIndex = idx + 1,
+                        Name = c.Name ?? "",
+                        Phone = c.Phone ?? "",
+                        RegDatePersian = ToPersianDate(c.RegDate)
+                    }).ToList()
+                };
+                ReportViewerService.OpenReportPdf(new CustomerListDocument(model), "CustomersD");
             }
         }
         private void pictureBox3_Click(object sender, EventArgs e)
@@ -247,8 +288,6 @@ namespace CRMPeyvand
                     }
                     chart1.Series["Chart"].Points.AddXY(item.Name, x);
                 }
-                
-
             }
             else if (rbPrintActivitiesD.Checked)
             {
@@ -269,8 +308,6 @@ namespace CRMPeyvand
             {
                 System.Windows.Forms.MessageBox.Show("گزارش زیر فقط مخصوص چاپ است", "اطلاعیه");
             }
-
-
         }
 
         private void ReportsForm_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)

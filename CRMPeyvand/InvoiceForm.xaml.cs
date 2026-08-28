@@ -1,7 +1,9 @@
 using BE;
 using Section = BE.Section;
 using BLL;
-using Stimulsoft.Report;
+using CRMPeyvand.Reports.Documents;
+using CRMPeyvand.Reports.Models;
+using CRMPeyvand.Reports.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,13 +25,6 @@ using static HandyControl.Tools.Interop.InteropValues;
 
 namespace CRMPeyvand
 {
-    public class InvoiceItemReportDto
-    {
-        public string Name { get; set; }
-        public double Price { get; set; }
-        public int Count { get; set; }
-    }
-
     /// <summary>
     /// Interaction logic for InvoiceForm.xaml
     /// </summary>
@@ -52,17 +47,6 @@ namespace CRMPeyvand
         UserBLL Ubll = new UserBLL();
         User u = new User();
         OffCode off = new OffCode();
-
-        private static string GetReportPath(string mrtFileName)
-        {
-            string path = System.IO.Path.Combine(AppContext.BaseDirectory, "Reports", mrtFileName);
-            if (System.IO.File.Exists(path))
-                return path;
-            string devPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, @"..\..\..\Reports", mrtFileName));
-            if (System.IO.File.Exists(devPath))
-                return devPath;
-            return path;
-        }
 
         string countOff()
         {
@@ -323,49 +307,29 @@ namespace CRMPeyvand
                 lblCount.Content = Ibll.CountInvoices();
                 try
                 {
-                    StiReport sti = new StiReport();
-                    sti.Load(GetReportPath("InvoicePrint.mrt"));
-                    sti.CalculationMode = StiCalculationMode.Interpretation;
-
                     string invNum = savedInvoice.id.ToString();
                     string invDate = lblDate.Content?.ToString() ?? DateTime.Now.Date.ToString("yyyy/MM/dd");
                     string custName = lblName.Content?.ToString() ?? "";
                     string custPhone = lblPhone.Content?.ToString() ?? "";
-                    string totPrice = lblTotalPrice.Content?.ToString() ?? "0";
-                    string finPrice = lblFinalPrice.Content?.ToString() ?? "0";
 
-                    sti["InvoiceNum"] = invNum;
-                    sti["Date"] = invDate;
-                    sti["CustomerName"] = custName;
-                    sti["CustomerPhone"] = custPhone;
-                    sti["TotalPrice"] = totPrice;
-                    sti["FinalPrice"] = finPrice;
-
-                    if (sti.Dictionary.Variables.Contains("InvoiceNum"))
-                        sti.Dictionary.Variables["InvoiceNum"].Value = invNum;
-                    if (sti.Dictionary.Variables.Contains("Date"))
-                        sti.Dictionary.Variables["Date"].Value = invDate;
-                    if (sti.Dictionary.Variables.Contains("CustomerName"))
-                        sti.Dictionary.Variables["CustomerName"].Value = custName;
-                    if (sti.Dictionary.Variables.Contains("CustomerPhone"))
-                        sti.Dictionary.Variables["CustomerPhone"].Value = custPhone;
-                    if (sti.Dictionary.Variables.Contains("TotalPrice"))
-                        sti.Dictionary.Variables["TotalPrice"].Value = totPrice;
-                    if (sti.Dictionary.Variables.Contains("FinalPrice"))
-                        sti.Dictionary.Variables["FinalPrice"].Value = finPrice;
-
-                    var reportItems = draftLines.Select(l => new InvoiceItemReportDto
+                    var reportModel = new InvoiceReportModel
                     {
-                        Name = l.CatalogItem?.Name ?? "",
-                        Price = (double)l.UnitPrice,
-                        Count = l.Quantity
-                    }).ToList();
+                        InvoiceNumber = invNum,
+                        IssueDatePersian = invDate,
+                        CustomerName = custName,
+                        CustomerPhone = custPhone,
+                        DiscountAmount = (double)savedInvoice.DiscountAmount,
+                        Items = draftLines.Select((l, index) => new InvoiceItemRowModel
+                        {
+                            RowIndex = index + 1,
+                            ItemName = l.CatalogItem?.Name ?? "",
+                            Quantity = l.Quantity,
+                            UnitPrice = (double)l.UnitPrice
+                        }).ToList()
+                    };
 
-                    sti.RegBusinessObject("", "Product", reportItems);
-                    sti.RegBusinessObject("Product", reportItems);
-                    sti.Dictionary.Synchronize();
-                    sti.Render(false);
-                    sti.Show();
+                    var doc = new InvoiceDocument(reportModel);
+                    ReportViewerService.OpenReportPdf(doc, $"Invoice_{invNum}");
                 }
                 catch (Exception ex)
                 {

@@ -40,6 +40,17 @@ namespace DAL
             return dataset.Tables[0];
         }
 
+        public List<Activity> ReadAllWithDetails()
+        {
+            return db.Activities
+                .Include("User")
+                .Include("Customer")
+                .Include("ActivityCategory")
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .ToList();
+        }
+
         public Activity ReadById(int id)
         {
             return db.Activities.Include("User").Include("Customer").Include("ActivityCategory").Where(i => i.id == id).FirstOrDefault();

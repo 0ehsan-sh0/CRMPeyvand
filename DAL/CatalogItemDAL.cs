@@ -28,6 +28,11 @@ namespace DAL
         }
 
 
+        public List<CatalogItem> ReadAll()
+        {
+            return db.CatalogItems.Where(i => i.DeleteStatus == false).OrderByDescending(i => i.Id).ToList();
+        }
+
         public DataTable Read()
         {
             string Query = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";

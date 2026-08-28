@@ -2,7 +2,6 @@ using BE;
 using Section = BE.Section;
 using BLL;
 using Microsoft.Win32;
-using Stimulsoft.Report.Dashboard;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;

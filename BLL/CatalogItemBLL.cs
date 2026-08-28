@@ -1,4 +1,4 @@
-﻿using BE;
+using BE;
 using DAL;
 using System.Collections.Generic;
 using System.Data;
@@ -17,6 +17,11 @@ namespace BLL
             return "محصول تکراری است ممکن است در سطل زباله باشد";
         }
 
+
+        public List<CatalogItem> ReadAll()
+        {
+            return dal.ReadAll();
+        }
 
         public DataTable Read()
         {

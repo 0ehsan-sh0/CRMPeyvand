@@ -1,5 +1,6 @@
-﻿using BE;
+using BE;
 using DAL;
+using System.Collections.Generic;
 using System.Data;
 
 namespace BLL
@@ -12,6 +13,10 @@ namespace BLL
             return dal.Create(activity);
         }
 
+        public List<Activity> ReadAllWithDetails()
+        {
+            return dal.ReadAllWithDetails();
+        }
 
         public DataTable Read()
         {

@@ -1,6 +1,5 @@
-﻿using BE;
+using BE;
 using Section = BE.Section;
-using Stimulsoft.Report;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -25,13 +25,7 @@ namespace CRMPeyvand
                 args.Handled = true;
             };
 
-            try
-            {
-                Stimulsoft.Report.StiOptions.Engine.ForceInterpretationMode = true;
-            }
-            catch
-            {
-            }
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
             PersianCulture culture = new PersianCulture();
             Thread.CurrentThread.CurrentCulture = culture;
