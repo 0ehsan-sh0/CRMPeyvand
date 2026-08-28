@@ -354,14 +354,7 @@ namespace CRMPeyvand
             f.ShowDialog();
             Effect = null;
         }
-        void openWindowsform(ReportsForm f)
-        {
-            BlurEffect bme = new BlurEffect();
-            this.Effect = bme;
-            bme.Radius = 15;
-            f.ShowDialog();
-            Effect = null;
-        }
+
         private void timer_tick(object sender, EventArgs e)
         {
             TimeText.Text = DateTime.Now.ToString();
@@ -445,8 +438,8 @@ namespace CRMPeyvand
 
         private void ReportIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ReportsForm list = new ReportsForm();
-            openWindowsform(list);
+            ReportsWindow list = new ReportsWindow();
+            openform(list);
             RefreshPage();
         }
 
@@ -539,8 +532,8 @@ namespace CRMPeyvand
                 case Key.G:
                     if (EnterG)
                     {
-                        ReportsForm list1 = new ReportsForm();
-                        openWindowsform(list1);
+                        ReportsWindow list1 = new ReportsWindow();
+                        openform(list1);
                         RefreshPage();
                     }
                     break;

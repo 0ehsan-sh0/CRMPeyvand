@@ -14,6 +14,8 @@ namespace CRMPeyvand.Reports.Models
     {
         public string ReportTitle { get; set; } = "گزارش مشتریان";
         public string GeneratedDatePersian { get; set; } = string.Empty;
+        public string StartDatePersian { get; set; } = string.Empty;
+        public string EndDatePersian { get; set; } = string.Empty;
         public List<CustomerRowModel> Customers { get; set; } = new();
         public int TotalCount => Customers.Count;
     }
