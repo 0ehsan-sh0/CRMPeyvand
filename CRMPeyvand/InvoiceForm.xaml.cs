@@ -2,7 +2,6 @@ using BE;
 using Section = BE.Section;
 using BLL;
 using CRMPeyvand.Reports.Documents;
-using CRMPeyvand.Reports.Models;
 using CRMPeyvand.Reports.Services;
 using System;
 using System.Collections.Generic;
@@ -47,6 +46,8 @@ namespace CRMPeyvand
         UserBLL Ubll = new UserBLL();
         User u = new User();
         OffCode off = new OffCode();
+
+        private const string InvoiceNumberColumn = "شماره فاکتور";
 
         string countOff()
         {
@@ -280,6 +281,23 @@ namespace CRMPeyvand
             }
         }
 
+        private void btnInvoiceDetails_Click(object sender, RoutedEventArgs e)
+        {
+            if (!AccessGuard.Can(u, Section.Invoices, Operation.View))
+            {
+                return;
+            }
+
+            if (!((sender as FrameworkElement)?.DataContext is DataRowView row))
+            {
+                return;
+            }
+
+            int invoiceId = Convert.ToInt32(row.Row[InvoiceNumberColumn]);
+            InvoiceDetailsForm details = new InvoiceDetailsForm(invoiceId);
+            details.ShowDialog();
+        }
+
         private void Print_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (txtCustomer.SelectedItem != null && dgvProduts.Items.Count != 0)
@@ -308,25 +326,7 @@ namespace CRMPeyvand
                 try
                 {
                     string invNum = savedInvoice.id.ToString();
-                    string invDate = lblDate.Content?.ToString() ?? DateTime.Now.Date.ToString("yyyy/MM/dd");
-                    string custName = lblName.Content?.ToString() ?? "";
-                    string custPhone = lblPhone.Content?.ToString() ?? "";
-
-                    var reportModel = new InvoiceReportModel
-                    {
-                        InvoiceNumber = invNum,
-                        IssueDatePersian = invDate,
-                        CustomerName = custName,
-                        CustomerPhone = custPhone,
-                        DiscountAmount = (double)savedInvoice.DiscountAmount,
-                        Items = draftLines.Select((l, index) => new InvoiceItemRowModel
-                        {
-                            RowIndex = index + 1,
-                            ItemName = l.CatalogItem?.Name ?? "",
-                            Quantity = l.Quantity,
-                            UnitPrice = (double)l.UnitPrice
-                        }).ToList()
-                    };
+                    var reportModel = InvoiceReportModelFactory.FromInvoice(savedInvoice);
 
                     var doc = new InvoiceDocument(reportModel);
                     ReportViewerService.OpenReportPdf(doc, $"Invoice_{invNum}");

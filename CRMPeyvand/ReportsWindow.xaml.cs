@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using CRMPeyvand.Reports.Common;
 using CRMPeyvand.Reports.Documents;
 using CRMPeyvand.Reports.Models;
 using CRMPeyvand.Reports.Services;
@@ -7,7 +8,6 @@ using LiveCharts;
 using LiveCharts.Wpf;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -63,8 +63,7 @@ namespace CRMPeyvand
 
         private static string ToPersianDate(DateTime date)
         {
-            var pc = new PersianCalendar();
-            return $"{pc.GetYear(date):0000}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
+            return PersianReportStyle.FormatPersianDate(date);
         }
 
         #region Chart Logic

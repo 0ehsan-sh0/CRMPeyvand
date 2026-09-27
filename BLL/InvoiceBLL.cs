@@ -50,6 +50,11 @@ namespace BLL
             return dal.ReadById(id);
         }
 
+        public Invoice ReadDetails(int id)
+        {
+            return dal.ReadDetails(id);
+        }
+
         public DataTable Search(string Filter)
         {
             return dal.Search(Filter);

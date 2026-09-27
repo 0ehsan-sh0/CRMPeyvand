@@ -154,6 +154,17 @@
         <!--نمایش فاکتور-->
         <Border Style="{StaticResource DataGridBorder}" Grid.ColumnSpan="12" Margin="10,20,10,45" Grid.RowSpan="4" Grid.Row="8">
             <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvInvoices" ContextMenuOpening="dgvInvoices_ContextMenuOpening">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="جزئیات" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="مشاهده" Margin="6,2" Cursor="Hand" FontFamily="Shabnam FD" FontSize="12"
+                                        Background="#4A8FE7" Foreground="#F9FAFB" BorderBrush="#4A8FE7"
+                                        ToolTip="مشاهده جزئیات و چاپ فاکتور" Click="btnInvoiceDetails_Click"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource ContextMenu}">
                         <MenuItem Style="{StaticResource MenuItem}" x:Name="miDeleteInvoice" Header="حذف فاکتور" Click="miDeleteInvoice_Click">

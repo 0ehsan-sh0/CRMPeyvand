@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -137,6 +138,16 @@ namespace DAL
         public Invoice ReadById(int id)
         {
             return db.Invoices.Find(id);
+        }
+
+        // Full invoice for the details view: navigation properties are not lazy loaded, so they must be pulled in explicitly.
+        public Invoice ReadDetails(int id)
+        {
+            return db.Invoices
+                .Include("Customer")
+                .Include("User")
+                .Include("Lines.CatalogItem")
+                .FirstOrDefault(i => i.id == id);
         }
         public DataTable Search(string Filter)
         {

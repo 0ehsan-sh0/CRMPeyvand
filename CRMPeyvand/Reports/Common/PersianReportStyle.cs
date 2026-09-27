@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 
@@ -133,6 +135,12 @@ namespace CRMPeyvand.Reports.Common
         public static string FormatNumber(int number)
         {
             return number.ToString("N0");
+        }
+
+        public static string FormatPersianDate(DateTime date)
+        {
+            var calendar = new PersianCalendar();
+            return $"{calendar.GetYear(date):0000}/{calendar.GetMonth(date):00}/{calendar.GetDayOfMonth(date):00}";
         }
     }
 }
