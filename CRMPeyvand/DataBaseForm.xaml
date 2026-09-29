@@ -6,15 +6,31 @@
         xmlns:local="clr-namespace:CRMPeyvand"
         mc:Ignorable="d"
 
-        ResizeMode="CanResize" MinHeight="640" MinWidth="520"
+        ResizeMode="CanResize" MinHeight="560" MinWidth="520"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
         AllowsTransparency="True"
         FlowDirection="RightToLeft"
 
-        Title="DataBaseForm" Height="820" Width="560"
+        Title="DataBaseForm" Height="700" Width="560"
         Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
+
+    <!--
+        Two layout rules the rest of this file depends on, both learned from the
+        rendering:
+
+        1. The shared "Button" style hard-codes Width=170, so a Button inside a
+           wider ButtonBorder leaves a border with a patch of background floating
+           in the middle. A full-width button therefore has to say Width="NaN"
+           and stretch; a fixed one has to match its border's width exactly.
+
+        2. Under this window's RightToLeft flow, HorizontalAlignment="Right" put
+           the two status texts at the physical LEFT of their cell. Aligning them
+           to the right-hand edge of the text boxes is therefore done by pinning
+           the wrapper grid to LeftToRight and right-aligning inside that, while
+           each element keeps RightToLeft for its own text.
+    -->
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -24,11 +40,9 @@
             <RowDefinition Height="46"/>
         </Grid.RowDefinitions>
 
-        <!--Background-->
         <Border Grid.Column="0" Grid.Row="0" BorderThickness="5" BorderBrush="#eeeeee" CornerRadius="10">
             <Rectangle Fill="#eeeeee"/>
         </Border>
-        <!--Background-->
 
         <ScrollViewer Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Padding="8,10,8,4">
@@ -37,49 +51,56 @@
                 <!-- ===================== وضعیت پایگاه داده ===================== -->
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="125"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="26"/>
-                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="34"/>
                         <RowDefinition Height="26"/>
-                        <RowDefinition Height="32"/>
                         <RowDefinition Height="30"/>
-                        <RowDefinition Height="42"/>
+                        <RowDefinition Height="34"/>
                     </Grid.RowDefinitions>
 
                     <GroupBox Style="{StaticResource GroupBox}" Header="وضعیت پایگاه داده"
-                              Grid.ColumnSpan="3" Grid.RowSpan="6" Margin="0,0,0,0"/>
+                              Grid.ColumnSpan="2" Grid.RowSpan="5"/>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="پایگاه داده فعال :"
                            Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <TextBlock x:Name="lblActiveProvider" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"
-                               FontFamily="Shabnam FD" FontSize="12" FontWeight="Bold" Foreground="#0d63f1"
-                               HorizontalAlignment="Right" VerticalAlignment="Center" Text="—"/>
+                    <Grid Grid.Column="1" Grid.Row="0" FlowDirection="LeftToRight">
+                        <TextBlock x:Name="lblActiveProvider" FlowDirection="RightToLeft"
+                                   FontFamily="Shabnam FD" FontSize="12" FontWeight="Bold" Foreground="#0d63f1"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center" Text="—"/>
+                    </Grid>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="محل فایل SQLite :"
                            Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSqlitePath"
-                                 IsReadOnly="True" BorderThickness="0" Padding="2,4,2,4"
+                                 IsReadOnly="True" BorderThickness="0" Padding="2,5,2,4"
                                  FontFamily="Shabnam FD" FontSize="10" TabIndex="0"/>
                     </Border>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="وضعیت فایل :"
                            Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <TextBlock x:Name="lblSqliteExists" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"
-                               FontFamily="Shabnam FD" FontSize="11" HorizontalAlignment="Right"
-                               VerticalAlignment="Center" Text="—"/>
+                    <Grid Grid.Column="1" Grid.Row="3" FlowDirection="LeftToRight">
+                        <TextBlock x:Name="lblSqliteExists" FlowDirection="RightToLeft"
+                                   FontFamily="Shabnam FD" FontSize="11"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center" Text="—"/>
+                    </Grid>
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="5"
-                            Height="34" Margin="0,6,0,0">
-                        <Button Style="{StaticResource Button}" x:Name="btnToggleSqlServer" Height="30"
+                    <!-- Full width: the button stretches so its own background
+                         covers the border instead of floating inside it. -->
+                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="4"
+                            Height="32" Margin="0,2,0,0">
+                        <Button Style="{StaticResource Button}" x:Name="btnToggleSqlServer"
+                                Width="NaN" Height="32"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                 Click="btnToggleSqlServer_Click" TabIndex="1">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Image Source="/Images/Display.png" Width="17" Height="17" Margin="0,0,7,0"/>
-                                <TextBlock x:Name="btnToggleSqlServerText" Text="فعال کردن اتصال SQL Server"/>
+                                <TextBlock x:Name="btnToggleSqlServerText" Text="فعال کردن اتصال SQL Server"
+                                           FontFamily="Shabnam FD" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Border>
@@ -89,8 +110,7 @@
                 <!-- ===================== پیکربندی SQL Server ===================== -->
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="120"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="125"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -100,50 +120,57 @@
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="30"/>
-                        <RowDefinition Height="34"/>
-                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="28"/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
 
                     <GroupBox Style="{StaticResource GroupBox}" Header="پیکربندی SQL Server"
-                              Grid.ColumnSpan="3" Grid.RowSpan="9" Margin="0,0,0,0"/>
+                              Grid.ColumnSpan="2" Grid.RowSpan="9"/>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام سرور :" Grid.Column="0" Grid.Row="1"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="0,0,8,0">
-                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtServer" TabIndex="2" TextChanged="TextFieldChanged"
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="1" Margin="0,0,8,0">
+                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtServer" TabIndex="2"
+                                 TextChanged="TextFieldChanged"
                                  ToolTip="نام سرور یا نمونه محلی. برای نمونه پیش‌فرض روی همین رایانه نقطه بنویسید"/>
                     </Border>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام پایگاه داده :" Grid.Column="0" Grid.Row="2"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,8,0">
-                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtDatabase" TabIndex="3" TextChanged="TextFieldChanged"
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
+                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtDatabase" TabIndex="3"
+                                 TextChanged="TextFieldChanged"
                                  ToolTip="نام پایگاه داده. در صورت خالی بودن، خود برنامه آن را می سازد"/>
                     </Border>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام کاربری :" Grid.Column="0" Grid.Row="3"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" Margin="0,0,8,0">
-                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUser" TabIndex="4" TextChanged="TextFieldChanged"/>
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="3" Margin="0,0,8,0">
+                        <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUser" TabIndex="4"
+                                 TextChanged="TextFieldChanged"/>
                     </Border>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="کلمه عبور :" Grid.Column="0" Grid.Row="4"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="4" Margin="0,0,8,0">
-                        <PasswordBox Style="{StaticResource InputPasswordBox}" x:Name="txtPassword" TabIndex="5" PasswordChanged="PasswordFieldChanged"/>
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="4" Margin="0,0,8,0">
+                        <PasswordBox Style="{StaticResource InputPasswordBox}" x:Name="txtPassword" TabIndex="5"
+                                     PasswordChanged="PasswordFieldChanged"/>
                     </Border>
 
-                    <CheckBox x:Name="chkWindowsAuth" Content="استفاده از حساب ویندوز"
-                              FontWeight="Bold" FontFamily="Shabnam FD" FontSize="11"
-                              Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="5"
-                              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
-                              TabIndex="6" Checked="chkWindowsAuth_Changed" Unchecked="chkWindowsAuth_Changed"
-                              ToolTip="در صورت انتخاب، نام کاربری و کلمه عبور نادیده گرفته می شوند"/>
+                    <!-- Sits directly under the text boxes, hard against the edge
+                         they start from. -->
+                    <Grid Grid.Column="1" Grid.Row="5" FlowDirection="LeftToRight">
+                        <CheckBox x:Name="chkWindowsAuth" FlowDirection="RightToLeft" Content="استفاده از حساب ویندوز"
+                                  FontWeight="Bold" FontFamily="Shabnam FD" FontSize="11"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  TabIndex="6" Checked="chkWindowsAuth_Changed" Unchecked="chkWindowsAuth_Changed"
+                                  ToolTip="در صورت انتخاب، نام کاربری و کلمه عبور نادیده گرفته می شوند"/>
+                    </Grid>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="رشته اتصال :" Grid.Column="0" Grid.Row="6"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="6" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="6" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtConnectionString"
                                  IsReadOnly="True" BorderThickness="0" Padding="2,4,2,4"
                                  FontFamily="Shabnam FD" FontSize="9" TabIndex="7"
@@ -152,67 +179,44 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="تغییرات :" Grid.Column="0" Grid.Row="7"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <TextBlock x:Name="lblDirty" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="7"
-                               FontFamily="Shabnam FD" FontSize="10" HorizontalAlignment="Right"
-                               VerticalAlignment="Center" Text="ذخیره نشده" Foreground="#c0392b"/>
+                    <Grid Grid.Column="1" Grid.Row="7" FlowDirection="LeftToRight">
+                        <TextBlock x:Name="lblDirty" FlowDirection="RightToLeft"
+                                   FontFamily="Shabnam FD" FontSize="10"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Text="ذخیره نشده" Foreground="#c0392b"/>
+                    </Grid>
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="1" Grid.Row="8" Margin="0,0,6,0" Height="34">
-                        <Button Style="{StaticResource Button}" x:Name="btnTest" Height="30" Click="btnTest_Click" TabIndex="8">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Image Source="/Images/Search.png" Width="16" Height="16" Margin="0,0,7,0"/>
-                                <TextBlock Text="آزمایش اتصال"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                    <!-- Two fixed-width buttons, centred as a pair. Each border is
+                         170 wide to match the button width the style imposes. -->
+                    <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border Style="{StaticResource ButtonBorder}" Width="172" Height="32" Margin="0,0,8,0">
+                                <Button Style="{StaticResource Button}" x:Name="btnTest" Height="32"
+                                        VerticalAlignment="Stretch" Click="btnTest_Click" TabIndex="8">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Image Source="/Images/Search.png" Width="16" Height="16" Margin="0,0,7,0"/>
+                                        <TextBlock Text="آزمایش اتصال" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Border>
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="2" Grid.Row="8" Margin="6,0,0,0" Height="34">
-                        <Button Style="{StaticResource Button}" x:Name="btnSave" Height="30" Click="btnSave_Click" TabIndex="9">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Image Source="/Images/Checked.png" Width="16" Height="16" Margin="0,0,7,0"/>
-                                <TextBlock Text="ذخیره و فعال سازی"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                            <Border Style="{StaticResource ButtonBorder}" Width="172" Height="32" Margin="8,0,0,0">
+                                <Button Style="{StaticResource Button}" x:Name="btnSave" Height="32"
+                                        VerticalAlignment="Stretch" Click="btnSave_Click" TabIndex="9">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Image Source="/Images/Checked.png" Width="16" Height="16" Margin="0,0,7,0"/>
+                                        <TextBlock Text="ذخیره و فعال سازی" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
                 <!-- ===================== پیکربندی SQL Server ===================== -->
-
-                <!-- ===================== راهنما ===================== -->
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="150"/>
-                    </Grid.RowDefinitions>
-
-                    <GroupBox Style="{StaticResource GroupBox}" Header="راهنمای پیکربندی اتصال"
-                              Grid.Column="0" Grid.Row="0" Margin="0,0,0,0"/>
-
-                    <TextBlock Grid.Column="0" Grid.Row="0" Margin="12,22,12,8" VerticalAlignment="Top"
-                               FontFamily="Shabnam FD" FontSize="10" Foreground="#333333"
-                               TextWrapping="Wrap" LineHeight="17">
-                        <Run Text="• برنامه به طور پیش‌فرض از SQLite استفاده می‌کند و نیازی به نصب هیچ برنامه‌ای ندارد."/>
-                        <LineBreak/>
-                        <Run Text="• برای استفاده از SQL Server باید نسخه ۲۰۱۶ یا بالاتر روی همین رایانه نصب باشد."/>
-                        <LineBreak/>
-                        <Run Text="• نام سرور: برای نمونه پیش‌فرض روی همین رایانه نقطه (.) و برای نمونه‌های نام‌دار همان نام را وارد کنید."/>
-                        <LineBreak/>
-                        <Run Text="• نام پایگاه داده: در صورت خالی گذاشتن، خود برنامه آن را می‌سازد."/>
-                        <LineBreak/>
-                        <Run Text="• توصیه می‌شود گزینه استفاده از حساب ویندوز انتخاب شود تا نیازی به ذخیره کلمه عبور نباشد."/>
-                        <LineBreak/>
-                        <Run Text="• پس از ذخیره، اتصال فقط زمانی ذخیره می‌شود که آزمایش اتصال موفق باشد."/>
-                        <LineBreak/>
-                        <Run Text="• با غیرفعال کردن اتصال، اطلاعات ذخیره شده حذف نمی‌شود و برنامه به SQLite بازمی‌گردد."/>
-                    </TextBlock>
-                </Grid>
-                <!-- ===================== راهنما ===================== -->
 
                 <!-- ===================== ابزارها ===================== -->
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -221,39 +225,58 @@
                     </Grid.RowDefinitions>
 
                     <GroupBox Style="{StaticResource GroupBox}" Header="نگهداری پایگاه داده"
-                              Grid.ColumnSpan="3" Grid.RowSpan="2" Margin="0,0,0,0"/>
+                              Grid.Column="0" Grid.RowSpan="2"/>
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="0" Grid.Row="1" Height="32" Margin="0,0,6,0">
-                        <Button Style="{StaticResource Button}" x:Name="btnSMSActivation" Height="28"
-                                Click="btnSMSActivation_Click" TabIndex="10">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Image Source="/Images/Printer.png" Width="16" Height="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="پشتیبان گیری"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="1" Grid.Row="1" Height="32" Margin="0,0,6,0">
-                        <Button Style="{StaticResource Button}" x:Name="btnRestore" Height="28"
-                                Click="btnRestore_Click" TabIndex="11">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Image Source="/Images/Edit.png" Width="16" Height="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="بازیابی"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                        <Border Style="{StaticResource ButtonBorder}" Width="172" Height="32" Margin="0,0,8,0">
+                            <Button Style="{StaticResource Button}" x:Name="btnSMSActivation" Height="32"
+                                    VerticalAlignment="Stretch" Click="btnSMSActivation_Click" TabIndex="10">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Image Source="/Images/Printer.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="پشتیبان گیری" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Border>
 
-                    <Border Style="{StaticResource ButtonBorder}" Grid.Column="2" Grid.Row="1" Height="32" Margin="0,0,0,0">
-                        <Button Style="{StaticResource Button}" x:Name="btnDeleteDB" Height="28"
-                                Background="DarkRed" Click="btnDeleteDB_Click" TabIndex="12">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Image Source="/Images/Delete.png" Width="16" Height="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="حذف فایل SQLite"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                        <Border Style="{StaticResource ButtonBorder}" Width="172" Height="32" Margin="0,0,8,0">
+                            <Button Style="{StaticResource Button}" x:Name="btnRestore" Height="32"
+                                    VerticalAlignment="Stretch" Click="btnRestore_Click" TabIndex="11">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Image Source="/Images/Edit.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="بازیابی" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Border>
+
+                        <Border Style="{StaticResource ButtonBorder}" Width="172" Height="32" Margin="0,0,0,0"
+                                BorderBrush="DarkRed">
+                            <Button Style="{StaticResource Button}" x:Name="btnDeleteDB" Height="32"
+                                    Background="DarkRed" BorderBrush="DarkRed"
+                                    VerticalAlignment="Stretch" Click="btnDeleteDB_Click" TabIndex="12">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Image Source="/Images/Delete.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="حذف فایل SQLite" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </StackPanel>
                 </Grid>
                 <!-- ===================== ابزارها ===================== -->
+
+                <!-- The guidelines live on their own page, so this window stays
+                     short enough not to need scrolling on a 768px screen. -->
+                <Border Style="{StaticResource ButtonBorder}" Width="220" Height="32"
+                        HorizontalAlignment="Center" Margin="0,2,0,8">
+                    <Button Style="{StaticResource Button}" x:Name="btnGuide" Width="220" Height="32"
+                            VerticalAlignment="Stretch" Click="btnGuide_Click" TabIndex="13">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Source="/Images/Info.png" Width="16" Height="16" Margin="0,0,7,0"/>
+                            <TextBlock Text="راهنمای پیکربندی اتصال" FontFamily="Shabnam FD" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>

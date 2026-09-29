@@ -83,6 +83,14 @@ namespace CRMPeyvand
         {
         }
 
+        private void btnGuide_Click(object sender, RoutedEventArgs e)
+        {
+            var guide = new DatabaseGuideForm();
+            guide.Owner = this;
+            guide.ShowDialog();
+        }
+
+
         //----- پیکربندی پایگاه داده
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

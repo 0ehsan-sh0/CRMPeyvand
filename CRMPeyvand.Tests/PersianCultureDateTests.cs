@@ -41,13 +41,18 @@ namespace CRMPeyvand.Tests
             UnderPersianCulture(() =>
             SqliteTestDb.WithDb(db =>
             {
+                // Seeded relative to now, not to a wall-clock hour. A fixed
+                // Today.AddHours(9) is in the future for any run before 09:00,
+                // and SellsCountWeek has an inclusive "RegDate <= now" bound, so
+                // the row would be dropped and the count would depend on what
+                // time of day the suite happened to run.
                 db.Invoices.Add(new BE.Invoice
                 {
-                    RegDate = DateTime.Today.AddHours(9), IsCheckedout = false, DiscountAmount = 0m,
+                    RegDate = DateTime.Now, IsCheckedout = false, DiscountAmount = 0m,
                 });
                 db.Invoices.Add(new BE.Invoice
                 {
-                    RegDate = DateTime.Today.AddDays(-3), IsCheckedout = false, DiscountAmount = 0m,
+                    RegDate = DateTime.Now.AddDays(-3), IsCheckedout = false, DiscountAmount = 0m,
                 });
                 db.SaveChanges();
 
