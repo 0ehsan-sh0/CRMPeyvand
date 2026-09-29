@@ -65,6 +65,22 @@ namespace CRMPeyvand
             reportForm.ShowDialog();
         }
 
+        private void btnDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            // The gate in Window_Loaded already disables this button, but a
+            // disabled button is only a hint: repointing the app at a different
+            // database is worth checking again at the point of use.
+            if (!AccessGuard.Can(u, Section.Settings, Operation.Create))
+            {
+                MessageBox.Show("شما دسترسی لازم برای پیکربندی پایگاه داده را ندارید", "خطا", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            DataBaseForm dataBaseForm = new DataBaseForm();
+            dataBaseForm.Owner = this;
+            dataBaseForm.ShowDialog();
+        }
+
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)

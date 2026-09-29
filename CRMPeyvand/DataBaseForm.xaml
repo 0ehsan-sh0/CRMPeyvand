@@ -13,45 +13,116 @@
         AllowsTransparency="True"
         FlowDirection="RightToLeft"
 
-        Title="DataBaseForm" Height="350" Width="250">
+        Title="DataBaseForm" Height="740" Width="460"
+        Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="350"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <!--Background-->
-        <Border Grid.ColumnSpan="6" Grid.RowSpan="6" BorderThickness="5" BorderBrush="LightGray" CornerRadius="10">
+        <Border Grid.ColumnSpan="1" Grid.RowSpan="2" BorderThickness="5" BorderBrush="LightGray" CornerRadius="10">
             <Rectangle Fill="LightGray"/>
         </Border>
         <!--Background-->
 
         <!--امکانات-->
-        <Border Style="{StaticResource ButtonBorder}" Width="170" Height="30" Grid.ColumnSpan="6" Margin="40,40,40,47" Grid.RowSpan="2">
-            <Button Style="{StaticResource Button}" x:Name="btnSMSActivation" Content="پشتیبان گیری از اطلاعات" Click="btnSMSActivation_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
+        <Grid Grid.Row="0" Height="350" Width="250" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ButtonBorder}" Width="170" Height="30" Grid.ColumnSpan="6" Margin="40,30,40,57" Grid.RowSpan="2" Grid.Row="1">
-            <Button Style="{StaticResource Button}" x:Name="btnRestore" Content="بازیابی اطلاعات" Click="btnRestore_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
+            <Border Style="{StaticResource ButtonBorder}" Width="170" Height="30" Grid.ColumnSpan="6" Margin="40,40,40,47" Grid.RowSpan="2">
+                <Button Style="{StaticResource Button}" x:Name="btnSMSActivation" Content="پشتیبان گیری از اطلاعات" Click="btnSMSActivation_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
 
-        <Border Style="{StaticResource ButtonBorder}" Width="170" BorderBrush="DarkRed" Height="30" Grid.ColumnSpan="6" Margin="40,22,40,6" Grid.Row="2">
-            <Button Style="{StaticResource Button}" x:Name="btnDeleteDB" Background="DarkRed" Content="حذف پایگاه داده" Click="btnDeleteDB_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
+            <Border Style="{StaticResource ButtonBorder}" Width="170" Height="30" Grid.ColumnSpan="6" Margin="40,30,40,57" Grid.RowSpan="2" Grid.Row="1">
+                <Button Style="{StaticResource Button}" x:Name="btnRestore" Content="بازیابی اطلاعات" Click="btnRestore_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
 
+            <Border Style="{StaticResource ButtonBorder}" Width="170" BorderBrush="DarkRed" Height="30" Grid.ColumnSpan="6" Margin="40,22,40,6" Grid.Row="2">
+                <Button Style="{StaticResource Button}" x:Name="btnDeleteDB" Background="DarkRed" Content="حذف پایگاه داده" Click="btnDeleteDB_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <Image Style="{StaticResource BackToHomeImage}" x:Name="BackToSetting" Grid.Column="5" Margin="2,9,10,9" Grid.Row="5" MouseLeftButtonDown="BackToSetting_MouseLeftButtonDown"/>
+        </Grid>
         <!--امکانات-->
 
-        <Image Style="{StaticResource BackToHomeImage}" x:Name="BackToSetting" Grid.Column="5" Margin="2,9,10,9" Grid.Row="5" MouseLeftButtonDown="BackToSetting_MouseLeftButtonDown"/>
+        <!--پیکربندی پایگاه داده-->
+        <Grid Grid.Row="1" Height="344" Margin="15,10,15,15" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34"/>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+
+            <GroupBox Style="{StaticResource GroupBox}" Header="پیکربندی پایگاه داده" Grid.ColumnSpan="3" Grid.RowSpan="8" Margin="0,0,0,5"/>
+
+            <Label Style="{StaticResource TextBoxLabel}" Content="نوع پایگاه داده :" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" HorizontalAlignment="Stretch" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="0,0,10,0">
+                <ComboBox Style="{StaticResource ComboBox}" x:Name="cmbProvider" SelectionChanged="cmbProvider_SelectionChanged" Padding="0,5,0,0" TabIndex="0">
+                    <ComboBoxItem Content="SQLite (پیش‌فرض)"/>
+                    <ComboBoxItem Content="SQL Server"/>
+                </ComboBox>
+            </Border>
+
+            <Label Style="{StaticResource TextBoxLabel}" Content="نام سرور :" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" HorizontalAlignment="Stretch" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,10,0">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtServer" TabIndex="1"/>
+            </Border>
+
+            <Label Style="{StaticResource TextBoxLabel}" Content="نام پایگاه داده :" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" HorizontalAlignment="Stretch" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" Margin="0,0,10,0">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtDatabase" TabIndex="2"/>
+            </Border>
+
+            <Label Style="{StaticResource TextBoxLabel}" Content="نام کاربری :" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" HorizontalAlignment="Stretch" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="4" Margin="0,0,10,0">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUser" TabIndex="3"/>
+            </Border>
+
+            <Label Style="{StaticResource TextBoxLabel}" Content="کلمه عبور :" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" HorizontalAlignment="Stretch" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="5" Margin="0,0,10,0">
+                <PasswordBox Style="{StaticResource InputPasswordBox}" x:Name="txtPassword" TabIndex="4"/>
+            </Border>
+
+            <CheckBox x:Name="chkWindowsAuth" Content="استفاده از حساب ویندوز" FontWeight="Bold" FontFamily="Shabnam FD" FontSize="12" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" TabIndex="5" Checked="chkWindowsAuth_Changed" Unchecked="chkWindowsAuth_Changed" ToolTip="در صورت انتخاب، نام کاربری و کلمه عبور نادیده گرفته می شوند"/>
+
+            <Border Style="{StaticResource ButtonBorder}" Width="140" Height="30" Grid.Column="1" Grid.Row="7" Margin="0,0,5,0">
+                <Button Style="{StaticResource Button}" x:Name="btnTest" Width="140" Height="30" Content="آزمایش اتصال" Click="btnTest_Click" TabIndex="6"/>
+            </Border>
+
+            <Border Style="{StaticResource ButtonBorder}" Width="140" Height="30" Grid.Column="2" Grid.Row="7" Margin="5,0,5,0">
+                <Button Style="{StaticResource Button}" x:Name="btnSave" Width="140" Height="30" Content="ذخیره" Click="btnSave_Click" TabIndex="7"/>
+            </Border>
+        </Grid>
+        <!--پیکربندی پایگاه داده-->
+
     </Grid>
 </Window>
