@@ -1092,9 +1092,302 @@ namespace CRMPeyvand.Tests
             });
         }
 
+        [Fact]
+        public void Dashboard_counts_invoices_registered_today()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today.AddHours(9), IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today.AddDays(-3), IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                var dal = new DashboardDAL(db);
+                Assert.Equal("1", dal.SellsCountToday());
+                Assert.Equal("2", dal.SellsCountWeek());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_count_today_is_not_confused_by_the_time_of_day()
+        {
+            // DbFunctions.TruncateTime is unavailable on SQLite, so a range
+            // predicate must replace it. Late-evening rows must still count.
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today.AddHours(23).AddMinutes(59),
+                    IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                Assert.Equal("1", new DashboardDAL(db).SellsCountToday());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_count_today_includes_an_invoice_registered_at_midnight()
+        {
+            // The lower bound has to be inclusive or an invoice filed in the
+            // first second of the day is lost. This is the row a
+            // "RegDate > midnight" rewrite would drop.
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today, IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                Assert.Equal("1", new DashboardDAL(db).SellsCountToday());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_count_today_excludes_yesterday_even_at_late_evening()
+        {
+            // Yesterday at 23:59 is the nearest miss the same-day check can
+            // make, and it is exactly what a range that stopped at "the start
+            // of the week" or a date-only comparison on text would swallow.
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today.AddHours(9), IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Today.AddDays(-1).AddHours(23).AddMinutes(59),
+                    IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                Assert.Equal("1", new DashboardDAL(db).SellsCountToday());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_counts_exclude_soft_deleted_invoices()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Now, IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Now, IsCheckedout = false, DiscountAmount = 0m,
+                    DeleteStatus = true,
+                });
+                db.SaveChanges();
+
+                var dal = new DashboardDAL(db);
+                Assert.Equal("1", dal.SellsCountToday());
+                Assert.Equal("1", dal.SellsCountWeek());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_week_count_ignores_invoices_older_than_seven_days()
+        {
+            // DATEADD(WEEK, -1, GETDATE()) is a rolling seven days, not the
+            // current calendar week and not the last seven calendar dates, so
+            // eight days back is out and six days back is in.
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Now.AddDays(-6), IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Now.AddDays(-8), IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                Assert.Equal("1", new DashboardDAL(db).SellsCountWeek());
+            });
+        }
+
+        [Fact]
+        public void Dashboard_reminder_count_ignores_other_days_done_removed_and_other_owners()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var owner = SeedDashboardReminders(db);
+                var colleague = db.Users.Single(i => i.UserName == "s.ahmadi");
+
+                var dal = new DashboardDAL(db);
+                // Five reminders are seeded; only one of them is due today,
+                // still open, not removed and addressed to this employee.
+                Assert.Equal("1", dal.UserReminderCount(owner));
+                Assert.Equal("1", dal.UserReminderCount(colleague));
+            });
+        }
+
+        [Fact]
+        public void Dashboard_get_user_reminder_returns_only_todays_open_reminders()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var owner = SeedDashboardReminders(db);
+
+                var reminders = new DashboardDAL(db).GetUserReminder(owner);
+                Assert.Equal(new[] { "تماس امروز" }, reminders.Select(r => r.Title));
+            });
+        }
+
+        [Fact]
+        public void Dashboard_get_user_reminder_fills_the_owner()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var owner = SeedDashboardReminders(db);
+
+                // The reminder list is shown with the owner's name, and EF6
+                // does not lazy load, so a dropped Include("User") would render
+                // a blank line here rather than fail.
+                var reminder = new DashboardDAL(db).GetUserReminder(owner).Single();
+                Assert.NotNull(reminder.User);
+                Assert.Equal("m.karimi", reminder.User.UserName);
+            });
+        }
+
+        [Fact]
+        public void Dashboard_counters_render_zero_rather_than_throwing_when_the_database_fails()
+        {
+            // The dashboard is the first screen the app opens; a database
+            // failure has to show a zero on it, not take the window down.
+            // A null context fails every query inside the try block, which is
+            // the same place a provider error would land.
+            var dal = new DashboardDAL(null);
+            Assert.Equal("0", dal.SellsCountToday());
+            Assert.Equal("0", dal.SellsCountWeek());
+            Assert.Equal("0", dal.UserReminderCount(new BE.User { id = 1 }));
+            Assert.Equal("0", dal.CustomersCount());
+            Assert.False(dal.PanelIsActive());
+            Assert.Empty(dal.GetUserReminder(new BE.User { id = 1 }));
+        }
+
+        [Fact]
+        public void Dashboard_reminder_counters_ignore_a_null_user()
+        {
+            // The BLL passes whatever it holds, and "no employee is signed in
+            // yet" is a state the window reaches on first run.
+            var dal = new DashboardDAL(null);
+            Assert.Equal("0", dal.UserReminderCount(null));
+            Assert.Empty(dal.GetUserReminder(null));
+        }
+
+        [Fact]
+        public void Dashboard_queries_use_neither_truncate_nor_getdate()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var owner = SeedDashboardReminders(db);
+                db.Invoices.Add(new BE.Invoice
+                {
+                    RegDate = DateTime.Now, IsCheckedout = false, DiscountAmount = 0m,
+                });
+                db.SaveChanges();
+
+                var log = new List<string>();
+                db.Database.Log = log.Add;
+
+                var dal = new DashboardDAL(db);
+                dal.CustomersCount();
+                dal.SellsCountToday();
+                dal.SellsCountWeek();
+                dal.UserReminderCount(owner);
+                dal.GetUserReminder(owner);
+                dal.PanelIsActive();
+
+                // TruncateTime and DATEADD(GETDATE()) are the two constructs
+                // SQLite has no implementation of; the failure is a runtime
+                // "no such function", not a compile error, so it is pinned
+                // here against the statements that actually reach the provider.
+                foreach (var forbidden in new[] { "TRUNCATE", "GETDATE", "DATEADD" })
+                {
+                    Assert.DoesNotContain(log, s =>
+                        s.IndexOf(forbidden, StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+
+                // Six calls, six statements: the counters are queries, and the
+                // Include on the reminder list is folded into the same one
+                // rather than costing a second round trip per reminder.
+                Assert.Equal(6, Selects(log));
+            });
+        }
+
         private static int Selects(IEnumerable<string> log)
         {
             return log.Count(s => s.IndexOf("SELECT", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        /// <summary>
+        /// Five reminders and two employees, so a reminder counter assertion
+        /// cannot be satisfied by accident. Only "تماس امروز" is due today,
+        /// still open, not removed and addressed to m.karimi: the other four
+        /// each fail on exactly one of those four conditions.
+        /// </summary>
+        private static BE.User SeedDashboardReminders(DB db)
+        {
+            var today = DateTime.Today;
+
+            db.UserGroups.Add(new BE.UserGroup { Title = "کارشناس فروش" });
+            db.SaveChanges();
+            var group = db.UserGroups.Single();
+
+            db.Users.Add(new BE.User
+            {
+                Name = "کارشناس فروش", UserName = "m.karimi", Password = "x",
+                RegDate = DateTime.Now, UserGroup = group,
+            });
+            db.Users.Add(new BE.User
+            {
+                Name = "کارشناس پشتیبانی", UserName = "s.ahmadi", Password = "x",
+                RegDate = DateTime.Now, UserGroup = group,
+            });
+            db.SaveChanges();
+
+            var owner = db.Users.Single(i => i.UserName == "m.karimi");
+            var colleague = db.Users.Single(i => i.UserName == "s.ahmadi");
+
+            db.Reminders.Add(new BE.Reminder
+            {
+                Title = "تماس امروز", Info = "یادداشت اول", RegDate = DateTime.Now,
+                RemindDate = today.AddHours(9), User = owner,
+            });
+            db.Reminders.Add(new BE.Reminder
+            {
+                Title = "تماس دیروز", Info = "یادداشت دوم", RegDate = DateTime.Now,
+                RemindDate = today.AddDays(-1), User = owner,
+            });
+            db.Reminders.Add(new BE.Reminder
+            {
+                Title = "تماس انجام‌شده", Info = "یادداشت سوم", RegDate = DateTime.Now,
+                RemindDate = today.AddHours(9), IsReminded = true, User = owner,
+            });
+            db.Reminders.Add(new BE.Reminder
+            {
+                Title = "تماس حذف‌شده", Info = "یادداشت چهارم", RegDate = DateTime.Now,
+                RemindDate = today.AddHours(9), DeleteStatus = true, User = owner,
+            });
+            db.Reminders.Add(new BE.Reminder
+            {
+                Title = "یادآوری همکار", Info = "یادداشت پنجم", RegDate = DateTime.Now,
+                RemindDate = today.AddHours(9), User = colleague,
+            });
+            db.SaveChanges();
+
+            return owner;
         }
 
         /// <summary>
