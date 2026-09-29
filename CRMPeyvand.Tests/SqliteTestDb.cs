@@ -43,8 +43,11 @@ namespace CRMPeyvand.Tests
         /// finalizer runs, leaving the file locked for a moment. Leaking a file
         /// in TEMP is harmless; throwing from here would mask whatever the test
         /// body actually did.
+        ///
+        /// Public because a test that builds its own DbContext has the same
+        /// EF6-locking problem and no other way to clean up.
         /// </summary>
-        private static void TryDelete(string path)
+        public static void TryDelete(string path)
         {
             for (var attempt = 0; attempt < 5; attempt++)
             {

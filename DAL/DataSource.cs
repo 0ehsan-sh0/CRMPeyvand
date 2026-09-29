@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
@@ -127,9 +128,16 @@ namespace DAL
 
             try
             {
+                // CreateConnection has already opened the SQLite connection and
+                // applied the schema. SQLiteConnection.Open() throws rather than
+                // returning quietly when the connection is already open, so the
+                // state is checked instead of assumed; the SQL Server connection
+                // comes back closed and is opened here. The second Ensure is
+                // idempotent and keeps this method honest on its own terms: it is
+                // what tells the operator whether their settings work.
                 using (var connection = CreateConnection(dataSource))
                 {
-                    connection.Open();
+                    if (connection.State != ConnectionState.Open) connection.Open();
                     if (dataSource.Kind == DbProviderKind.Sqlite)
                         SqliteSchema.Ensure(connection);
                 }
@@ -141,6 +149,16 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Opens a connection to the given data source, applying the SQLite
+        /// schema on the way through.
+        ///
+        /// The SQLite connection comes back open because that is the point where
+        /// a fresh install gets its tables: a connection handed back closed
+        /// would let the first query arrive before the schema exists. SQL Server
+        /// is left closed, because EF6 has to open it to run the migration
+        /// first.
+        /// </summary>
         internal static DbConnection CreateConnection(DataSource dataSource)
         {
             if (dataSource == null) throw new ArgumentNullException(nameof(dataSource));
@@ -149,10 +167,13 @@ namespace DAL
             // The SQL Server string is handed over untouched; running it
             // through SQLiteConnectionStringBuilder first would be at best
             // pointless and at worst a second way to fail.
-            return dataSource.Kind == DbProviderKind.Sqlite
-                ? (DbConnection)new SQLiteConnection(
-                    SqliteConnectionString(dataSource.ConnectionString))
-                : new Microsoft.Data.SqlClient.SqlConnection(dataSource.ConnectionString);
+            if (dataSource.Kind == DbProviderKind.SqlServer)
+                return new Microsoft.Data.SqlClient.SqlConnection(dataSource.ConnectionString);
+
+            var connection = new SQLiteConnection(SqliteConnectionString(dataSource.ConnectionString));
+            connection.Open();
+            SqliteSchema.Ensure(connection);
+            return connection;
         }
 
         /// <summary>

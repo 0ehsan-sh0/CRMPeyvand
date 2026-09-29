@@ -6,6 +6,19 @@ using Xunit;
 
 namespace CRMPeyvand.Tests
 {
+    /// <summary>
+    /// DataSource.Current and DataFolder.Resolve are process-wide. A class that
+    /// redirects them must not run beside a class that reads them, or the reader
+    /// can be handed a throwaway connection string mid-test. Every test that
+    /// touches either lives in this collection.
+    /// </summary>
+    [CollectionDefinition(Name, DisableParallelization = true)]
+    public class DataSourceCollection
+    {
+        public const string Name = "DataSource";
+    }
+
+    [Collection(DataSourceCollection.Name)]
     public class DataSourceTests : IDisposable
     {
         private readonly string _original = DataSource.Current.ConnectionString;

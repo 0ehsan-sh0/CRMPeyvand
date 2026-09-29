@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Core.Common;
+using System.Data.Entity.Migrations;
 using System.Data.SQLite;
 using BE;
 
@@ -12,8 +13,9 @@ namespace DAL
     public class DB : DbContext
     {
         /// <summary>
-        /// The SQL Server connection string, kept for the existing settings screen
-        /// and for the SQL Server provider. Task 4 replaces this with DataSource.
+        /// The SQL Server connection string, kept for DataSource.DefaultSqlServer
+        /// and for the existing settings screen. DataSource decides which
+        /// provider is actually in use.
         ///
         /// Null-tolerant on purpose: a static field initialiser that throws takes
         /// down every use of the type, and the test host has no App.config, so a
@@ -29,8 +31,24 @@ namespace DAL
             // code. App.config registration does not work on .NET 10: the
             // system.data section is not recognised because System.Data.Common
             // is a separate assembly, and even once declared the factory cannot
-            // be resolved to a provider invariant.
+            // be resolved to a provider invariant. This does not displace the
+            // App.config <providers> entry, so SQL Server still resolves.
             DbConfiguration.SetConfiguration(new SqliteConfiguration());
+
+            // Migrations only for SQL Server. The SQLite schema is created by
+            // SqliteSchema.Ensure; EF6's SQLite provider cannot generate tables,
+            // and the migration hardcodes dbo. table names. Without this line
+            // SQL Server silently falls back to CreateDatabaseIfNotExists and
+            // existing databases stop being migrated.
+            //
+            // Reading DataSource.Current here is not an initialisation cycle. The
+            // SQLite path reaches DefaultSqlite, which never touches DB; Load
+            // returns a deserialised DataSource when a settings file exists and
+            // otherwise falls back to DefaultSqlite. DefaultSqlServer is the only
+            // member that reads DB.ConnectionString and nothing reachable from
+            // Current calls it.
+            if (DataSource.Current.Kind == DbProviderKind.SqlServer)
+                Database.SetInitializer(new MigrateDatabaseToLatestVersion<DB, Migrations.Configuration>());
         }
 
         private sealed class SqliteConfiguration : DbConfiguration
@@ -48,7 +66,14 @@ namespace DAL
             }
         }
 
-        public DB() : base("conStr")
+        /// <summary>
+        /// Opens the configured provider. SQLite is applied through
+        /// DataSource.CreateConnection so the schema is in place before the first
+        /// query; SQL Server keeps its EF6 migrations, set by the static
+        /// constructor above, which remain the only supported way to evolve that
+        /// schema.
+        /// </summary>
+        public DB() : base(DataSource.CreateConnection(DataSource.Current), contextOwnsConnection: true)
         {
         }
 
