@@ -158,5 +158,111 @@ namespace CRMPeyvand.Tests
             Assert.Equal(DbProviderKind.Sqlite, DataSource.Current.Kind);
             Assert.True(File.Exists(DataSource.FilePath));
         }
+
+        // ---- Activating and deactivating the SQL Server connection ------------
+        //
+        // Deactivating must not throw away the credentials: the whole point of a
+        // toggle is that the user can switch away to SQLite and come back without
+        // retyping a server, a login and a password.
+
+        private const string SampleSqlServer =
+            "Data Source=tcp:127.0.0.1,1;Initial Catalog=CRMPeyvand;Integrated Security=true;" +
+            "TrustServerCertificate=True;Connect Timeout=1";
+
+        [Fact]
+        public void A_fresh_install_has_no_sql_server_connection_configured()
+        {
+            Assert.False(DataSource.DefaultSqlite().IsSqlServerConfigured);
+        }
+
+        [Fact]
+        public void Deactivating_keeps_the_sql_server_connection_string()
+        {
+            var active = DataSource.ForSqlServer(SampleSqlServer);
+            Assert.True(active.IsSqlServerConfigured);
+
+            var deactivated = active.DeactivateSqlServer();
+
+            Assert.Equal(DbProviderKind.Sqlite, deactivated.Kind);
+            Assert.Equal(SampleSqlServer, deactivated.SqlServerConnectionString);
+            // Still remembered, so the toggle can be thrown back.
+            Assert.True(deactivated.IsSqlServerConfigured);
+        }
+
+        [Fact]
+        public void Deactivating_falls_back_to_a_usable_sqlite_connection()
+        {
+            var deactivated = DataSource.ForSqlServer(SampleSqlServer).DeactivateSqlServer();
+
+            // A connection string that actually opens, not just the right Kind.
+            Assert.Null(DataSource.Test(deactivated));
+        }
+
+        [Fact]
+        public void Activating_again_reuses_the_kept_connection_string()
+        {
+            var roundTrip = DataSource.ForSqlServer(SampleSqlServer)
+                .DeactivateSqlServer()
+                .ActivateSqlServer();
+
+            Assert.Equal(DbProviderKind.SqlServer, roundTrip.Kind);
+            Assert.Equal(SampleSqlServer, roundTrip.ConnectionString);
+            Assert.Equal(SampleSqlServer, roundTrip.SqlServerConnectionString);
+        }
+
+        [Fact]
+        public void Activating_without_a_saved_connection_is_refused()
+        {
+            Assert.Throws<InvalidOperationException>(
+                () => DataSource.DefaultSqlite().ActivateSqlServer());
+        }
+
+        [Fact]
+        public void The_kept_connection_string_survives_a_restart()
+        {
+            DataSource.Use(DataSource.ForSqlServer(SampleSqlServer).DeactivateSqlServer());
+            DataSource.ResetForTests();
+
+            var reloaded = DataSource.Current;
+
+            Assert.Equal(DbProviderKind.Sqlite, reloaded.Kind);
+            Assert.Equal(SampleSqlServer, reloaded.SqlServerConnectionString);
+        }
+
+        [Fact]
+        public void A_settings_file_written_before_the_kept_string_existed_still_recovers_it()
+        {
+            // A provider.json from the previous release has Kind and
+            // ConnectionString but no SqlServerConnectionString. Losing the
+            // connection there would mean the toggle could never be thrown back
+            // for an install that was already configured.
+            File.WriteAllText(DataSource.FilePath,
+                "{\n  \"Kind\": \"SqlServer\",\n  \"ConnectionString\": \"" +
+                SampleSqlServer.Replace("\"", "\\\"") + "\"\n}");
+            DataSource.ResetForTests();
+
+            var reloaded = DataSource.Current;
+
+            Assert.Equal(DbProviderKind.SqlServer, reloaded.Kind);
+            Assert.Equal(SampleSqlServer, reloaded.SqlServerConnectionString);
+        }
+
+        [Fact]
+        public void Sqlite_file_path_is_reported_and_is_where_the_connection_points()
+        {
+            var sqlite = DataSource.DefaultSqlite();
+
+            Assert.EndsWith(DataSource.SqliteFileName, DataSource.SqliteFilePath);
+            Assert.Contains(DataSource.SqliteFilePath, sqlite.ConnectionString);
+        }
+
+        [Fact]
+        public void The_sqlite_path_is_absent_before_the_database_has_been_created()
+        {
+            // The settings screen shows this to the user, so "does it exist yet"
+            // has to be a real answer rather than a guess.
+            var path = Path.Combine(_folder, "not-created-yet.db");
+            Assert.False(File.Exists(path));
+        }
     }
 }

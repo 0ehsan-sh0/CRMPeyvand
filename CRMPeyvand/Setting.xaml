@@ -83,7 +83,12 @@
         <!--پیکربندی پایگاه داده-->
         <GroupBox Style="{StaticResource GroupBox}" Header="پیکربندی پایگاه داده" Grid.RowSpan="3" Grid.ColumnSpan="12" Grid.Row="3" Margin="10,5,10,10"/>
         <Border Style="{StaticResource ButtonBorder}" Width="170" Height="30" Grid.ColumnSpan="3" Margin="30,8,0,36" Grid.Row="4" Grid.RowSpan="2">
-            <Button Style="{StaticResource Button}" x:Name="btnDatabaseConfig" Content="انتخاب پایگاه داده" Click="btnDatabase_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Button Style="{StaticResource Button}" x:Name="btnDatabaseConfig" Click="btnDatabase_Click" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Image Source="/Images/Display.png" Width="16" Height="16" Margin="0,0,7,0"/>
+                    <TextBlock Text="پیکربندی پایگاه داده"/>
+                </StackPanel>
+            </Button>
         </Border>
         <!--پیکربندی پایگاه داده-->
 

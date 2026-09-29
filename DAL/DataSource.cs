@@ -37,6 +37,33 @@ namespace DAL
 
         public string ConnectionString { get; set; } = string.Empty;
 
+        /// <summary>
+        /// The SQL Server connection the user configured, kept even while
+        /// SQLite is the active provider.
+        ///
+        /// This is what makes the settings screen's on/off switch reversible:
+        /// deactivating switches the app to SQLite without making the user
+        /// retype a server, a login and a password to switch back. When
+        /// <see cref="Kind"/> is <see cref="DbProviderKind.SqlServer"/> it is
+        /// always equal to <see cref="ConnectionString"/> - an older settings
+        /// file that predates this property is brought up to date on load.
+        /// </summary>
+        public string SqlServerConnectionString { get; set; }
+
+        /// <summary>Whether a SQL Server connection has ever been saved.</summary>
+        [JsonIgnore]
+        public bool IsSqlServerConfigured =>
+            !string.IsNullOrWhiteSpace(SqlServerConnectionString);
+
+        /// <summary>
+        /// The saved SQL Server connection, falling back to the active one for a
+        /// settings file written before SqlServerConnectionString existed.
+        /// </summary>
+        private string EffectiveSqlServerConnectionString =>
+            IsSqlServerConfigured
+                ? SqlServerConnectionString
+                : (Kind == DbProviderKind.SqlServer ? ConnectionString : null);
+
         private static readonly object Gate = new object();
         private static DataSource _current;
 
@@ -46,6 +73,14 @@ namespace DAL
         };
 
         public static string FilePath => Path.Combine(DataFolder.Resolve(), SettingsFileName);
+
+        /// <summary>
+        /// Where the SQLite database lives. The settings screen shows this to the
+        /// user, along with whether the file exists yet, so it is a single
+        /// definition rather than something assembled at the call site.
+        /// </summary>
+        public static string SqliteFilePath =>
+            Path.Combine(DataFolder.Resolve(), SqliteFileName);
 
         public static DataSource Current
         {
@@ -63,10 +98,61 @@ namespace DAL
             Kind = DbProviderKind.Sqlite,
             ConnectionString = new SQLiteConnectionStringBuilder
             {
-                DataSource = Path.Combine(DataFolder.Resolve(), SqliteFileName),
+                DataSource = SqliteFilePath,
                 DateTimeFormat = SQLiteDateFormats.ISO8601,
             }.ToString() + ";providerName=" + SqliteSchema.Invariant,
         };
+
+        /// <summary>A data source that uses the given SQL Server connection.</summary>
+        public static DataSource ForSqlServer(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new ArgumentException("رشته اتصال نمی تواند خالی باشد", nameof(connectionString));
+
+            return new DataSource
+            {
+                Kind = DbProviderKind.SqlServer,
+                ConnectionString = connectionString,
+                SqlServerConnectionString = connectionString,
+            };
+        }
+
+        /// <summary>
+        /// Switches to SQLite while keeping the SQL Server connection saved, so
+        /// the user can switch back without re-entering their credentials.
+        /// Always succeeds: SQLite needs nothing installed.
+        /// </summary>
+        public DataSource DeactivateSqlServer() => new DataSource
+        {
+            Kind = DbProviderKind.Sqlite,
+            ConnectionString = DefaultSqlite().ConnectionString,
+            SqlServerConnectionString = EffectiveSqlServerConnectionString,
+        };
+
+        /// <summary>
+        /// Switches back to the SQL Server connection this instance has saved.
+        ///
+        /// Throws a Persian message when there is nothing saved. Validation is
+        /// the caller's job and is deliberately not done here: whether a
+        /// connection works is a question about the machine, and the settings
+        /// screen must test it and report the result to the user rather than
+        /// having an exception thrown at it.
+        /// </summary>
+        public DataSource ActivateSqlServer()
+        {
+            var saved = EffectiveSqlServerConnectionString;
+            if (string.IsNullOrWhiteSpace(saved))
+                throw new InvalidOperationException(
+                    "هنوز هیچ اتصالی برای SQL Server ذخیره نشده است.");
+
+            return ForSqlServer(saved);
+        }
+
+        /// <summary>Forgets the in-memory choice so the next read re-loads it from disk.</summary>
+        internal static void ResetForTests()
+        {
+            lock (Gate) { _current = null; }
+        }
 
         /// <summary>
         /// The connection string that shipped in App.config, kept as the
@@ -237,7 +323,20 @@ namespace DAL
                     var loaded = JsonSerializer.Deserialize<DataSource>(
                         File.ReadAllText(path), Options);
                     if (loaded != null && !string.IsNullOrWhiteSpace(loaded.ConnectionString))
+                    {
+                        // A settings file from before SqlServerConnectionString
+                        // existed records an active SQL Server connection and
+                        // nothing else. Copy it across, or the on/off switch
+                        // could never be thrown back for an install that had
+                        // already been configured.
+                        if (string.IsNullOrWhiteSpace(loaded.SqlServerConnectionString)
+                            && loaded.Kind == DbProviderKind.SqlServer)
+                        {
+                            loaded.SqlServerConnectionString = loaded.ConnectionString;
+                        }
+
                         return loaded;
+                    }
                 }
             }
             catch (Exception)
