@@ -1,0 +1,89 @@
+name: Release MSI
+
+# Cutting a release is: bump installer/CRMPeyvand.Installer.wixproj
+# ProductVersion, commit, then push a v* tag matching it.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to publish the MSI for (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Tag v1.2.3 -> version 1.2.3. A bare "v1" or a non-numeric tag is rejected
+      # rather than silently producing a bad ProductVersion.
+      - name: Resolve version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = if ('${{ github.event.inputs.tag }}') { '${{ github.event.inputs.tag }}' } else { '${{ github.ref_name }}' }
+          if ($tag -notmatch '^v(\d+\.\d+\.\d+)$') {
+            throw "Tag '$tag' must look like v1.2.3"
+          }
+          "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+
+      # Optional: without a certificate the MSI is unsigned and SmartScreen warns.
+      # Add a base64 .pfx as the MSI_CERT_PFX secret and its password as
+      # MSI_CERT_PASSWORD to have the build sign the package.
+      - name: Import signing certificate
+        id: cert
+        shell: pwsh
+        run: |
+          $pfx = '${{ secrets.MSI_CERT_PFX }}'
+          if ([string]::IsNullOrWhiteSpace($pfx)) {
+            'available=false' >> $env:GITHUB_OUTPUT
+            Write-Warning 'No signing certificate - the MSI will be unsigned.'
+            exit 0
+          }
+          $path = Join-Path $env:RUNNER_TEMP 'signing.pfx'
+          [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($pfx))
+          "path=$path" >> $env:GITHUB_OUTPUT
+          'available=true' >> $env:GITHUB_OUTPUT
+
+      - name: Build and sign installer
+        shell: pwsh
+        env:
+          MSI_CERT_PASSWORD: ${{ secrets.MSI_CERT_PASSWORD }}
+        run: |
+          $args = @{ Version = '${{ steps.version.outputs.version }}' }
+          if ('${{ steps.cert.outputs.available }}' -eq 'true') {
+            $args['SignPfx'] = '${{ steps.cert.outputs.path }}'
+            $args['SignPfxPassword'] = $env:MSI_CERT_PASSWORD
+          }
+          ./build-installer.ps1 @args
+
+      - name: Publish to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = if ('${{ github.event.inputs.tag }}') { '${{ github.event.inputs.tag }}' } else { '${{ github.ref_name }}' }
+          gh release create $tag artifacts/CRMPeyvand.msi `
+            --title "CRM Peyvand $tag" `
+            --generate-notes `
+            --clobber
+          # Let people download without logging in.
+          gh release edit $tag --latest
+
+      - name: Upload MSI as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CRMPeyvand-${{ steps.version.outputs.version }}
+          path: artifacts/CRMPeyvand.msi
+          if-no-files-found: error

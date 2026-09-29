@@ -1,0 +1,37 @@
+name: Build MSI
+
+# Runs on every push and PR so packaging breakage is caught on the branch that
+# caused it, not at release time. Pushing a v* tag additionally publishes the
+# MSI to a GitHub Release (see release.yml).
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  msi:
+    name: Publish and package MSI
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The MSI is framework-dependent, so it is built without the runtime.
+      # build-installer.ps1 is the single source of truth for how the package is
+      # produced; the workflow only supplies the SDK and the version.
+      - name: Build installer
+        shell: pwsh
+        run: ./build-installer.ps1 -Version ${{ github.run_number }}.0.0
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: CRMPeyvand-${{ github.run_number }}
+          path: artifacts/CRMPeyvand.msi
+          if-no-files-found: error
+          retention-days: 30

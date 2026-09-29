@@ -1,0 +1,72 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputName>CRMPeyvand</OutputName>
+    <OutputType>Package</OutputType>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Bump on every release so MajorUpgrade chains correctly. -->
+    <ProductVersion>1.0.0</ProductVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      PublishDirOverride is what callers should pass, not PublishDir.
+
+      The wxs globs "$(PublishDir)**", so a path without a trailing slash globs
+      to "…publish**" and silently harvests zero files, producing a valid but
+      empty MSI. A -p:PublishDir= value arrives as an MSBuild *global* property
+      and so cannot be normalised by this project - hence the separate name,
+      which the PropertyGroup below is free to fix up.
+    -->
+    <PublishDir Condition="'$(PublishDirOverride)' != ''">$(PublishDirOverride)</PublishDir>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\publish\</PublishDir>
+    <PublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</PublishDir>
+
+    <OutputPath>$(MSBuildThisFileDirectory)..\artifacts\</OutputPath>
+    <DefineConstants>ProductVersion=$(ProductVersion);PublishDir=$(PublishDir)</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      ICE43 assumes a Start Menu shortcut is per-user and wants its KeyPath under
+      HKCU. This package is Scope="perMachine", so ProgramMenuFolder is the
+      all-users start menu and the HKLM KeyPath is correct.
+
+      ICE57 reports the same shortcut as "per-user data with a per-machine KeyPath".
+      MSI classifies any Start Menu shortcut as a per-user resource regardless of the
+      all-users folder it lands in, so a per-machine package always trips this.
+      The alternative - an advertised shortcut - is not available here: it would have
+      to share a component with the exe, and <Files> generates the exe component.
+
+      ICE60 wants a Language on every file. The payload is mostly unmanaged
+      dependency DLLs with no version resource, and <Files> has no per-file
+      Language to set.
+    -->
+    <SuppressIces>ICE43;ICE57;ICE60</SuppressIces>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <WixUiVersion>5.0.2</WixUiVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Supplies the standard MSI wizard: Welcome, License, folder selection,
+      progress and Finish. WixUI_InstallDir is the theme that adds the folder
+      picker, and it is what makes INSTALLFOLDER editable on the InstallDirDlg.
+
+      WixToolset.Util.wixext is deliberately still absent - it does not load
+      through this SDK's ResolveWixExtensionReferences path, and nothing in
+      Package.wxs needs it.
+    -->
+    <PackageReference Include="WixToolset.UI.wixext" Version="$(WixUiVersion)" />
+  </ItemGroup>
+
+  <!--
+    Package.wxs is picked up by the SDK's default *.wxs glob.
+  -->
+
+</Project>

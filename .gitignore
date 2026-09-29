@@ -11,6 +11,9 @@ x86/
 build/
 bld/
 
+# Installer output: build-installer.ps1 regenerates all of this
+artifacts/
+
 # Legacy NuGet packages.config restore folder (restore via nuget/dotnet restore)
 packages/
 *.nupkg

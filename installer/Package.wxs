@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+    <!--
+        Framework-dependent install of CRMPeyvand, packaged with the standard
+        MSI wizard so the user can pick the install folder.
+
+        Deliberately avoids WixToolset.Util: that extension would give finer
+        control (an SDDL on the photos folder, a wildcard DirectorySearch for the
+        runtime), but WixToolset.Util.wixext does not load through the
+        WixToolset.Sdk ResolveWixExtensionReferences path here, and the resulting
+        "unhandled extension element" error points at the .wxs rather than at the
+        real cause. WixToolset.UI.wixext does load, so the wizard is available.
+    -->
+    <Package Name="CRM Peyvand"
+             Manufacturer="Peyvand"
+             Version="$(ProductVersion)"
+             UpgradeCode="019D829A-78CA-4194-96C3-6206125ACB0B"
+             Language="1033"
+             InstallerVersion="500"
+             Compressed="yes"
+             Scope="perMachine">
+
+        <SummaryInformation Description="CRM Peyvand Installer" Manufacturer="Peyvand" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed. Uninstall it first." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <!--
+            WixUI_InstallDir is the theme that adds the folder-selection page.
+            InstallDirectory is what wires it up: it names the directory the
+            InstallDirDlg folder control edits, and the theme schedules the
+            dialog and applies the chosen path. Without it the dialog's controls
+            are linked into the MSI but the dialog is never put in the UI
+            sequence, so the wizard silently skips the folder page.
+        -->
+        <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+        <Icon Id="AppIcon" SourceFile="..\CRMPeyvand\app.ico" />
+        <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+        <!--
+            The app is framework-dependent, so it needs the .NET Desktop Runtime.
+
+            Matched version-tolerantly: the search accepts any Microsoft.WindowsDesktop.App
+            shared framework rather than 10.x specifically, because core DirectorySearch
+            does not support wildcards (util:DirectorySearchRef would, but see the note
+            above). A machine with only an older desktop runtime will pass this check and
+            then fail to start the app; the message below names the version to install.
+
+            HKLM\SOFTWARE\dotnet\Setup\InstalledVersions was deliberately not used: that
+            key is written only by the standalone Desktop Runtime installer, never by the
+            .NET SDK, so it reports "missing" on any developer machine that has the app
+            working perfectly well.
+        -->
+        <Property Id="HASDESKTOPRUNTIME">
+            <DirectorySearch Id="DesktopRuntimeSearch"
+                             Path="[ProgramFiles64Folder]\dotnet\shared\Microsoft.WindowsDesktop.App" />
+        </Property>
+
+        <!--
+            A local SQL Server instance is a hard prerequisite: the connection string
+            is Data Source=. and EF6 creates the CRMPeyvand database on first use.
+
+            Probed by looking for SQL Server's program directory, which is present for
+            every SQL Server version and needs no version number baked in. Both
+            Program Files views are checked, so 64-bit and 32-bit installs are covered.
+
+            A registry probe was tried first and does not work: instances register as
+            named values beneath HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\
+            "Instance Names"\SQL (MSSQLSERVER = MSSQL15.MSSQLSERVER), and MSI can read
+            only a key's single default value, never a set of value names. The check
+            therefore always came back empty and blocked installation on machines that
+            did have SQL Server. Note the key really is "Instance Names", with a space.
+
+            This confirms SQL Server is installed, not that a default instance is
+            running - "Data Source=." still needs one.
+        -->
+        <Property Id="SQLINSTALLED64">
+            <DirectorySearch Id="SqlProgramFilesSearch"
+                             Path="[ProgramFiles64Folder]\Microsoft SQL Server" />
+        </Property>
+
+        <Property Id="SQLINSTALLED32">
+            <DirectorySearch Id="SqlProgramFilesX86Search"
+                             Path="[ProgramFilesFolder]\Microsoft SQL Server" />
+        </Property>
+
+        <Launch Condition="Installed OR HASDESKTOPRUNTIME"
+                Message="[ProductName] requires the .NET 10 Desktop Runtime (x64), which is not installed. Install it from https://dotnet.microsoft.com/download/dotnet/10.0 and run this installer again." />
+
+        <Launch Condition="Installed OR SQLINSTALLED64 OR SQLINSTALLED32"
+                Message="[ProductName] needs a local Microsoft SQL Server instance. Install SQL Server 2016 or later (or SQL Server Express), then run this installer again." />
+
+        <Feature Id="Main" Title="CRM Peyvand" Level="1" AllowAbsent="no">
+            <ComponentGroupRef Id="ApplicationFiles" />
+            <ComponentRef Id="AppShortcut" />
+            <ComponentRef Id="UserPicsFolder" />
+        </Feature>
+
+        <!--
+            Images\ and Resources\ are compiled into CRMPeyvand.dll as WPF Resource
+            items, so the publish output is already the complete set.
+
+            <Files> generates one component per file, each with an auto-generated GUID,
+            so it needs a ComponentGroup to be reachable from the feature.
+        -->
+        <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+            <Files Include="$(PublishDir)**" />
+        </ComponentGroup>
+
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="CRM Peyvand">
+                <Component Id="AppShortcut" Bitness="always64" Guid="56690B7E-B78D-4AA4-95BF-6CDF2D3653F5">
+                    <!--
+                        Target must name the executable. Left unset, WiX points the
+                        shortcut at [INSTALLFOLDER] itself, so double-clicking it opens
+                        the install folder instead of starting the app.
+
+                        These are non-advertised shortcuts, so Target is required and the
+                        exe is not re-registered in ARP. The alternative,
+                        Advertise="yes", is unavailable here: an advertised shortcut must
+                        share a component with its target, and the exe lives in a
+                        component auto-generated by <Files>.
+                    -->
+                    <Shortcut Id="StartMenuShortcut"
+                              Name="CRM Peyvand"
+                              Description="CRM Peyvand"
+                              Directory="StartMenuAppDir"
+                              Target="[INSTALLFOLDER]CRMPeyvand.exe"
+                              WorkingDirectory="INSTALLFOLDER"
+                              Icon="AppIcon" />
+                    <!--
+                        DesktopFolder under an ALLUSERS package (Scope=perMachine
+                        sets it) resolves to the public desktop, so every employee
+                        gets the icon - not just the administrator who ran the
+                        installer, who is where a per-user shortcut would land.
+                    -->
+                    <Shortcut Id="DesktopShortcut"
+                              Name="CRM Peyvand"
+                              Description="CRM Peyvand"
+                              Directory="DesktopFolder"
+                              Target="[INSTALLFOLDER]CRMPeyvand.exe"
+                              WorkingDirectory="INSTALLFOLDER"
+                              Icon="AppIcon" />
+                    <RemoveFolder Id="RemoveStartMenuAppDir" Directory="StartMenuAppDir" On="uninstall" />
+                    <RegistryValue Root="HKLM"
+                                   Key="SOFTWARE\Peyvand\CRM Peyvand"
+                                   Name="Shortcuts"
+                                   Type="integer"
+                                   Value="1"
+                                   KeyPath="yes" />
+                </Component>
+            </Directory>
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="StartMenuAppDir" Name="CRM Peyvand" />
+        </StandardDirectory>
+
+        <!--
+            Employee photos live outside Program Files because the app resolves them
+            to %ProgramData%\CRMPeyvand\UserPisc (see PublicMethods.UserPicturesDirectory).
+            The folder is created here so the path exists from first launch, but the ACL
+            is inherited rather than set: core WiX has no element for it, and the app
+            probes writability at runtime and falls back to %LocalAppData% per user.
+        -->
+        <StandardDirectory Id="CommonAppDataFolder">
+            <Directory Id="AppDataRootDir" Name="CRM Peyvand">
+                <Directory Id="UserPicsFolder" Name="UserPisc">
+                    <Component Id="UserPicsFolder" Guid="0D43BF92-7D43-45D5-A00F-940DB3C615B8">
+                        <CreateFolder />
+                        <RemoveFolder Id="RemoveUserPicsFolder" Directory="UserPicsFolder" On="uninstall" />
+                        <RegistryValue Root="HKLM"
+                                       Key="SOFTWARE\Peyvand\CRM Peyvand"
+                                       Name="UserPicsFolder"
+                                       Type="integer"
+                                       Value="1"
+                                       KeyPath="yes" />
+                    </Component>
+                </Directory>
+            </Directory>
+        </StandardDirectory>
+
+    </Package>
+</Wix>

@@ -166,6 +166,82 @@ Update-Database
 
 ---
 
+## 📦 Building the MSI Installer
+
+`build-installer.ps1` publishes the app and wraps it in a Windows Installer package
+using [WiX Toolset v5](https://wixtoolset.org). Output lands in `artifacts\CRMPeyvand.msi`.
+
+```powershell
+.\build-installer.ps1 -Version 1.0.0
+```
+
+Optional code signing (recommended — an unsigned MSI triggers SmartScreen warnings):
+
+```powershell
+.\build-installer.ps1 -Version 1.0.0 -SignPfx certs\peyvand.pfx -SignPfxPassword $env:PFX_PASSWORD
+```
+
+**Bump `ProductVersion` in `installer\CRMPeyvand.Installer.wixproj` (or pass `-Version`)
+on every release.** `MajorUpgrade` keys off it, so an unchanged version will not
+upgrade an existing installation.
+
+The MSI is **framework-dependent** and installs into `Program Files` by default. It
+presents the standard Windows Installer wizard (Welcome → License → install folder →
+Ready to install), and the folder page lets the user choose where the application goes.
+
+It checks its prerequisites at launch and refuses to install — with a specific message —
+if either is missing:
+
+| Prerequisite | Checked how |
+| --- | --- |
+| .NET 10 Desktop Runtime (x64) | `Microsoft.WindowsDesktop.App` shared framework folder |
+| Local SQL Server instance (2016+/Express/LocalDB) | `Microsoft SQL Server` program folder, both Program Files views |
+
+The runtime check accepts any `Microsoft.WindowsDesktop.App` version, so a machine with
+only an older desktop runtime will pass the check and then fail to launch the app. The
+SQL Server check confirms SQL Server is *installed*, not that a default instance is
+*running* — `Data Source=.` still needs one, and the app will report a connection error
+if it cannot reach one.
+
+The `CRMPeyvand` database needs no installation step: EF6 `MigrateDatabaseToLatestVersion`
+creates and seeds it on first use, given the SQL instance above.
+
+### Where the installer stores things
+
+| Path | Contents |
+| --- | --- |
+| `C:\Program Files\CRM Peyvand\` | Application and dependencies (user-selectable) |
+| `C:\ProgramData\CRM Peyvand\UserPisc\` | Employee photos |
+| Start Menu → `CRM Peyvand` | Shortcut |
+| Public Desktop | Shortcut |
+
+The desktop icon is written to the **public** desktop, not the installing user's, so
+every employee sees it rather than just the administrator who ran the installer.
+
+Employee photos are kept out of `Program Files` because that folder is read-only for
+standard users. Because the MSI cannot set an ACL on the photos folder, the app probes
+writability at runtime and falls back to `%LocalAppData%\CRMPeyvand\UserPisc` for any
+user who cannot write to the shared folder. On a shared machine, later users can save
+and see their own photo, but cannot see earlier users' photos.
+
+### Releasing
+
+Pushing a `v*` tag publishes the MSI to a GitHub Release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The tag must be exactly `vMAJOR.MINOR.PATCH`; the number after `v` becomes the MSI
+`ProductVersion`. See `.github/workflows/release.yml`. To sign releases, add a base64
+`.pfx` as the `MSI_CERT_PFX` repository secret and its password as `MSI_CERT_PASSWORD`.
+
+Every push and pull request also builds the MSI via `.github/workflows/build-msi.yml`, so
+packaging breakage surfaces on the branch that caused it.
+
+---
+
 ## 🧪 Running Tests
 
 Unit tests are implemented with **xUnit** covering domain logic, stock policies, pricing engine, permission matrix, and security hashing.
