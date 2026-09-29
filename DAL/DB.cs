@@ -1,28 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
+using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Core.Common;
+using System.Data.SQLite;
 using BE;
 
 namespace DAL
 {
-    public class DB :DbContext
+    public class DB : DbContext
     {
+        /// <summary>
+        /// The SQL Server connection string, kept for the existing settings screen
+        /// and for the SQL Server provider. Task 4 replaces this with DataSource.
+        ///
+        /// Null-tolerant on purpose: a static field initialiser that throws takes
+        /// down every use of the type, and the test host has no App.config, so a
+        /// hard dereference here would break the SQLite tests that never touch
+        /// SQL Server.
+        /// </summary>
         public static string ConnectionString =
-            System.Configuration.ConfigurationManager.ConnectionStrings["conStr"].ConnectionString;
+            ConfigurationManager.ConnectionStrings["conStr"]?.ConnectionString;
 
         static DB()
         {
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<DB, Migrations.Configuration>());
+            // Registers the SQLite ADO.NET factory and EF6 provider services in
+            // code. App.config registration does not work on .NET 10: the
+            // system.data section is not recognised because System.Data.Common
+            // is a separate assembly, and even once declared the factory cannot
+            // be resolved to a provider invariant.
+            DbConfiguration.SetConfiguration(new SqliteConfiguration());
+        }
+
+        private sealed class SqliteConfiguration : DbConfiguration
+        {
+            public SqliteConfiguration()
+            {
+                SetProviderFactory(
+                    SqliteSchema.Invariant,
+                    SQLiteFactory.Instance);
+                SetProviderServices(
+                    SqliteSchema.Invariant,
+                    (DbProviderServices)Activator.CreateInstance(Type.GetType(
+                        "System.Data.SQLite.EF6.SQLiteProviderServices, System.Data.SQLite.EF6",
+                        throwOnError: true)));
+            }
         }
 
         public DB() : base("conStr")
         {
-
         }
+
+        /// <summary>
+        /// Used by the SQLite path and by tests, which supply their own
+        /// connection (a temporary file, in the test case).
+        /// </summary>
+        public DB(DbConnection connection) : base(connection, contextOwnsConnection: true)
+        {
+        }
+
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ActivityCategory> ActivityCategories { get; set; }
         public DbSet<CatalogItem> CatalogItems { get; set; }
