@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class UserDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public UserDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public UserDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(User user)
         {
 
@@ -59,15 +70,51 @@ namespace DAL
         {
             return db.Users.Include("UserGroup").Where(u => u.UserName == Name && u.DeleteStatus == false).SingleOrDefault();
         }
+        // Copied verbatim from the SQL this replaces. The fourth column is
+        // Users.RegDate and the third is the joined UserGroups.Title.
+        private static readonly string[] ReadColumns =
+            { "نام", "نام کاربری", "گروه کاربری", "تاریخ ثبت" };
+
+        /// <summary>
+        /// The rows behind the grid, newest first. The group title is reached
+        /// through Include rather than the join the old SQL spelled out: EF6 does
+        /// not lazy load, so touching UserGroup without it comes back null.
+        /// </summary>
+        private List<object[]> UserRows()
+        {
+            return db.Users
+                .Include("UserGroup")
+                .Where(i => i.DeleteStatus == false)
+                // The built-in administrator group is not a manageable group and
+                // was excluded in the original query. A user with no group is
+                // kept, matching the null-guard in the projection below.
+                .Where(i => i.UserGroup == null || i.UserGroup.IsBuiltIn == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[]
+                {
+                    i.Name,
+                    i.UserName,
+                    i.UserGroup == null ? null : i.UserGroup.Title,
+                    i.RegDate,
+                })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT    TOP (1000)  dbo.Users.Name AS نام, dbo.Users.UserName AS [نام کاربری], dbo.UserGroups.Title AS [گروه کاربری], dbo.Users.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Users INNER JOIN\r\n                      dbo.UserGroups ON dbo.Users.UserGroup_id = dbo.UserGroups.id\r\nWHERE      (dbo.Users.DeleteStatus = 0) and (dbo.UserGroups.IsBuiltIn = 0) ORDER BY dbo.Users.id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, UserRows());
+        }
+
+        public DataTable Search(string Filter)
+        {
+            var rows = UserRows()
+                .Where(r => GridTable.Matches(Filter,
+                    (string)r[0], (string)r[1], (string)r[2]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public string Delete(int id)
         {

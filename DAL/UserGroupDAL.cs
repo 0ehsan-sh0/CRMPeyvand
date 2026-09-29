@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class UserGroupDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public UserGroupDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public UserGroupDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(UserGroup userGroup)
         {
             try
@@ -33,16 +44,35 @@ namespace DAL
                 return "در ثبت گروه کاربری مشکلی به وجود آمد" + e.Message;
             }
         }
+        // Copied verbatim from the SQL this replaces. The built-in
+        // administrator group is not a manageable group and was excluded there,
+        // so it stays excluded.
+        private static readonly string[] ReadColumns = { "نام گروه کاربری" };
+
+        /// <summary>The rows behind the grid, newest first.</summary>
+        private List<object[]> UserGroupRows()
+        {
+            return db.UserGroups
+                .Where(i => i.IsBuiltIn == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[] { i.Title })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)  Title AS [نام گروه کاربری]\r\nFROM          dbo.UserGroups where (dbo.UserGroups.IsBuiltIn = 0) ORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, UserGroupRows());
+        }
+
+        public DataTable Search(string Filter)
+        {
+            var rows = UserGroupRows()
+                .Where(r => GridTable.Matches(Filter, (string)r[0]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public void Update(int groupId, string title, List<AccessGrant> grants)
         {

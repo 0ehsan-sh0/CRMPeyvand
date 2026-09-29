@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class ReminderDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public ReminderDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public ReminderDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(Reminder r, User u)
         {
             try
@@ -31,15 +42,45 @@ namespace DAL
             var q = db.Reminders.Include("User").Where(i => i.id == id).FirstOrDefault();
             return q;
         }
+        // Copied verbatim from the SQL this replaces. The last column has no
+        // alias in the original, so the grid header is the literal string
+        // "RegDate". That is ugly but it is what employees see today, so it is
+        // preserved; renaming it is a separate, deliberate change.
+        private static readonly string[] ReadColumns =
+            { "ردیف", "موضوع", "توضیحات", "تاریخ یادآوری", "وضعیت یادآور", "نام کاربری", "RegDate" };
+
+        /// <summary>
+        /// The rows behind the grid, newest first. The owner's name is reached
+        /// through Include rather than the join the old SQL spelled out: EF6 does
+        /// not lazy load, so touching User without it comes back null.
+        /// </summary>
+        private List<object[]> ReminderRows()
+        {
+            return db.Reminders
+                .Include("User")
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[]
+                {
+                    i.id,
+                    i.Title,
+                    i.Info,
+                    i.RemindDate,
+                    i.IsReminded,
+                    // The header says "نام کاربری" but the old query took
+                    // dbo.Users.Name, not UserName. That is what employees see
+                    // today, so it stays.
+                    i.User == null ? null : i.User.Name,
+                    i.RegDate,
+                })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT    TOP (1000)  dbo.Reminders.id AS ردیف, dbo.Reminders.Title AS موضوع, dbo.Reminders.Info AS توضیحات, dbo.Reminders.RemindDate AS [تاریخ یادآوری], dbo.Reminders.IsReminded AS [وضعیت یادآور], dbo.Users.Name AS [نام کاربری], \r\n                      dbo.Reminders.RegDate\r\nFROM          dbo.Reminders INNER JOIN\r\n                      dbo.Users ON dbo.Reminders.User_id = dbo.Users.id\r\nWHERE      (dbo.Reminders.DeleteStatus = 0) ORDER BY dbo.Reminders.id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, ReminderRows());
         }
 
         public string Update(Reminder r, int id)
@@ -107,16 +148,12 @@ namespace DAL
 
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand("SELECT    TOP (1000)  dbo.Reminders.id AS ردیف, dbo.Reminders.Title AS موضوع, dbo.Reminders.Info AS توضیحات, dbo.Reminders.RemindDate AS [تاریخ یادآوری], dbo.Reminders.IsReminded AS [وضعیت یادآور], dbo.Users.Name AS [نام کاربری], \r\n                      dbo.Reminders.RegDate\r\nFROM          dbo.Reminders INNER JOIN\r\n                      dbo.Users ON dbo.Reminders.User_id = dbo.Users.id\r\nWHERE      (dbo.Reminders.DeleteStatus = 0) AND ((dbo.Reminders.Title LIKE N'%' + @Search + N'%') OR (dbo.Reminders.Info LIKE N'%' + @Search + N'%')) ORDER BY dbo.Reminders.id DESC");
-            string connectionStringText = DB.ConnectionString;
-            command.Parameters.AddWithValue("@Search", Filter);
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            // The old query matched Title and Info only - not the user name.
+            var rows = ReminderRows()
+                .Where(r => GridTable.Matches(Filter, (string)r[1], (string)r[2]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public string Count()
         {
