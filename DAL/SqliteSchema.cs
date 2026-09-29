@@ -22,6 +22,23 @@ namespace DAL
     {
         public const string Invariant = "System.Data.SQLite";
 
+        // Every SQLite connection this application opens must ask for
+        // SQLiteDateFormats.ISO8601, which is what DataSource.DefaultSqlite
+        // names in the connection string it builds.
+        //
+        // System.Data.SQLite stores a DateTime as TEXT and compares that TEXT,
+        // so the shape of the text has to be sortable and has to be the same
+        // one EF hands the provider for a bound parameter. ISO 8601 is that
+        // shape, and it is also what 2.0.3 already defaults to, so naming it
+        // writes the same bytes as before - no existing database is affected.
+        //
+        // It is named anyway because the app runs under fa-IR with a Persian
+        // calendar, where a provider that formatted with the current culture
+        // would write 1405/06/10 for 2026-09-01: still TEXT, still readable,
+        // but no longer comparable against a bound parameter, and every date
+        // range in the application would quietly answer with the wrong
+        // number. Relying on the default leaves that as an upgrade risk.
+
         public const string Ddl = @"
 PRAGMA foreign_keys = ON;
 

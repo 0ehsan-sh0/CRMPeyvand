@@ -64,6 +64,7 @@ namespace DAL
             ConnectionString = new SQLiteConnectionStringBuilder
             {
                 DataSource = Path.Combine(DataFolder.Resolve(), SqliteFileName),
+                DateTimeFormat = SQLiteDateFormats.ISO8601,
             }.ToString() + ";providerName=" + SqliteSchema.Invariant,
         };
 

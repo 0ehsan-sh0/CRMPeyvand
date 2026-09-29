@@ -17,7 +17,16 @@ namespace CRMPeyvand.Tests
             "crmpeyvand-test-" + Guid.NewGuid().ToString("N") + ".db");
 
         private static string ConnectionString(string path) =>
-            new SQLiteConnectionStringBuilder { DataSource = path }.ToString()
+            new SQLiteConnectionStringBuilder
+            {
+                DataSource = path,
+                // Mirrors DataSource.DefaultSqlite. The date format is named
+                // there because the date range queries depend on it; a test
+                // connection built differently would be testing a provider
+                // configuration the application never opens. See the note in
+                // SqliteSchema.
+                DateTimeFormat = SQLiteDateFormats.ISO8601,
+            }.ToString()
             + ";providerName=" + SqliteSchema.Invariant;
 
         public static void WithRaw(Action<SQLiteConnection> body)
