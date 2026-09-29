@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class OffCodeDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public OffCodeDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public OffCodeDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public bool Exist(string code)
         {
             return db.OffCodes.Any(x => x.Code == code);
@@ -34,30 +45,50 @@ namespace DAL
         {
             return db.OffCodes.Where(i => i.Code == code).FirstOrDefault();
         }
+        // Copied verbatim from the SQL this replaces, including the order: the
+        // grid binds with AutoGenerateColumns, so these are the headers.
+        private static readonly string[] ReadColumns =
+            { "کد تخفیف", "مبلغ تخفیف", "درصد تخفیف", "محدودیت مصرف", "تاریخ انقضا", "تاریخ ثبت" };
+
+        /// <summary>
+        /// The rows behind the grid, newest first. Materialised before the
+        /// projection because EF6 cannot translate a projection into
+        /// object[] into SQL.
+        /// </summary>
+        private List<object[]> OffCodeRows()
+        {
+            return db.OffCodes
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[]
+                {
+                    i.Code,
+                    i.Price,
+                    i.Percent,
+                    i.LimitCount,
+                    i.ExpireDate,
+                    i.RegDate,
+                })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT  TOP (1000)   Code AS [کد تخفیف], Price AS [مبلغ تخفیف], [Percent] AS [درصد تخفیف], LimitCount AS [محدودیت مصرف], ExpireDate AS [تاریخ انقضا], RegDate AS [تاریخ ثبت] \r\nFROM          dbo.OffCodes\r\nWHERE      (DeleteStatus = 0)\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, OffCodeRows());
         }
+
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT  TOP (1000)   Code AS [کد تخفیف], Price AS [مبلغ تخفیف], [Percent] AS [درصد تخفیف], LimitCount AS [محدودیت مصرف], ExpireDate AS [تاریخ انقضا], RegDate AS [تاریخ ثبت] \r\nFROM          dbo.OffCodes\r\nWHERE      (DeleteStatus = 0) AND (Code LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@search", Filter);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            // The old LIKE clause covered Code only. The amount and the
+            // percentage are shown in the grid but were never searchable, so
+            // they stay that way.
+            var rows = OffCodeRows()
+                .Where(r => GridTable.Matches(Filter, (string)r[0]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public string OffCodeCount()
         {

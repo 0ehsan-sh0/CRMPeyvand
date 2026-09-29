@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class MessageDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public MessageDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public MessageDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(Message m)
         {
             try
@@ -30,30 +41,38 @@ namespace DAL
         {
             return db.Messages.Any(i => i.Content == content);
         }
+        // Copied verbatim from the SQL this replaces: the one column is the
+        // message text and nothing else.
+        private static readonly string[] ReadColumns = { "متن پیام" };
+
+        /// <summary>
+        /// The rows behind the grid, newest first. Materialised before the
+        /// projection because EF6 cannot translate a projection into
+        /// object[] into SQL.
+        /// </summary>
+        private List<object[]> MessageRows()
+        {
+            return db.Messages
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[] { i.Content })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)  [Content] AS [متن پیام]\r\nFROM          dbo.Messages\r\nWHERE      (DeleteStatus = 0)\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, MessageRows());
         }
+
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT   TOP (1000)  [Content] AS [متن پیام]\r\nFROM          dbo.Messages\r\nWHERE      (DeleteStatus = 0) AND ([Content] LIKE N'%' + @search + N'%')\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@search", Filter);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            var rows = MessageRows()
+                .Where(r => GridTable.Matches(Filter, (string)r[0]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public string Count()
         {

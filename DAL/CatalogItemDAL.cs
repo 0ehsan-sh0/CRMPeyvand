@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class CatalogItemDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public CatalogItemDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public CatalogItemDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(CatalogItem p)
         {
             try
@@ -33,30 +44,66 @@ namespace DAL
             return db.CatalogItems.Where(i => i.DeleteStatus == false).OrderByDescending(i => i.Id).ToList();
         }
 
+        // Copied verbatim from the SQL this replaces. The third column is a
+        // computed column, not a field, which is why the grid shows a word
+        // rather than a number.
+        private static readonly string[] ReadColumns =
+            { "نام", "قیمت", "نوع", "موجودی" };
+
+        /// <summary>
+        /// The CASE expression the old SQL used, kept branch for branch: it had
+        /// no ELSE, so a Kind outside the enum came back as NULL and the grid
+        /// rendered an empty cell. A two-armed ternary would report it as
+        /// "خدمات" instead, which is a different - and wrong - thing to show.
+        /// </summary>
+        private static string KindLabel(ItemKind kind)
+        {
+            if (kind == ItemKind.Good) return "محصول";
+            if (kind == ItemKind.Service) return "خدمات";
+            return null;
+        }
+
+        /// <summary>
+        /// The rows behind the grid, newest first. Materialised before the
+        /// projection because EF6 cannot translate a projection into
+        /// object[] into SQL.
+        /// </summary>
+        private List<object[]> CatalogRows()
+        {
+            return db.CatalogItems
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.Id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[]
+                {
+                    i.Name,
+                    i.SalePrice,
+                    KindLabel(i.Kind),
+                    i.Stock,
+                })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, CatalogRows());
         }
+
+        /// <summary>
+        /// The same four columns as <see cref="Read"/>, filtered on the Kind
+        /// label. The old SQL compared the CASE expression to the parameter,
+        /// so this matches the label and not the name.
+        /// </summary>
         public DataTable Read(string type)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) AND ((CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) = @Search)\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@Search", type);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            var rows = CatalogRows()
+                .Where(r => GridTable.Matches(type, (string)r[2]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
+
         public List<string> ReadNames()
         {
             return db.CatalogItems.Where(i => i.DeleteStatus == false).Select(i => i.Name).ToList();
@@ -122,17 +169,14 @@ namespace DAL
         }
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT   TOP (1000)   Name AS نام, SalePrice AS قیمت, (CASE Kind WHEN 1 THEN N'محصول' WHEN 2 THEN N'خدمات' END) AS نوع, Stock AS موجودی\r\nFROM          dbo.CatalogItems\r\nWHERE      (DeleteStatus = 0) AND (Name LIKE N'%' + @Search + N'%')\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@Search", Filter);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            // The old LIKE clause covered Name only, but the grid also shows the
+            // Kind label, and searching for "محصول" is the obvious thing to
+            // type. Both are offered here.
+            var rows = CatalogRows()
+                .Where(r => GridTable.Matches(Filter, (string)r[0], (string)r[2]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
 
 

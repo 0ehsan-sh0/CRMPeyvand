@@ -511,6 +511,397 @@ namespace CRMPeyvand.Tests
             });
         }
 
+        [Fact]
+        public void Catalog_Read_returns_the_persian_headers()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای اول", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5,
+                });
+                db.SaveChanges();
+
+                var table = new CatalogItemDAL(db).Read();
+                Assert.Equal(new[] { "نام", "قیمت", "نوع", "موجودی" },
+                             table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_translates_the_Kind_code_to_a_persian_label()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای اول", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5,
+                });
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "خدمت اول", Kind = BE.ItemKind.Service,
+                    SalePrice = 200m, Stock = 0,
+                });
+                db.SaveChanges();
+
+                var table = new CatalogItemDAL(db).Read();
+                var labels = table.Rows.Cast<DataRow>()
+                                   .Select(r => (string)r["نوع"]).ToList();
+                Assert.Contains("محصول", labels);
+                Assert.Contains("خدمات", labels);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_fills_every_column_in_order()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای اول", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5,
+                });
+                db.SaveChanges();
+
+                // The values are asserted by column name as well as by position,
+                // so a projection that silently reorders the row fails here.
+                var row = new CatalogItemDAL(db).Read().Rows[0];
+                Assert.Equal("کالای اول", row["نام"]);
+                Assert.Equal(100m, Convert.ToDecimal(row["قیمت"]));
+                Assert.Equal("محصول", row["نوع"]);
+                Assert.Equal(5, Convert.ToInt32(row["موجودی"]));
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_leaves_the_label_empty_for_a_Kind_outside_the_enum()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                // The old SQL was CASE Kind WHEN 1 ... WHEN 2 ... END with no
+                // ELSE, so anything other than 1 or 2 came back as NULL. A
+                // two-armed ternary would instead report it as "خدمات", which
+                // is a different - and wrong - thing to show an employee.
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای ناشناخته", Kind = (BE.ItemKind)7,
+                    SalePrice = 50m, Stock = 1,
+                });
+                db.SaveChanges();
+
+                var row = new CatalogItemDAL(db).Read().Rows[0];
+                Assert.Null(row["نوع"] as string);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_excludes_soft_deleted_rows()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای اول", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5,
+                });
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای حذف‌شده", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5, DeleteStatus = true,
+                });
+                db.SaveChanges();
+
+                var table = new CatalogItemDAL(db).Read();
+                Assert.Single(table.Rows);
+                Assert.Equal("کالای اول", table.Rows[0]["نام"]);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Search_matches_the_name()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoCatalogItems(db);
+
+                var table = new CatalogItemDAL(db).Search("کالای اول");
+                Assert.Single(table.Rows);
+                Assert.Equal("کالای اول", table.Rows[0]["نام"]);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Search_matches_the_kind_label()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoCatalogItems(db);
+
+                // Searching the raw enum value finds nothing: the grid shows
+                // the translated label, and that is what search offers.
+                Assert.Equal(0, new CatalogItemDAL(db).Search("1").Rows.Count);
+
+                var table = new CatalogItemDAL(db).Search("محصول");
+                Assert.Single(table.Rows);
+                Assert.Equal("کالای اول", table.Rows[0]["نام"]);
+
+                Assert.Single(new CatalogItemDAL(db).Search("خدمات").Rows);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_by_type_filters_on_the_label()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoCatalogItems(db);
+                var dal = new CatalogItemDAL(db);
+
+                var goods = dal.Read("محصول");
+                Assert.Equal(new[] { "نام", "قیمت", "نوع", "موجودی" },
+                             goods.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+                Assert.Single(goods.Rows);
+                Assert.Equal("کالای اول", goods.Rows[0]["نام"]);
+
+                var services = dal.Read("خدمات");
+                Assert.Single(services.Rows);
+                Assert.Equal("خدمت اول", services.Rows[0]["نام"]);
+
+                Assert.Equal(0, dal.Read("ناموجود").Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_by_type_ignores_the_name()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoCatalogItems(db);
+
+                // The filter is on the label column only. A name that happens
+                // to contain the label text must not drag the row in.
+                Assert.Equal(0, new CatalogItemDAL(db).Read("کالای").Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_by_type_excludes_soft_deleted_rows()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالای حذف‌شده", Kind = BE.ItemKind.Good,
+                    SalePrice = 100m, Stock = 5, DeleteStatus = true,
+                });
+                db.SaveChanges();
+
+                Assert.Equal(0, new CatalogItemDAL(db).Read("محصول").Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void OffCode_Read_returns_all_discount_columns()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "OFF10", Percent = 10, IsPrice = false,
+                    RegDate = DateTime.Now, Price = 0m,
+                });
+                db.SaveChanges();
+
+                var table = new OffCodeDAL(db).Read();
+                Assert.Equal(
+                    new[] { "کد تخفیف", "مبلغ تخفیف", "درصد تخفیف", "محدودیت مصرف", "تاریخ انقضا", "تاریخ ثبت" },
+                    table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+                Assert.Equal(10m, Convert.ToDecimal(table.Rows[0]["درصد تخفیف"]));
+            });
+        }
+
+        [Fact]
+        public void OffCode_Read_fills_every_column_in_order()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var regDate = new DateTime(2026, 3, 4, 5, 6, 7);
+                var expire = new DateTime(2027, 1, 2);
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "OFF20", IsPrice = true, Price = 5000m,
+                    LimitCount = 3, ExpireDate = expire, RegDate = regDate,
+                });
+                db.SaveChanges();
+
+                var row = new OffCodeDAL(db).Read().Rows[0];
+                Assert.Equal("OFF20", row["کد تخفیف"]);
+                Assert.Equal(5000m, Convert.ToDecimal(row["مبلغ تخفیف"]));
+                // A price discount carries no percentage; the old query listed
+                // the column unconditionally, so it must still be there and be
+                // empty rather than zero. DataTable hands back DBNull, not null.
+                Assert.Equal(DBNull.Value, row["درصد تخفیف"]);
+                Assert.Equal(3, Convert.ToInt32(row["محدودیت مصرف"]));
+                Assert.Equal(expire, Convert.ToDateTime(row["تاریخ انقضا"]));
+                Assert.Equal(regDate, Convert.ToDateTime(row["تاریخ ثبت"]));
+            });
+        }
+
+        [Fact]
+        public void OffCode_Read_excludes_soft_deleted_rows()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "ALIVE", Percent = 5, RegDate = DateTime.Now,
+                });
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "GONE", Percent = 5, RegDate = DateTime.Now,
+                    DeleteStatus = true,
+                });
+                db.SaveChanges();
+
+                var table = new OffCodeDAL(db).Read();
+                Assert.Single(table.Rows);
+                Assert.Equal("ALIVE", table.Rows[0]["کد تخفیف"]);
+            });
+        }
+
+        [Fact]
+        public void OffCode_Search_matches_the_code_only()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "SUMMER", Percent = 20, RegDate = DateTime.Now,
+                });
+                db.OffCodes.Add(new BE.OffCode
+                {
+                    Code = "WINTER", Percent = 30, RegDate = DateTime.Now,
+                });
+                db.SaveChanges();
+
+                var dal = new OffCodeDAL(db);
+                var table = dal.Search("SUMMER");
+                Assert.Single(table.Rows);
+                Assert.Equal("SUMMER", table.Rows[0]["کد تخفیف"]);
+
+                // The percentage is shown in the grid but the old LIKE clause
+                // covered Code only, and no code here contains a digit, so it
+                // must still not match.
+                Assert.Equal(0, dal.Search("30").Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void Message_Read_excludes_soft_deleted()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Messages.Add(new BE.Message
+                {
+                    Content = "پیام زنده", RegDate = DateTime.Now,
+                });
+                db.Messages.Add(new BE.Message
+                {
+                    Content = "پیام حذف‌شده", RegDate = DateTime.Now, DeleteStatus = true,
+                });
+                db.SaveChanges();
+
+                var table = new MessageDAL(db).Read();
+                Assert.Single(table.Rows);
+                Assert.Equal("پیام زنده", table.Rows[0]["متن پیام"]);
+            });
+        }
+
+        [Fact]
+        public void Message_Read_returns_the_persian_headers()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                db.Messages.Add(new BE.Message
+                {
+                    Content = "پیام اول", RegDate = DateTime.Now,
+                });
+                db.SaveChanges();
+
+                var table = new MessageDAL(db).Read();
+                Assert.Equal(new[] { "متن پیام" },
+                             table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+            });
+        }
+
+        [Fact]
+        public void Message_Read_orders_newest_first()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoMessages(db);
+
+                var table = new MessageDAL(db).Read();
+                Assert.Equal(new[] { "پیام دوم", "پیام اول" },
+                             table.Rows.Cast<DataRow>().Select(r => (string)r["متن پیام"]));
+            });
+        }
+
+        [Fact]
+        public void Message_Search_matches_the_content()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoMessages(db);
+
+                var dal = new MessageDAL(db);
+                var table = dal.Search("اول");
+                Assert.Single(table.Rows);
+                Assert.Equal("پیام اول", table.Rows[0]["متن پیام"]);
+
+                // Both seeded messages share the پیام stem, so that one matches
+                // two rows; the distinguishing part of each is the word after it.
+                Assert.Equal(2, dal.Search("پیام").Rows.Count);
+                Assert.Single(dal.Search("دوم").Rows);
+                Assert.Equal(0, dal.Search("سوم").Rows.Count);
+            });
+        }
+
+        /// <summary>
+        /// One good and one service whose names are unrelated to their labels,
+        /// so a label search and a name search cannot satisfy each other.
+        /// </summary>
+        private static void SeedTwoCatalogItems(DB db)
+        {
+            db.CatalogItems.Add(new BE.CatalogItem
+            {
+                Name = "کالای اول", Kind = BE.ItemKind.Good,
+                SalePrice = 100m, Stock = 5,
+            });
+            db.CatalogItems.Add(new BE.CatalogItem
+            {
+                Name = "خدمت اول", Kind = BE.ItemKind.Service,
+                SalePrice = 200m, Stock = 0,
+            });
+            db.SaveChanges();
+        }
+
+        private static void SeedTwoMessages(DB db)
+        {
+            db.Messages.Add(new BE.Message
+            {
+                Content = "پیام اول", RegDate = DateTime.Now,
+            });
+            db.Messages.Add(new BE.Message
+            {
+                Content = "پیام دوم", RegDate = DateTime.Now,
+            });
+            db.SaveChanges();
+        }
+
         /// <summary>
         /// One user in the built-in administrator group and one in an ordinary
         /// group, so a Read assertion cannot be satisfied by accident.
