@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DAL;
@@ -868,6 +869,258 @@ namespace CRMPeyvand.Tests
                 Assert.Single(dal.Search("دوم").Rows);
                 Assert.Equal(0, dal.Search("سوم").Rows.Count);
             });
+        }
+
+        [Fact]
+        public void Invoice_Read_returns_the_seven_persian_headers()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedInvoice(db);
+
+                var table = new InvoiceDAL(db).Read();
+                // Copied from the AS aliases of the T-SQL this replaces, in its
+                // order: the two computed columns come last, not in the middle.
+                Assert.Equal(
+                    new[] { "شماره فاکتور", "وضعیت پرداخت", "تاریخ پرداخت", "کد تخفیف", "تاریخ ثبت",
+                            "تعداد کالاهای فاکتور", "هزینه پرداختی" },
+                    table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+
+                // "قیمت کل" existed only as an alias inside the stored procedure
+                // deleted in the first task. The live query had no joins at all,
+                // so there is no customer name and no user name either.
+                Assert.DoesNotContain("قیمت کل",
+                                      table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_sums_line_quantities_per_invoice()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var invoice = SeedInvoice(db);
+                invoice.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 2, UnitPrice = 1000m, CatalogItem = db.CatalogItems.Local.First(),
+                });
+                invoice.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 3, UnitPrice = 1000m, CatalogItem = db.CatalogItems.Local.First(),
+                });
+                db.SaveChanges();
+
+                var table = new InvoiceDAL(db).Read();
+                Assert.Single(table.Rows);
+                Assert.Equal(5, Convert.ToInt32(table.Rows[0]["تعداد کالاهای فاکتور"]));
+                Assert.Equal(5000m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_subtracts_the_discount_from_the_payable_total()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var invoice = SeedInvoice(db, discountAmount: 750m);
+                invoice.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 5, UnitPrice = 1000m, CatalogItem = db.CatalogItems.Local.First(),
+                });
+                db.SaveChanges();
+
+                var table = new InvoiceDAL(db).Read();
+                Assert.Equal(4250m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_shows_zero_not_null_for_an_invoice_with_no_lines()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedInvoice(db);
+
+                // ISNULL(SUM(...), 0) in the old SQL. Sum's empty-sequence
+                // behaviour is the same thing in the client-side projection,
+                // which is why the grid must show 0 rather than a blank.
+                var table = new InvoiceDAL(db).Read();
+                Assert.Equal(0, Convert.ToInt32(table.Rows[0]["تعداد کالاهای فاکتور"]));
+                Assert.Equal(0m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
+                Assert.NotEqual(DBNull.Value, table.Rows[0]["هزینه پرداختی"]);
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_keeps_the_payable_total_in_decimal()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var invoice = SeedInvoice(db, discountAmount: 0.03m);
+                invoice.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 3, UnitPrice = 1234.56m, CatalogItem = db.CatalogItems.Local.First(),
+                });
+                db.SaveChanges();
+
+                // 3 * 1234.56 = 3703.68, less 0.03. The old SQL rounded this
+                // through float, which would report 3703.6499023437504 here.
+                var row = new InvoiceDAL(db).Read().Rows[0];
+                Assert.Equal(3703.65m, Convert.ToDecimal(row["هزینه پرداختی"]));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_excludes_soft_deleted_rows()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var alive = SeedInvoice(db);
+                var removed = SeedInvoice(db);
+                removed.DeleteStatus = true;
+                db.SaveChanges();
+
+                var table = new InvoiceDAL(db).Read();
+                Assert.Single(table.Rows);
+                Assert.Equal(alive.id, Convert.ToInt32(table.Rows[0]["شماره فاکتور"]));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_orders_newest_first()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var first = SeedInvoice(db);
+                var second = SeedInvoice(db);
+
+                var table = new InvoiceDAL(db).Read();
+                Assert.Equal(new[] { second.id, first.id },
+                             table.Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r["شماره فاکتور"])));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Search_matches_the_invoice_number()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedInvoice(db);
+                var wanted = SeedInvoice(db);
+
+                var dal = new InvoiceDAL(db);
+                Assert.Equal(2, dal.Read().Rows.Count);
+
+                // The old clause was CONVERT(nvarchar(max), i.id) LIKE
+                // N'%' + @search + N'%', so a substring of the number matched.
+                // The two invoices are numbered 1 and 2, so only the first has
+                // a "1" in it and the filter has something to exclude.
+                var table = dal.Search(wanted.id.ToString());
+                Assert.Single(table.Rows);
+                Assert.Equal(wanted.id, Convert.ToInt32(table.Rows[0]["شماره فاکتور"]));
+            });
+        }
+
+        [Fact]
+        public void Invoice_Search_ignores_everything_but_the_invoice_number()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedInvoice(db, offCode: "OFF-SUMMER");
+                var second = SeedInvoice(db);
+                second.IsCheckedout = true;
+                db.SaveChanges();
+
+                var dal = new InvoiceDAL(db);
+
+                // The discount code is a visible column but the old LIKE clause
+                // covered the converted id only, so it must still not match.
+                Assert.Equal(0, dal.Search("OFF-SUMMER").Rows.Count);
+
+                // Neither does the payment status, and an empty filter still
+                // returns the whole grid.
+                Assert.Equal(0, dal.Search("True").Rows.Count);
+                Assert.Equal(2, dal.Search(string.Empty).Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void Invoice_Read_does_not_issue_one_query_per_invoice()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var log = new List<string>();
+                var first = SeedInvoice(db);
+                first.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 1, UnitPrice = 1000m, CatalogItem = db.CatalogItems.Local.First(),
+                });
+                db.SaveChanges();
+
+                db.Database.Log = log.Add;
+                new InvoiceDAL(db).Read();
+                var forOneInvoice = Selects(log);
+                log.Clear();
+
+                for (var extra = 0; extra < 2; extra++)
+                {
+                    var invoice = SeedInvoice(db);
+                    invoice.Lines.Add(new BE.InvoiceLine
+                    {
+                        Quantity = 1, UnitPrice = 1000m, CatalogItem = db.CatalogItems.Local.First(),
+                    });
+                    db.SaveChanges();
+                }
+                // The seeding statements are dropped: System.Data.SQLite asks
+                // for last_insert_rowid() with a SELECT after every insert,
+                // and those are the test's own writes, not the grid's reads.
+                log.Clear();
+
+                new InvoiceDAL(db).Read();
+                var forThreeInvoices = Selects(log);
+
+                // The two computed columns come from InvoiceLines, so this is
+                // the one grid that has to pull a second table in. If the
+                // Include were dropped EF6 would not lazy load and Lines would
+                // be empty; if the sums ran as SQL per invoice the count would
+                // grow with the number of rows. EF6 folds a collection Include
+                // into a single LEFT JOIN and the projection runs in memory
+                // over the materialised list, so the whole grid is one
+                // statement however many invoices are on it.
+                Assert.Equal(forOneInvoice, forThreeInvoices);
+                Assert.Equal(1, forThreeInvoices);
+            });
+        }
+
+        private static int Selects(IEnumerable<string> log)
+        {
+            return log.Count(s => s.IndexOf("SELECT", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        /// <summary>
+        /// An invoice with no lines and no customer or user: both foreign keys
+        /// are nullable and the grid shows neither, so an empty test invoice is
+        /// enough to pin the columns that are about more than sums.
+        /// </summary>
+        private static BE.Invoice SeedInvoice(DB db, string offCode = null, decimal discountAmount = 0m)
+        {
+            if (db.CatalogItems.Local.Count() == 0)
+            {
+                db.CatalogItems.Add(new BE.CatalogItem
+                {
+                    Name = "کالا", Kind = BE.ItemKind.Good, SalePrice = 1000m, Stock = 100,
+                });
+                db.SaveChanges();
+            }
+
+            var invoice = new BE.Invoice
+            {
+                RegDate = DateTime.Now, IsCheckedout = false,
+                OffCode = offCode, DiscountAmount = discountAmount,
+            };
+            db.Invoices.Add(invoice);
+            db.SaveChanges();
+            return invoice;
         }
 
         /// <summary>
