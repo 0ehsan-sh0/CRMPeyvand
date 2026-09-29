@@ -55,9 +55,12 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <!-- Empty top row: the GroupBox header is drawn over row 0,
+                             so the first real row has to start below it. The
+                             configuration section below already has one. -->
+                        <RowDefinition Height="24"/>
                         <RowDefinition Height="26"/>
                         <RowDefinition Height="34"/>
-                        <RowDefinition Height="26"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="34"/>
                     </Grid.RowDefinitions>
@@ -66,8 +69,8 @@
                               Grid.ColumnSpan="2" Grid.RowSpan="5"/>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="پایگاه داده فعال :"
-                           Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Grid Grid.Column="1" Grid.Row="0" FlowDirection="LeftToRight">
+                           Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                    <Grid Grid.Column="1" Grid.Row="1" FlowDirection="LeftToRight">
                         <TextBlock x:Name="lblActiveProvider" FlowDirection="RightToLeft"
                                    FontFamily="Shabnam FD" FontSize="12" FontWeight="Bold" Foreground="#0d63f1"
                                    HorizontalAlignment="Right" VerticalAlignment="Center" Text="—"/>
@@ -120,7 +123,7 @@
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="30"/>
-                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="56"/>
                         <RowDefinition Height="28"/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
@@ -170,8 +173,13 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="رشته اتصال :" Grid.Column="0" Grid.Row="6"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="6" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Height="NaN" Grid.Column="1" Grid.Row="6" Margin="0,0,8,0">
+                        <!-- Taller than the other fields: the connection string wraps
+                             onto two or three lines at this size, and the shared
+                             border style's fixed 30px height was clipping the last
+                             line. -->
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtConnectionString"
+                                 Height="46" VerticalAlignment="Top"
                                  IsReadOnly="True" BorderThickness="0" Padding="2,4,2,4"
                                  FontFamily="Shabnam FD" FontSize="9" TabIndex="7"
                                  ToolTip="رشته اتصالی که ذخیره می شود. شامل کلمه عبور در صورت انتخاب ورود با نام کاربری"/>
