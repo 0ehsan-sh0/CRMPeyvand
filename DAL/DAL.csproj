@@ -17,4 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BE\BE.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CRMPeyvand.Tests" />
+  </ItemGroup>
 </Project>
