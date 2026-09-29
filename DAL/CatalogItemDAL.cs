@@ -92,13 +92,17 @@ namespace DAL
 
         /// <summary>
         /// The same four columns as <see cref="Read"/>, filtered on the Kind
-        /// label. The old SQL compared the CASE expression to the parameter,
-        /// so this matches the label and not the name.
+        /// label. The old SQL compared the CASE expression to the parameter
+        /// with "=", so this matches the whole label and not the name: a
+        /// truncated label such as "مح" selected nothing there and must select
+        /// nothing here. GridTable.Matches would be the wrong tool, being the
+        /// substring test the other grids' LIKE clauses want.
         /// </summary>
         public DataTable Read(string type)
         {
             var rows = CatalogRows()
-                .Where(r => GridTable.Matches(type, (string)r[2]))
+                .Where(r => r[2] is string label
+                            && string.Equals(label, type, StringComparison.Ordinal))
                 .ToList();
 
             return GridTable.Build(ReadColumns, rows);

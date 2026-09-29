@@ -1,6 +1,6 @@
 using System;
-using System.Data;
 using System.Data.Common;
+using System.Data.Entity;
 using System.Data.SQLite;
 using System.IO;
 using System.Text.Json;
@@ -116,8 +116,16 @@ namespace DAL
         }
 
         /// <summary>
-        /// Opens the connection and, for SQLite, applies the schema. Returns
-        /// null on success, or a Persian sentence describing the problem.
+        /// Proves the data source is one the application can actually work with,
+        /// and answers null on success or a Persian sentence describing the
+        /// problem.
+        ///
+        /// Two steps, because a connection that opens is not yet a connection
+        /// EF6 can use. CreateConnection opens it and, for SQLite, applies the
+        /// schema; ConnectionProbe then runs a statement through EF6 itself.
+        /// Raw ADO.NET is not enough: a connection can open perfectly and still
+        /// be a type the provider services refuse, and the operator would be
+        /// told their settings work right up until every screen failed.
         ///
         /// The connection is disposed before returning, deliberately: SQLite
         /// pooling is off in 2.0.3, so the .db file stays locked for the whole
@@ -129,18 +137,10 @@ namespace DAL
 
             try
             {
-                // CreateConnection has already opened the SQLite connection and
-                // applied the schema. SQLiteConnection.Open() throws rather than
-                // returning quietly when the connection is already open, so the
-                // state is checked instead of assumed; the SQL Server connection
-                // comes back closed and is opened here. The second Ensure is
-                // idempotent and keeps this method honest on its own terms: it is
-                // what tells the operator whether their settings work.
                 using (var connection = CreateConnection(dataSource))
+                using (var probe = new ConnectionProbe(connection))
                 {
-                    if (connection.State != ConnectionState.Open) connection.Open();
-                    if (dataSource.Kind == DbProviderKind.Sqlite)
-                        SqliteSchema.Ensure(connection);
+                    probe.Ping();
                 }
                 return null;
             }
@@ -151,25 +151,60 @@ namespace DAL
         }
 
         /// <summary>
+        /// An EF6 context with no entities, used only to run one statement.
+        ///
+        /// It maps nothing on purpose. A test that the application can reach its
+        /// database must not create it, migrate it or write to it, and an
+        /// entity-bearing context would be one initialiser away from doing all
+        /// three. NullDatabaseInitializer is set for this type alone, so it
+        /// cannot disturb the migration DB itself relies on.
+        /// </summary>
+        private sealed class ConnectionProbe : DbContext
+        {
+            static ConnectionProbe()
+            {
+                Database.SetInitializer<ConnectionProbe>(
+                    new NullDatabaseInitializer<ConnectionProbe>());
+            }
+
+            public ConnectionProbe(DbConnection connection)
+                : base(connection, contextOwnsConnection: false)
+            {
+            }
+
+            protected override void OnModelCreating(DbModelBuilder modelBuilder)
+            {
+            }
+
+            public void Ping() => Database.ExecuteSqlCommand("SELECT 1");
+        }
+
+        /// <summary>
         /// Opens a connection to the given data source, applying the SQLite
         /// schema on the way through.
         ///
         /// The SQLite connection comes back open because that is the point where
         /// a fresh install gets its tables: a connection handed back closed
-        /// would let the first query arrive before the schema exists. SQL Server
-        /// is left closed, because EF6 has to open it to run the migration
-        /// first.
+        /// would let the first query arrive before the schema exists.
+        ///
+        /// The SQL Server connection is a System.Data.SqlClient one and comes
+        /// back closed, for EF6 to open and run its migration on. That type is
+        /// not a preference: EF6's SQL Server provider services hard-cast to
+        /// System.Data.SqlClient.SqlConnection, so handing them a
+        /// Microsoft.Data.SqlClient connection makes every query fail with
+        /// "Unable to determine the provider name for provider factory of type
+        /// 'Microsoft.Data.SqlClient.SqlClientFactory'" - and registering that
+        /// factory's invariant only moves the failure to an InvalidCastException.
+        /// System.Data.SqlClient comes with EntityFramework, the same assembly
+        /// those provider services ship in.
         /// </summary>
         internal static DbConnection CreateConnection(DataSource dataSource)
         {
             if (dataSource == null) throw new ArgumentNullException(nameof(dataSource));
 
-            // Microsoft.Data.SqlClient for SQL Server, raw ADO.NET for SQLite.
-            // The SQL Server string is handed over untouched; running it
-            // through SQLiteConnectionStringBuilder first would be at best
-            // pointless and at worst a second way to fail.
             if (dataSource.Kind == DbProviderKind.SqlServer)
-                return new Microsoft.Data.SqlClient.SqlConnection(dataSource.ConnectionString);
+                return new System.Data.SqlClient.SqlConnection(
+                    WithoutProviderName(dataSource.ConnectionString));
 
             var connection = new SQLiteConnection(SqliteConnectionString(dataSource.ConnectionString));
             connection.Open();
@@ -179,14 +214,18 @@ namespace DAL
 
         /// <summary>
         /// The connection string without its "providerName=" tail. That token is
-        /// how EF6 finds the provider; it is not an ADO.NET keyword, and
-        /// SQLiteConnection refuses a connection string that still carries it.
+        /// how EF6 finds the provider; it is not an ADO.NET keyword, and both
+        /// SqlConnection and SQLiteConnection refuse a connection string that
+        /// still carries it. Only the SQLite default writes one, but stripping
+        /// it for every provider keeps a hand-edited settings file from
+        /// producing a connection that cannot even be opened.
         /// </summary>
         internal static string SqliteConnectionString(string connectionString) =>
-            new SQLiteConnectionStringBuilder(
-                (connectionString ?? string.Empty)
-                    .Split(ProviderNameToken, StringSplitOptions.None)[0])
-                .ToString();
+            new SQLiteConnectionStringBuilder(WithoutProviderName(connectionString)).ToString();
+
+        private static string WithoutProviderName(string connectionString) =>
+            (connectionString ?? string.Empty)
+                .Split(ProviderNameToken, StringSplitOptions.None)[0];
 
         private static DataSource Load()
         {

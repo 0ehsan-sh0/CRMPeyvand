@@ -360,23 +360,6 @@ namespace CRMPeyvand.Tests
         }
 
         [Fact]
-        public void User_Search_matches_the_name_the_user_name_and_the_group()
-        {
-            SqliteTestDb.WithDb(db =>
-            {
-                SeedTwoUsers(db);
-
-                // The old query was one statement with no filter, so there is no
-                // LIKE clause to mirror here; these three are the columns the
-                // grid shows and the ones search offers.
-                Assert.Single(new UserDAL(db).Search("کارمند").Rows);
-                Assert.Single(new UserDAL(db).Search("s.ahmadi").Rows);
-                Assert.Single(new UserDAL(db).Search("کارشناس فروش").Rows);
-                Assert.Equal(0, new UserDAL(db).Search("پشتیبانی").Rows.Count);
-            });
-        }
-
-        [Fact]
         public void UserGroup_Read_hides_the_built_in_group()
         {
             SqliteTestDb.WithDb(db =>
@@ -390,22 +373,6 @@ namespace CRMPeyvand.Tests
                              table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
                 Assert.Single(table.Rows);
                 Assert.Equal("کارشناس", table.Rows[0]["نام گروه کاربری"]);
-            });
-        }
-
-        [Fact]
-        public void UserGroup_Search_matches_the_title()
-        {
-            SqliteTestDb.WithDb(db =>
-            {
-                db.UserGroups.Add(new BE.UserGroup { Title = "مدیریت", IsBuiltIn = true });
-                db.UserGroups.Add(new BE.UserGroup { Title = "کارشناس فروش" });
-                db.UserGroups.Add(new BE.UserGroup { Title = "کارشناس پشتیبانی" });
-                db.SaveChanges();
-
-                var table = new UserGroupDAL(db).Search("فروش");
-                Assert.Single(table.Rows);
-                Assert.Equal("کارشناس فروش", table.Rows[0]["نام گروه کاربری"]);
             });
         }
 
@@ -674,6 +641,35 @@ namespace CRMPeyvand.Tests
                 Assert.Equal("خدمت اول", services.Rows[0]["نام"]);
 
                 Assert.Equal(0, dal.Read("ناموجود").Rows.Count);
+            });
+        }
+
+        [Fact]
+        public void Catalog_Read_by_type_does_not_match_a_partial_label()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                SeedTwoCatalogItems(db);
+                var dal = new CatalogItemDAL(db);
+
+                // The old SQL compared the label with "=", not LIKE, so a prefix
+                // of a label matched nothing, and neither did a longer string
+                // that merely contained one. A substring search here would hand
+                // the grid rows the operator was never shown.
+                Assert.Equal(0, dal.Read("مح").Rows.Count);
+                Assert.Equal(0, dal.Read("خ").Rows.Count);
+                Assert.Equal(0, dal.Read("محصولات").Rows.Count);
+
+                // An empty or missing label is not "=" either: the old query
+                // returned nothing for both, where the substring test returned
+                // every row.
+                Assert.Equal(0, dal.Read(string.Empty).Rows.Count);
+                Assert.Equal(0, dal.Read(null).Rows.Count);
+
+                // The whole label still works, and a Kind outside the enum has
+                // no label at all, which "=" never matched either.
+                Assert.Single(dal.Read("محصول").Rows);
+                Assert.Single(dal.Read("خدمات").Rows);
             });
         }
 

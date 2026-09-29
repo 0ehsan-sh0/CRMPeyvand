@@ -107,15 +107,6 @@ namespace DAL
             return GridTable.Build(ReadColumns, UserRows());
         }
 
-        public DataTable Search(string Filter)
-        {
-            var rows = UserRows()
-                .Where(r => GridTable.Matches(Filter,
-                    (string)r[0], (string)r[1], (string)r[2]))
-                .ToList();
-
-            return GridTable.Build(ReadColumns, rows);
-        }
         public string Delete(int id)
         {
             try

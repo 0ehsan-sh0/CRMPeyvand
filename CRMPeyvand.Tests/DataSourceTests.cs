@@ -127,6 +127,25 @@ namespace CRMPeyvand.Tests
         }
 
         [Fact]
+        public void Test_reports_success_only_when_EF_can_use_the_connection()
+        {
+            // A raw ADO.NET connection is not enough to call a SQL Server
+            // setting good: the provider services accept one type of connection
+            // and refuse the other, and the operator would be told their
+            // settings work right up until every screen failed. This is the
+            // reachable counterpart of the test above, which asks for a port
+            // nothing listens on.
+            if (LocalSqlServer.TryReadUserCount() == null) return;
+
+            var ds = new DataSource
+            {
+                Kind = DbProviderKind.SqlServer,
+                ConnectionString = LocalSqlServer.ConnectionString,
+            };
+            Assert.Null(DataSource.Test(ds));
+        }
+
+        [Fact]
         public void Use_writes_the_choice_to_disk_and_Current_follows()
         {
             var ds = new DataSource

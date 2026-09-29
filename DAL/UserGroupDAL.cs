@@ -66,14 +66,6 @@ namespace DAL
             return GridTable.Build(ReadColumns, UserGroupRows());
         }
 
-        public DataTable Search(string Filter)
-        {
-            var rows = UserGroupRows()
-                .Where(r => GridTable.Matches(Filter, (string)r[0]))
-                .ToList();
-
-            return GridTable.Build(ReadColumns, rows);
-        }
         public void Update(int groupId, string title, List<AccessGrant> grants)
         {
             using (var db = new DB())

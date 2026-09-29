@@ -67,11 +67,11 @@ namespace DAL
         }
 
         /// <summary>
-        /// Opens the configured provider. SQLite is applied through
-        /// DataSource.CreateConnection so the schema is in place before the first
-        /// query; SQL Server keeps its EF6 migrations, set by the static
-        /// constructor above, which remain the only supported way to evolve that
-        /// schema.
+        /// Opens the configured provider, whatever type of connection it needs.
+        /// DataSource.CreateConnection decides that: SQLite is applied on the
+        /// way through so the schema is in place before the first query, and
+        /// SQL Server is handed to EF6 already in the connection type its
+        /// provider services require, closed, for EF6 to open and migrate.
         /// </summary>
         public DB() : base(DataSource.CreateConnection(DataSource.Current), contextOwnsConnection: true)
         {
