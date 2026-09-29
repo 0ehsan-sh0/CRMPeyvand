@@ -190,21 +190,35 @@ presents the standard Windows Installer wizard (Welcome → License → install 
 Ready to install), and the folder page lets the user choose where the application goes.
 
 It checks its prerequisites at launch and refuses to install — with a specific message —
-if either is missing:
+if the runtime is missing:
 
 | Prerequisite | Checked how |
 | --- | --- |
 | .NET 10 Desktop Runtime (x64) | `Microsoft.WindowsDesktop.App` shared framework folder |
-| Local SQL Server instance (2016+/Express/LocalDB) | `Microsoft SQL Server` program folder, both Program Files views |
 
 The runtime check accepts any `Microsoft.WindowsDesktop.App` version, so a machine with
-only an older desktop runtime will pass the check and then fail to launch the app. The
-SQL Server check confirms SQL Server is *installed*, not that a default instance is
-*running* — `Data Source=.` still needs one, and the app will report a connection error
-if it cannot reach one.
+only an older desktop runtime will pass the check and then fail to launch the app.
 
-The `CRMPeyvand` database needs no installation step: EF6 `MigrateDatabaseToLatestVersion`
-creates and seeds it on first use, given the SQL instance above.
+There is no database prerequisite. SQLite is the default provider, it needs nothing
+installed, and its native `e_sqlite3.dll` ships inside the package.
+
+#### Choosing a database
+
+**SQLite is the default** and works on a fresh install with nothing to configure. The
+database file is created on first launch; the app applies its own schema, so there is no
+migration step and no database server to install.
+
+**SQL Server is opt-in.** Choose it in **Settings → پیکربندی پایگاه داده**, where the
+screen also carries a connection test. Nothing about SQL Server is required to install
+or run the app.
+
+The SQLite file `CRMPeyvand.db` lives next to `provider.json` in
+`%ProgramData%\CRMPeyvand` — so every employee on a machine shares one database. If the
+current user cannot write to that shared folder, the app falls back to
+`%LocalAppData%\CRMPeyvand` and that user gets their own database instead.
+
+When SQL Server is selected, the `CRMPeyvand` database needs no installation step either:
+EF6 `MigrateDatabaseToLatestVersion` creates and seeds it on first use.
 
 ### Where the installer stores things
 

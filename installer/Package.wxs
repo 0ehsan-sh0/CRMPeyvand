@@ -59,39 +59,34 @@
                              Path="[ProgramFiles64Folder]\dotnet\shared\Microsoft.WindowsDesktop.App" />
         </Property>
 
-        <!--
-            A local SQL Server instance is a hard prerequisite: the connection string
-            is Data Source=. and EF6 creates the CRMPeyvand database on first use.
-
-            Probed by looking for SQL Server's program directory, which is present for
-            every SQL Server version and needs no version number baked in. Both
-            Program Files views are checked, so 64-bit and 32-bit installs are covered.
-
-            A registry probe was tried first and does not work: instances register as
-            named values beneath HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\
-            "Instance Names"\SQL (MSSQLSERVER = MSSQL15.MSSQLSERVER), and MSI can read
-            only a key's single default value, never a set of value names. The check
-            therefore always came back empty and blocked installation on machines that
-            did have SQL Server. Note the key really is "Instance Names", with a space.
-
-            This confirms SQL Server is installed, not that a default instance is
-            running - "Data Source=." still needs one.
-        -->
-        <Property Id="SQLINSTALLED64">
-            <DirectorySearch Id="SqlProgramFilesSearch"
-                             Path="[ProgramFiles64Folder]\Microsoft SQL Server" />
-        </Property>
-
-        <Property Id="SQLINSTALLED32">
-            <DirectorySearch Id="SqlProgramFilesX86Search"
-                             Path="[ProgramFilesFolder]\Microsoft SQL Server" />
-        </Property>
-
         <Launch Condition="Installed OR HASDESKTOPRUNTIME"
                 Message="[ProductName] requires the .NET 10 Desktop Runtime (x64), which is not installed. Install it from https://dotnet.microsoft.com/download/dotnet/10.0 and run this installer again." />
 
-        <Launch Condition="Installed OR SQLINSTALLED64 OR SQLINSTALLED32"
-                Message="[ProductName] needs a local Microsoft SQL Server instance. Install SQL Server 2016 or later (or SQL Server Express), then run this installer again." />
+        <!--
+            There is deliberately no SQL Server check here any more, and no second
+            Launch condition to go with it.
+
+            SQLite is now the default provider and needs nothing installed: the
+            SQLitePCLRaw bundle carries the native e_sqlite3.dll into the publish
+            output, and the app creates the schema itself on first connection. SQL
+            Server is an opt-in choice made in the settings screen, so a target
+            machine without it is a normal, supported machine.
+
+            Keeping the old condition would have been wrong twice over. It was
+            wrong on the merits, because it refused to install a perfectly
+            workable SQLite app. And it never worked even for the machines it was
+            meant to police: the registry probe it grew out of reads
+            HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\"Instance Names"\SQL
+            (the space in "Instance Names" is the real key name), and MSI can read
+            only a key's single default value, never a set of value names. The
+            property therefore always came back empty, so the check blocked
+            installation on machines that *did* have SQL Server.
+
+            Worth remembering if a prerequisite ever comes back: the Desktop
+            Runtime check above is reliable precisely because it is a directory
+            search - something the installer can genuinely observe - rather than
+            an attempt to infer state from a registry value MSI cannot reach.
+        -->
 
         <Feature Id="Main" Title="CRM Peyvand" Level="1" AllowAbsent="no">
             <ComponentGroupRef Id="ApplicationFiles" />

@@ -6,9 +6,13 @@
     Produces artifacts\CRMPeyvand.msi from a clean framework-dependent publish.
 
     The install is framework-dependent, so the target machine needs the
-    .NET 10 Desktop Runtime and a local SQL Server instance. The MSI checks for
-    both at launch and refuses to install with a clear message if either is
-    missing, rather than failing later inside the app.
+    .NET 10 Desktop Runtime. The MSI checks for it at launch and refuses to
+    install with a clear message if it is missing, rather than failing later
+    inside the app.
+
+    No database prerequisite: the app defaults to SQLite, whose native
+    e_sqlite3.dll ships inside the publish output, and SQL Server is opt-in from
+    the settings screen.
 
 .PARAMETER Version
     Product version recorded in the MSI. Must be bumped on every release so
