@@ -40,7 +40,7 @@
             <RowDefinition Height="46"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Grid.Row="0" BorderThickness="5" BorderBrush="#eeeeee" CornerRadius="10">
+        <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" BorderThickness="5" BorderBrush="#eeeeee" CornerRadius="10">
             <Rectangle Fill="#eeeeee"/>
         </Border>
 
@@ -75,7 +75,7 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="محل فایل SQLite :"
                            Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSqlitePath"
                                  IsReadOnly="True" BorderThickness="0" Padding="2,5,2,4"
                                  FontFamily="Shabnam FD" FontSize="10" TabIndex="0"/>
@@ -130,7 +130,7 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام سرور :" Grid.Column="0" Grid.Row="1"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="1" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="1" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtServer" TabIndex="2"
                                  TextChanged="TextFieldChanged"
                                  ToolTip="نام سرور یا نمونه محلی. برای نمونه پیش‌فرض روی همین رایانه نقطه بنویسید"/>
@@ -138,7 +138,7 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام پایگاه داده :" Grid.Column="0" Grid.Row="2"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="2" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtDatabase" TabIndex="3"
                                  TextChanged="TextFieldChanged"
                                  ToolTip="نام پایگاه داده. در صورت خالی بودن، خود برنامه آن را می سازد"/>
@@ -146,14 +146,14 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="نام کاربری :" Grid.Column="0" Grid.Row="3"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="3" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="3" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtUser" TabIndex="4"
                                  TextChanged="TextFieldChanged"/>
                     </Border>
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="کلمه عبور :" Grid.Column="0" Grid.Row="4"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="4" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="4" Margin="0,0,8,0">
                         <PasswordBox Style="{StaticResource InputPasswordBox}" x:Name="txtPassword" TabIndex="5"
                                      PasswordChanged="PasswordFieldChanged"/>
                     </Border>
@@ -170,7 +170,7 @@
 
                     <Label Style="{StaticResource TextBoxLabel}" Content="رشته اتصال :" Grid.Column="0" Grid.Row="6"
                            HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                    <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="1" Grid.Row="6" Margin="0,0,8,0">
+                    <Border Style="{StaticResource InputTextBoxBorder}" Width="NaN" Grid.Column="1" Grid.Row="6" Margin="0,0,8,0">
                         <TextBox Style="{StaticResource InputTextBox}" x:Name="txtConnectionString"
                                  IsReadOnly="True" BorderThickness="0" Padding="2,4,2,4"
                                  FontFamily="Shabnam FD" FontSize="9" TabIndex="7"
