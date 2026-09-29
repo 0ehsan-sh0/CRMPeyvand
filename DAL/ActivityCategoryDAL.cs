@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class ActivityCategoryDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public ActivityCategoryDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public ActivityCategoryDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(ActivityCategory a)
         {
             try
@@ -32,16 +43,34 @@ namespace DAL
             return db.ActivityCategories.Any(i => i.CategoryName == a.CategoryName);
         }
 
+        private static readonly string[] ReadColumns =
+            { "ردیف", "نام دسته بندی" };
+
         public DataTable Read()
         {
-            string Query = "SELECT  TOP (100)   id AS ردیف, CategoryName AS [نام دسته بندی]\r\nFROM          dbo.ActivityCategories\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            var rows = db.ActivityCategories
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(100)
+                .ToList()
+                .Select(i => new object[] { i.id, i.CategoryName })
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
+        }
+
+        public DataTable Search(string Filter)
+        {
+            var rows = db.ActivityCategories
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(100)
+                .AsEnumerable()
+                .Where(i => GridTable.Matches(Filter, i.CategoryName))
+                .Select(i => new object[] { i.id, i.CategoryName })
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
 
 

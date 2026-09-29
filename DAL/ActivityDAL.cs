@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class ActivityDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public ActivityDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public ActivityDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public string Create(Activity activity)
         {
             try
@@ -28,16 +39,43 @@ namespace DAL
                 return "ثبت اطلاعات با مشکلی مواجه شد" + e.Message;
             }
         }
+        // Copied verbatim from the SQL this replaces. Note "توضبحات" is spelled
+        // without a ی, and the fifth column is Users.UserName rather than
+        // Users.Name. Both look like mistakes and both are what employees see
+        // today, so they are preserved rather than corrected here.
+        private static readonly string[] ReadColumns =
+            { "ردیف", "عنوان", "توضبحات", "دسته بندی", "نام کاربر", "تاریخ ثبت" };
+
+        /// <summary>
+        /// The rows behind the grid, newest first. The category and the user are
+        /// reached through Include rather than the joins the old SQL spelled
+        /// out: EF6 does not lazy load, so touching ActivityCategory or User
+        /// without it comes back null.
+        /// </summary>
+        private List<object[]> ActivityRows()
+        {
+            return db.Activities
+                .Include("ActivityCategory")
+                .Include("User")
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[]
+                {
+                    i.id,
+                    i.Title,
+                    i.Info,
+                    i.ActivityCategory == null ? null : i.ActivityCategory.CategoryName,
+                    i.User == null ? null : i.User.UserName,
+                    i.RegDate,
+                })
+                .ToList();
+        }
+
         public DataTable Read()
         {
-            string Query = "SELECT TOP (1000)  dbo.Activities.id AS ردیف ,  dbo.Activities.Title AS عنوان, dbo.Activities.Info AS توضبحات, dbo.ActivityCategories.CategoryName AS [دسته بندی], dbo.Users.UserName AS [نام کاربر], dbo.Activities.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Activities INNER JOIN\r\n                      dbo.ActivityCategories ON dbo.Activities.ActivityCategory_id = dbo.ActivityCategories.id INNER JOIN\r\n                      dbo.Users ON dbo.Activities.User_id = dbo.Users.id\r\nWHERE      (dbo.Activities.DeleteStatus = 0) ORDER BY dbo.Activities.id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            return GridTable.Build(ReadColumns, ActivityRows());
         }
 
         public List<Activity> ReadAllWithDetails()
@@ -108,17 +146,14 @@ namespace DAL
         }
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT TOP (1000)  dbo.Activities.id AS ردیف ,  dbo.Activities.Title AS عنوان, dbo.Activities.Info AS توضبحات, dbo.ActivityCategories.CategoryName AS [دسته بندی], dbo.Users.UserName AS [نام کاربر], dbo.Activities.RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Activities INNER JOIN\r\n                      dbo.ActivityCategories ON dbo.Activities.ActivityCategory_id = dbo.ActivityCategories.id INNER JOIN\r\n                      dbo.Users ON dbo.Activities.User_id = dbo.Users.id\r\nWHERE      (dbo.Activities.DeleteStatus = 0) AND ((dbo.Activities.Title LIKE N'%' + @Search + N'%') OR (dbo.Activities.Info LIKE N'%' + @Search + N'%') OR (dbo.ActivityCategories.CategoryName LIKE N'%' + @Search + N'%') OR (dbo.Users.UserName LIKE N'%' + @Search + N'%'))\r\nORDER BY dbo.Activities.id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@Search", Filter);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            // The old query matched Title, Info, CategoryName and UserName -
+            // not the customer, because the customer is not in this grid.
+            var rows = ActivityRows()
+                .Where(r => GridTable.Matches(Filter,
+                    (string)r[1], (string)r[2], (string)r[3], (string)r[4]))
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
 
 

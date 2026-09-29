@@ -1,7 +1,6 @@
 using BE;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,19 @@ namespace DAL
 {
     public class CustomerDAL
     {
-        DB db = new DB();
+        DB db;
+
+        public CustomerDAL()
+        {
+            db = new DB();
+        }
+
+        /// <summary>Tests supply their own context.</summary>
+        public CustomerDAL(DB db)
+        {
+            this.db = db;
+        }
+
         public bool Exist(Customer c)
         {
             return db.Customers.Any(i => i.Phone == c.Phone);
@@ -38,16 +49,20 @@ namespace DAL
                 return "ثبت اطلاعات با مشکلی روبرو شد لطفا برسی کنید:\n" + e.Message;
             }
         }
+        private static readonly string[] ReadColumns =
+            { "نام", "شماره تماس", "تاریخ ثبت" };
+
         public DataTable Read()
         {
-            string Query = "SELECT  TOP (1000)    Name AS [نام], Phone AS [شماره تماس], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Customers\r\nWHERE      (DeleteStatus = 0) ORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            var sqlAdapter = new SqlDataAdapter(Query, connection);
-            var commandbuilder = new SqlCommandBuilder(sqlAdapter);
-            var dataset = new DataSet();
-            sqlAdapter.Fill(dataset);
-            return dataset.Tables[0];
+            var rows = db.Customers
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .ToList()
+                .Select(i => new object[] { i.Name, i.Phone, i.RegDate })
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public Customer ReadById(int id)
         {
@@ -98,17 +113,16 @@ namespace DAL
         }
         public DataTable Search(string Filter)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = "SELECT  TOP (1000)    Name AS [نام], Phone AS [شماره تماس], RegDate AS [تاریخ ثبت]\r\nFROM          dbo.Customers\r\nWHERE      (DeleteStatus = 0) AND ((Name LIKE N'%' + @Search + N'%') OR (Phone LIKE N'%' + @Search + N'%'))\r\nORDER BY id DESC";
-            string connectionStringText = DB.ConnectionString;
-            SqlConnection connection = new SqlConnection(connectionStringText);
-            command.Parameters.AddWithValue("@Search", Filter);
-            command.Connection = connection;
-            var sqldataadpter = new SqlDataAdapter();
-            sqldataadpter.SelectCommand = command;
-            var dataset = new DataSet();
-            sqldataadpter.Fill(dataset);
-            return dataset.Tables[0];
+            var rows = db.Customers
+                .Where(i => i.DeleteStatus == false)
+                .OrderByDescending(i => i.id)
+                .Take(GridTable.DefaultRowLimit)
+                .AsEnumerable()
+                .Where(i => GridTable.Matches(Filter, i.Name, i.Phone))
+                .Select(i => new object[] { i.Name, i.Phone, i.RegDate })
+                .ToList();
+
+            return GridTable.Build(ReadColumns, rows);
         }
         public List<Customer> ReadWithDateTime()
         {
