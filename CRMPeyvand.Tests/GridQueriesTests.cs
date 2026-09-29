@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SQLite;
+using System.IO;
 using System.Linq;
 using DAL;
 using Xunit;
@@ -1324,6 +1326,286 @@ namespace CRMPeyvand.Tests
                 // rather than costing a second round trip per reminder.
                 Assert.Equal(6, Selects(log));
             });
+        }
+
+        // ---- Back up ----
+
+        /// <summary>
+        /// The three sentences BackUp can answer with. DataBaseForm puts
+        /// whatever comes back straight into a message box and is not changed by
+        /// this task, so the wording is part of the interface, not an
+        /// implementation detail.
+        /// </summary>
+        private const string BackUpSucceeded =
+            "ذخیره فایل با موفقیت انجام شد لطفا پوشه مورد نظر را بررسی کنید";
+        private const string BackUpFailedPrefix = "ذخیره پشتیبان با مشکلی مواجه شد:";
+        private const string BackUpNoFile = "فایل پایگاه داده یافت نشد";
+
+        [Fact]
+        public void BackUp_on_sqlite_produces_a_restorable_file()
+        {
+            var dbPath = TempPath(".db");
+            var backupPath = TempPath(".bak");
+
+            try
+            {
+                WithSqliteDataSource(dbPath, () =>
+                {
+                    using (var db = new DAL.DB())
+                    {
+                        db.Customers.Add(new BE.Customer
+                        {
+                            Name = "قبل از پشتیبان", Phone = "09120000077", RegDate = DateTime.Now,
+                        });
+                        db.SaveChanges();
+                    }
+
+                    // The parameterless constructor is the one DataBaseForm
+                    // reaches, through SettingBLL.
+                    var message = new SettingDAL().BackUp(backupPath);
+
+                    // A sentence, never null and never an exception: this string
+                    // is what the message box is given.
+                    Assert.Equal(BackUpSucceeded, message);
+                    Assert.True(File.Exists(backupPath), "no file was written");
+
+                    // And it is a real database with the row in it. A byte copy of
+                    // a half-written file would not open at all, and a copy taken
+                    // from the wrong file would come back empty.
+                    Assert.Equal(new[] { "قبل از پشتیبان" }, CustomerNamesIn(backupPath));
+                });
+            }
+            finally
+            {
+                SqliteTestDb.TryDelete(dbPath);
+                SqliteTestDb.TryDelete(backupPath);
+            }
+        }
+
+        [Fact]
+        public void BackUp_on_sqlite_takes_a_snapshot_of_the_database_as_it_is_then()
+        {
+            var dbPath = TempPath(".db");
+            var firstBackup = TempPath(".bak");
+            var secondBackup = TempPath(".bak");
+
+            try
+            {
+                WithSqliteDataSource(dbPath, () =>
+                {
+                    using (var db = new DAL.DB())
+                    {
+                        db.Customers.Add(new BE.Customer
+                        {
+                            Name = "اول", Phone = "09120000078", RegDate = DateTime.Now,
+                        });
+                        db.SaveChanges();
+                    }
+
+                    Assert.Equal(BackUpSucceeded, new SettingDAL().BackUp(firstBackup));
+
+                    using (var db = new DAL.DB())
+                    {
+                        db.Customers.Add(new BE.Customer
+                        {
+                            Name = "دوم", Phone = "09120000079", RegDate = DateTime.Now,
+                        });
+                        db.SaveChanges();
+                    }
+
+                    Assert.Equal(BackUpSucceeded, new SettingDAL().BackUp(secondBackup));
+
+                    // The first file keeps the moment it was taken and the second
+                    // carries both rows. If the first were re-read from the
+                    // source at assertion time it would show two rows, which is
+                    // what "the backup is a copy, not a link" has to rule out.
+                    Assert.Equal(new[] { "اول" }, CustomerNamesIn(firstBackup));
+                    Assert.Equal(new[] { "اول", "دوم" }, CustomerNamesIn(secondBackup));
+                });
+            }
+            finally
+            {
+                SqliteTestDb.TryDelete(dbPath);
+                SqliteTestDb.TryDelete(firstBackup);
+                SqliteTestDb.TryDelete(secondBackup);
+            }
+        }
+
+        [Fact]
+        public void BackUp_on_sqlite_leaves_the_backup_file_unlocked()
+        {
+            // System.Data.SQLite 2.0.3 does not pool connections, so one left
+            // open holds its file and the next write to that path - a second
+            // backup, or restoring over it - cannot get at it. Nothing here
+            // closes the handles BackUp opened; only BackUp can.
+            var dbPath = TempPath(".db");
+            var backupPath = TempPath(".bak");
+
+            try
+            {
+                WithSqliteDataSource(dbPath, () =>
+                {
+                    using (var db = new DAL.DB())
+                    {
+                        db.Customers.Add(new BE.Customer
+                        {
+                            Name = "قفل", Phone = "09120000080", RegDate = DateTime.Now,
+                        });
+                        db.SaveChanges();
+                    }
+
+                    Assert.Equal(BackUpSucceeded, new SettingDAL().BackUp(backupPath));
+
+                    // Delete on a locked file throws, so reaching the assertion
+                    // at all means every connection the backup opened is closed
+                    // again.
+                    File.Delete(backupPath);
+                    Assert.False(File.Exists(backupPath), "the backup file is still there");
+                });
+            }
+            finally
+            {
+                SqliteTestDb.TryDelete(dbPath);
+                SqliteTestDb.TryDelete(backupPath);
+            }
+        }
+
+        [Fact]
+        public void BackUp_on_sqlite_says_so_when_the_database_file_is_not_there()
+        {
+            var dbPath = TempPath(".db");
+            var backupPath = TempPath(".bak");
+
+            try
+            {
+                WithSqliteDataSource(dbPath, () =>
+                {
+                    // A null context on purpose. The parameterless constructor
+                    // opens a DB against DataSource.Current, and opening a SQLite
+                    // file creates it, so the missing file this test needs would
+                    // be made by the object under test. BackUp works on the file
+                    // and never touches the context.
+                    Assert.False(File.Exists(dbPath));
+
+                    var message = new SettingDAL((DB)null).BackUp(backupPath);
+
+                    Assert.Equal(BackUpNoFile, message);
+                    Assert.False(File.Exists(backupPath), "nothing should have been written");
+                });
+            }
+            finally
+            {
+                SqliteTestDb.TryDelete(dbPath);
+                SqliteTestDb.TryDelete(backupPath);
+            }
+        }
+
+        [Fact]
+        public void BackUp_reports_a_failure_as_a_persian_sentence()
+        {
+            var dbPath = TempPath(".db");
+            var missingFolder = Path.Combine(
+                Path.GetTempPath(), "crmpeyvand-no-folder-" + Guid.NewGuid().ToString("N"));
+            var backupPath = Path.Combine(missingFolder, "backup.bak");
+
+            try
+            {
+                WithSqliteDataSource(dbPath, () =>
+                {
+                    // The database is there and fine; the folder the backup is to
+                    // be written into is not. That is what a bad folder pick or a
+                    // drive that has gone away looks like from here, and it is
+                    // the case the catch-all exists for.
+                    using (var db = new DAL.DB())
+                    {
+                        db.Customers.Add(new BE.Customer
+                        {
+                            Name = "خطا", Phone = "09120000081", RegDate = DateTime.Now,
+                        });
+                        db.SaveChanges();
+                    }
+                    Assert.False(Directory.Exists(missingFolder));
+
+                    var message = new SettingDAL().BackUp(backupPath);
+
+                    Assert.StartsWith(BackUpFailedPrefix, message);
+                    Assert.DoesNotContain(BackUpSucceeded, message);
+                    Assert.False(File.Exists(backupPath));
+                });
+            }
+            finally
+            {
+                SqliteTestDb.TryDelete(dbPath);
+                SqliteTestDb.TryDelete(backupPath);
+            }
+        }
+
+        /// <summary>
+        /// A throwaway path in TEMP. Every backup test cleans up after itself,
+        /// so nothing lands in the real data folder under ProgramData.
+        /// </summary>
+        private static string TempPath(string extension) =>
+            Path.Combine(Path.GetTempPath(),
+                         "crmpeyvand-bk-" + Guid.NewGuid().ToString("N") + extension);
+
+        /// <summary>
+        /// Points the process-wide DataSource at a throwaway SQLite file for the
+        /// length of body and puts back whatever was there before. BackUp reads
+        /// DataSource.Current, so this is the only way to reach it; without the
+        /// restore, a later test would be pointed at a file this one deleted.
+        /// </summary>
+        private static void WithSqliteDataSource(string dbPath, Action body)
+        {
+            var original = DataSource.Current;
+            DataSource.UseForTests(new DataSource
+            {
+                Kind = DbProviderKind.Sqlite,
+                ConnectionString = new SQLiteConnectionStringBuilder
+                {
+                    DataSource = dbPath,
+                    // Mirrors DataSource.DefaultSqlite and SqliteTestDb: the
+                    // backup reads the same bytes the application writes.
+                    DateTimeFormat = SQLiteDateFormats.ISO8601,
+                }.ToString()
+                + ";providerName=" + SqliteSchema.Invariant,
+            });
+
+            try
+            {
+                body();
+            }
+            finally
+            {
+                DataSource.UseForTests(new DataSource
+                {
+                    Kind = original.Kind,
+                    ConnectionString = original.ConnectionString,
+                });
+            }
+        }
+
+        /// <summary>
+        /// Opens a produced file as an ordinary SQLite database and reads the
+        /// customers out of it. This is what makes the backup assertions mean
+        /// something: an existing file is not a restorable database.
+        /// </summary>
+        private static List<string> CustomerNamesIn(string backupPath)
+        {
+            using (var connection = new SQLiteConnection(
+                       new SQLiteConnectionStringBuilder { DataSource = backupPath }.ToString()))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "SELECT Name FROM Customers ORDER BY id";
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var names = new List<string>();
+                        while (reader.Read()) names.Add(reader.GetString(0));
+                        return names;
+                    }
+                }
+            }
         }
 
         private static int Selects(IEnumerable<string> log)
