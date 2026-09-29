@@ -74,8 +74,9 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 - **Quick Metric Cards**: Real-time stats on pending reminders, recent invoices, and customer activities.
 
 ### 🗄️ Database Management & Backup
-- **Code-First Entity Framework 6**: Structured migrations and clean relational schema.
-- **Backup & Restore Utility**: Create `.bak` snapshots of the SQL database and restore anytime directly from the application settings.
+- **No Setup Required**: SQLite by default, with the schema created on first run; SQL Server as an opt-in configured in the app.
+- **Code-First Entity Framework 6**: EF6 models both providers; structured migrations govern the SQL Server schema.
+- **Backup & Restore Utility**: Take a restorable snapshot of the database from the settings screen. SQLite snapshots the file through SQLite's online backup API, so an employee can keep working while the copy is being taken; SQL Server uses `BACKUP DATABASE`.
 
 ---
 
@@ -110,8 +111,8 @@ CRMPeyvand (Solution)
 | **Language** | C# 13+ |
 | **UI Framework** | WPF (Windows Presentation Foundation) |
 | **UI Controls** | HandyControl (`v3.5.3`), BehComponents |
-| **Data Access & ORM** | Entity Framework 6 (`v6.5.1`) & Microsoft.Data.SqlClient |
-| **Database** | Microsoft SQL Server (LocalDB / Express / Standard) |
+| **Data Access & ORM** | Entity Framework 6 (`v6.5.1`), Microsoft.Data.SqlClient (SQL Server only) |
+| **Database** | SQLite (default, `System.Data.SQLite`) or Microsoft SQL Server (opt-in) |
 | **Charts** | LiveCharts.Wpf (`v0.9.7`), WinForms.DataVisualization (`v1.9.2`) |
 | **Reporting** | Stimulsoft Reports .NET Core / Win (`v2022.1.1`) |
 | **SMS Provider** | IPE.SmsIr (`v1.0.5`) |
@@ -125,7 +126,10 @@ CRMPeyvand (Solution)
 ### Prerequisites
 - **Operating System**: Windows 10 / 11 / Windows Server
 - **IDE / CLI**: [Visual Studio 2022+](https://visualstudio.microsoft.com/) or [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download)
-- **Database Engine**: Microsoft SQL Server 2016+ or SQL Server LocalDB / Express
+- **Database Engine**: none. SQLite is the default provider and ships inside the app,
+  so a fresh clone runs with no database server installed. Microsoft SQL Server is an
+  opt-in alternative chosen in the app (see [Choosing a database](#choosing-a-database));
+  if you pick it, you need SQL Server 2016+ or LocalDB / Express yourself.
 
 ### 1. Clone the Repository
 ```bash
@@ -133,16 +137,17 @@ git clone https://github.com/0ehsan-sh0/CRMPeyvand.git
 cd CRMPeyvand
 ```
 
-### 2. Configure Database Connection
-Open `CRMPeyvand/App.config` and `DAL/App.config` and adjust the connection string according to your local SQL Server instance:
+### 2. Database
+No configuration step. The app opens a SQLite database next to its settings file
+(under `%ProgramData%\CRMPeyvand`, falling back to `%LocalAppData%\CRMPeyvand`) and
+creates the schema itself on first run.
 
-```xml
-<connectionStrings>
-  <add name="conStr"
-       connectionString="Data Source=.;Initial Catalog=CRMPeyvand;Integrated Security=true"
-       providerName="Microsoft.Data.SqlClient" />
-</connectionStrings>
-```
+To use SQL Server instead, start the app once and choose it under
+**Settings → پیکربندی پایگاه داده**, which also carries a connection test. The choice
+is stored in `provider.json` alongside the database and applies from then on.
+
+The `conStr` connection string still in `CRMPeyvand/App.config` is only the default
+offered when SQL Server is selected; editing it is no longer a setup step.
 
 ### 3. Restore & Build Solution
 You can build using the .NET CLI:
@@ -152,12 +157,11 @@ You can build using the .NET CLI:
 dotnet build CRMPeyvand.sln
 ```
 
-### 4. Apply Database Migrations
-In Visual Studio **Package Manager Console** (set Default project to `DAL`):
-
-```powershell
-Update-Database
-```
+### 4. Database Migrations
+No manual step. SQLite builds its own schema on first connection. On SQL Server the EF6
+migrations run automatically at startup (`MigrateDatabaseToLatestVersion`), which also
+creates and seeds the database if it is not there yet. `Update-Database` in the Visual
+Studio **Package Manager Console** is only needed when authoring a new migration.
 
 ### 5. Launch Application & First Run
 1. Start `CRMPeyvand` (`F5` in Visual Studio or run `CRMPeyvand.exe`).
@@ -210,7 +214,15 @@ migration step and no database server to install.
 
 **SQL Server is opt-in.** Choose it in **Settings → پیکربندی پایگاه داده**, where the
 screen also carries a connection test. Nothing about SQL Server is required to install
-or run the app.
+or run the app. The SQL Server read path currently has a defect (see below); SQLite is
+the provider that works today.
+
+> **Known issue — the SQL Server path does not currently work.** The settings screen's
+> connection test succeeds and the choice saves, but the first query then fails with
+> `NotSupportedException: Unable to determine the provider name for provider factory of
+> type 'Microsoft.Data.SqlClient.SqlClientFactory'`, so SQL Server installs cannot read
+> their existing data. SQLite is unaffected. Tracked as a defect; use SQLite until it is
+> fixed.
 
 The SQLite file `CRMPeyvand.db` lives next to `provider.json` in
 `%ProgramData%\CRMPeyvand` — so every employee on a machine shares one database. If the
@@ -258,7 +270,7 @@ packaging breakage surfaces on the branch that caused it.
 
 ## 🧪 Running Tests
 
-Unit tests are implemented with **xUnit** covering domain logic, stock policies, pricing engine, permission matrix, and security hashing.
+Unit tests are implemented with **xUnit** covering domain logic, stock policies, pricing engine, permission matrix, security hashing, and the data layer (the SQLite schema, the grid queries against a real database file, and the Persian-culture date ranges).
 
 Run tests using the .NET CLI:
 
@@ -268,7 +280,7 @@ dotnet test
 
 Expected output:
 ```text
-Passed!  - Failed: 0, Passed: 24, Skipped: 0, Total: 24
+Passed!  - Failed: 0, Passed: 165, Skipped: 0, Total: 165
 ```
 
 ---
@@ -291,7 +303,7 @@ Passed!  - Failed: 0, Passed: 24, Skipped: 0, Total: 24
 - **سطوح دسترسی پیشرفته (<span dir="ltr">RBAC</span>)**: ماتریس دسترسی به تفکیک بخش‌ها (<span dir="ltr">Sections</span>) و عملیات (<span dir="ltr">View, Create, Edit, Delete</span>).
 - **امنیت بالا**: هش‌کردن رمزهای عبور با الگوریتم قدرتمند <span dir="ltr">PBKDF2-SHA256</span> و ۱۰۰٬۰۰۰ تکرار به‌همراه <span dir="ltr">Salt</span> اختصاصی.
 - **داشبورد آماری و نموداری**: نمایش نمودارهای زنده فروش، رشد مشتریان و آمارهای کلیدی با <span dir="ltr">LiveCharts</span>.
-- **پشتیبان‌گیری و بازیابی پایگاه داده**: تهیه آسان نسخه پشتیبان (<span dir="ltr">.bak</span>) از دیتابیس <span dir="ltr">SQL Server</span> و بازیابی درون‌برنامه‌ای.
+- **پشتیبان‌گیری و بازیابی پایگاه داده**: تهیه آسان نسخه پشتیبان از پایگاه داده و بازیابی درون‌برنامه‌ای. پایگاه داده به‌صورت پیش‌فرض <span dir="ltr">SQLite</span> است و نیازی به نصب هیچ سروری ندارد؛ <span dir="ltr">SQL Server</span> در صورت نیاز از داخل خود برنامه انتخاب می‌شود.
 
 </div>
 
