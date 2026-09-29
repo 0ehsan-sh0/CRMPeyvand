@@ -186,14 +186,8 @@ namespace CRMPeyvand
 
         string SavePic(string UserName)
         {
-            //Run NewFolder Pic + Selectd Target => @\UserPisc\
-            string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\UserPisc\";
-            // If Status => true وجو داشت عکسی
-            if (!Directory.Exists(path))
-            {
-                // If NotFolder is  Create NewFolder And Is Address Path
-                Directory.CreateDirectory(path);
-            }
+            //Run NewFolder Pic + Selectd Target => %ProgramData%\CRMPeyvand\UserPisc\
+            string path = PublicMethods.UserPicturesDirectory;
             string PicName = UserName + ".JPG";
             try
             {
@@ -209,14 +203,8 @@ namespace CRMPeyvand
         }
         string SavePicUpdate(string UserName)
         {
-            //Run NewFolder Pic + Selectd Target => @\UserPisc\
-            string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\UserPisc\";
-            // If Status => true وجو داشت عکسی
-            if (!Directory.Exists(path))
-            {
-                // If NotFolder is  Create NewFolder And Is Address Path
-                Directory.CreateDirectory(path);
-            }
+            //Run NewFolder Pic + Selectd Target => %ProgramData%\CRMPeyvand\UserPisc\
+            string path = PublicMethods.UserPicturesDirectory;
             string PicName = UserName + ".JPG";
             try
             {

@@ -3,6 +3,7 @@ using HandyControl.Tools;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,6 +15,57 @@ namespace CRMPeyvand
 {
     static class PublicMethods
     {
+        /// <summary>
+        /// Trailing-slash path of the folder holding employee photos. Kept out of the
+        /// Program Files install folder, which is read-only for standard users.
+        ///
+        /// %ProgramData% is preferred so that every employee shares one folder and an
+        /// administrator can see everyone's photo. That folder is created by whichever
+        /// user signs in first and is then writable only by them, so on a shared
+        /// machine later users fall back to their own %LocalAppData%: they can still
+        /// save and see their own photo, only cross-user photos go missing.
+        /// </summary>
+        public static string UserPicturesDirectory
+        {
+            get
+            {
+                return PictureFolderUnder(Environment.SpecialFolder.CommonApplicationData)
+                    ?? PictureFolderUnder(Environment.SpecialFolder.LocalApplicationData);
+            }
+        }
+
+        private static string PictureFolderUnder(Environment.SpecialFolder root)
+        {
+            try
+            {
+                string path = Path.Combine(
+                    Environment.GetFolderPath(root), "CRMPeyvand", "UserPisc");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                // Prove writability now rather than letting File.Copy fail later:
+                // creating the folder succeeds even when we may not write into it.
+                // Unique name so concurrent app instances cannot trip over each other.
+                string probe = Path.Combine(path, ".write-test-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    using (File.Create(probe))
+                    {
+                    }
+                }
+                finally
+                {
+                    File.Delete(probe);
+                }
+                return path + Path.DirectorySeparatorChar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public static void ChangeToPersianCulture()
         {
             PersianCulture culture = new PersianCulture();
