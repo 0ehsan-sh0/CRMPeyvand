@@ -58,9 +58,22 @@
         <!-- The unit is named on the label rather than inside the field: the field
              has to stay a plain number to be typed into, and a fixed-width field
              cannot hold the amount and the unit tight against each other. -->
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Content="قیمت کالا (تومان) :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Content="قیمت کالا :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Margin="14,0,0,0"/>
         <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="5" Grid.ColumnSpan="3" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center">
-            <TextBox Style="{StaticResource InputTextBox}" Text="0" x:Name="txtPrice" TabIndex="1" GotFocus="txtTotal_GotFocus" TextChanged="txtPrice_TextChanged" PreviewKeyDown="txtPrice_PreviewKeyDown" ToolTip="قیمت به تومان"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Style="{StaticResource InputTextBox}" Text="0" x:Name="txtPrice" TabIndex="1" GotFocus="txtTotal_GotFocus" TextChanged="txtPrice_TextChanged" PreviewKeyDown="txtPrice_PreviewKeyDown" ToolTip="قیمت به تومان"/>
+                <!-- The unit goes inside the field, at the far end from the amount,
+                     so that the label can stay as short as the other two. The two
+                     cannot sit tight against each other: a text box cannot hug its
+                     own content while it is being typed into, so the amount stays
+                     where the field starts and the unit sits opposite it. -->
+                <TextBlock Grid.Column="1" Text="تومان" FontFamily="Shabnam FD" FontSize="10" Foreground="#9aa3b2"
+                           VerticalAlignment="Center" Margin="0,0,6,0" IsHitTestVisible="False"/>
+            </Grid>
         </Border>
 
         <Label Style="{StaticResource TextBoxLabel}" Grid.Column="8" Content="موجودی :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Margin="36,0,0,0"/>
