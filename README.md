@@ -41,12 +41,20 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 ### 🧾 Invoicing & Sales Billing
 - **Persian (Jalali) Date Support**: Built-in solar calendar integration for invoice issuance and tracking.
 - **Itemized Invoice Lines**: Explicit line items with unit price snapshots, quantity, and line totals.
-- **Discount Engine**: Support for promotional discount codes (`OffCode`) and percentage/fixed discounts with automatic calculation.
-- **Stimulsoft Reporting**: Professional printable invoice templates (`.mrt`) and export options (PDF, Excel, Print).
+- **Discount Engine**: Support for promotional discount codes (`Discount Code`) and percentage/fixed discounts with automatic calculation.
+- **QuestPDF Reporting**: Invoices, customer lists, catalog lists, activity logs, and sales summaries are laid out in typed C# (`IDocument`), not in a binary template — see [ADR-0007](docs/adr/0007-questpdf-reporting-engine.md). Right-to-left Persian typography with embedded fonts, preview, and PDF/print export.
+- **Readable Money**: Prices are grouped for reading wherever they appear — typed into a field, listed in a grid, or totalled on an invoice — and the separators come back off before the amount is saved.
 
 ### 🏷️ Promotions & Discount Codes
 - **Campaign Codes**: Create and manage discount codes with validity periods and usage limits.
 - **Status Toggle**: Easily activate, deactivate, or expire promo codes.
+
+### 🔢 Price Entry & Display
+- **Grouped as Typed**: The price field regroups with each keystroke (`100000` → `100,000`) and the caret stays on the digit being edited, rather than jumping to the end.
+- **Separator-Free Saves**: Grouping is a display concern only. The separators are stripped before the amount is persisted, and a price too large to store is reported instead of throwing.
+- **One Rule Everywhere**: One helper formats prices for the field, the grids, and the invoice labels, so a price cannot look one way where it was typed and another where it is listed. Grouping follows the current culture rather than a hard-coded comma.
+- **Named Unit**: تومان is shown on the price field itself.
+- **Stock Counts Left Alone**: Quantity columns are not formatted as money.
 
 ### 📅 Activities & Reminders
 - **Customer Activities**: Log calls, meetings, follow-ups, and notes categorized by activity type.
@@ -86,7 +94,7 @@ CRMPeyvand is structured around a decoupled **Layered (N-Tier) Architecture**:
 
 ```
 CRMPeyvand (Solution)
-├── 🖥️ CRMPeyvand        # Presentation Layer (WPF / XAML, HandyControl, LiveCharts, Stimulsoft)
+├── 🖥️ CRMPeyvand        # Presentation Layer (WPF / XAML, HandyControl, LiveCharts, QuestPDF)
 ├── ⚙️ BLL                # Business Logic Layer (Domain rules, AccessGuard, Pricing, PasswordHasher)
 ├── 🗄️ DAL                # Data Access Layer (Entity Framework 6 DbContext, Migrations, Repositories)
 ├── 📦 BE                 # Business Entities (Domain Models: Customer, Invoice, User, CatalogItem, etc.)
@@ -100,6 +108,8 @@ CRMPeyvand (Solution)
 - **ADR-0004**: Modern .NET 10 runtime & SDK-style project system.
 - **ADR-0005**: Cryptographic PBKDF2-SHA256 hashing replacing reversible encoding.
 - **ADR-0006**: Flagged `IsBuiltIn` Administrator group replacing title-string conventions.
+- [ADR-0007](docs/adr/0007-questpdf-reporting-engine.md): QuestPDF replacing Stimulsoft; report layouts as typed C# rather than binary `.mrt` templates.
+- [ADR-0008](docs/adr/0008-dual-database-mode.md): SQLite by default with SQL Server on request, one DAL behind both.
 
 ---
 
@@ -111,10 +121,10 @@ CRMPeyvand (Solution)
 | **Language** | C# 13+ |
 | **UI Framework** | WPF (Windows Presentation Foundation) |
 | **UI Controls** | HandyControl (`v3.5.3`), BehComponents |
-| **Data Access & ORM** | Entity Framework 6 (`v6.5.1`), Microsoft.Data.SqlClient (SQL Server only) |
-| **Database** | SQLite (default, `System.Data.SQLite`) or Microsoft SQL Server (opt-in) |
-| **Charts** | LiveCharts.Wpf (`v0.9.7`), WinForms.DataVisualization (`v1.9.2`) |
-| **Reporting** | Stimulsoft Reports .NET Core / Win (`v2022.1.1`) |
+| **Data Access & ORM** | Entity Framework 6 (`v6.5.1`), System.Data.SQLite.EF6 (`v2.0.3`), SQLitePCLRaw.bundle_e_sqlite3 (`v3.0.5`), Microsoft.Data.SqlClient (`v5.2.2`, SQL Server only) |
+| **Database** | SQLite (default) **or** Microsoft SQL Server (opt-in, user-selectable) |
+| **Charts** | LiveCharts.Wpf (`v0.9.7`) |
+| **Reporting** | QuestPDF (`v2024.12.1`) |
 | **SMS Provider** | IPE.SmsIr (`v1.0.5`) |
 | **Typography** | Shabnam Persian Font (Embedded) |
 | **Testing** | xUnit (`v2.9.2`), Microsoft.NET.Test.Sdk (`v17.11.1`) |
@@ -185,9 +195,18 @@ Optional code signing (recommended — an unsigned MSI triggers SmartScreen warn
 .\build-installer.ps1 -Version 1.0.0 -SignPfx certs\peyvand.pfx -SignPfxPassword $env:PFX_PASSWORD
 ```
 
-**Bump `ProductVersion` in `installer\CRMPeyvand.Installer.wixproj` (or pass `-Version`)
-on every release.** `MajorUpgrade` keys off it, so an unchanged version will not
-upgrade an existing installation.
+**Pass `-Version` on every release.** `MajorUpgrade` keys off the MSI `ProductVersion`,
+so an unchanged version will not upgrade an existing installation. The value you pass is
+authoritative and overrides `ProductVersion` in `installer\CRMPeyvand.Installer.wixproj`,
+so the wixproj value only has to change if you build the installer project directly.
+
+The script reads the version back out of the built MSI and fails if it is not the one you
+asked for. That check exists because the version used to be silently dropped: WiX does not
+treat `DefineConstants` as an input to its compile step, so a warm `installer\obj` made
+the target up to date and the link step re-copied the **previous** MSI, version included —
+every build after the first on a given machine emitted the wixproj default of `1.0.0`
+regardless of `-Version`. The script therefore forces `-t:Rebuild`. A fresh CI runner never
+saw the problem because its `obj` is always empty.
 
 The MSI is **framework-dependent** and installs into `Program Files` by default. It
 presents the standard Windows Installer wizard (Welcome → License → install folder →
@@ -208,29 +227,50 @@ installed, and its native `e_sqlite3.dll` ships inside the package.
 
 #### Choosing a database
 
-**SQLite is the default** and works on a fresh install with nothing to configure. The
-database file is created on first launch; the app applies its own schema, so there is no
-migration step and no database server to install.
+CRMPeyvand runs against **either SQLite or Microsoft SQL Server**, chosen by the user.
+Nothing about SQL Server is needed to install or run the app, and both providers are
+covered by the same DAL and the same entities.
 
-**SQL Server is opt-in.** Choose it in **Settings → پیکربندی پایگاه داده**, where the
-screen also carries a connection test. Nothing about SQL Server is required to install
-or run the app. The SQL Server read path currently has a defect (see below); SQLite is
-the provider that works today.
+| | SQLite (default) | SQL Server (opt-in) |
+| --- | --- | --- |
+| **Chosen where** | The default; nothing to do | Settings → پیکربندی پایگاه داده |
+| **Schema created by** | `SqliteSchema.Ensure` on first connection | EF6 `MigrateDatabaseToLatestVersion` at startup, which also seeds |
+| **Server to install** | None | SQL Server 2016+, or LocalDB / Express |
+| **Connection type** | `System.Data.SQLite.SQLiteConnection`, returned **open** so the schema exists before the first query | `System.Data.SqlClient.SqlConnection`, returned **closed** for EF6 to open and migrate |
+| **Data file** | `CRMPeyvand.db` next to `provider.json` | Whatever the connection string names |
 
-> **Known issue — the SQL Server path does not currently work.** The settings screen's
-> connection test succeeds and the choice saves, but the first query then fails with
-> `NotSupportedException: Unable to determine the provider name for provider factory of
-> type 'Microsoft.Data.SqlClient.SqlClientFactory'`, so SQL Server installs cannot read
-> their existing data. SQLite is unaffected. Tracked as a defect; use SQLite until it is
-> fixed.
+**The choice is reversible.** The SQL Server connection string is kept in
+`provider.json` even while SQLite is active, so switching back and forth does not
+mean retyping a server, a login, and a password each time. The settings screen's
+on/off switch drives this; activating SQL Server with nothing saved is refused
+rather than silently producing a broken connection.
 
-The SQLite file `CRMPeyvand.db` lives next to `provider.json` in
-`%ProgramData%\CRMPeyvand` — so every employee on a machine shares one database. If the
-current user cannot write to that shared folder, the app falls back to
-`%LocalAppData%\CRMPeyvand` and that user gets their own database instead.
+**Where the setting lives:** `provider.json` in `%ProgramData%\CRMPeyvand`, falling
+back to `%LocalAppData%\CRMPeyvand` if the shared folder is not writable. The
+`CRMPeyvand.db` file sits beside it, so every employee on a machine shares one
+database; a user who cannot write to the shared folder gets their own under
+`%LocalAppData%` instead.
 
-When SQL Server is selected, the `CRMPeyvand` database needs no installation step either:
-EF6 `MigrateDatabaseToLatestVersion` creates and seeds it on first use.
+**Provider registration is done in code**, not in `App.config`. On .NET 10 the
+`system.data` section is not recognised, because `System.Data.Common` is a separate
+assembly, and even once declared the factory cannot be resolved to a provider
+invariant. `DB`'s static constructor registers the SQLite factory and provider
+services instead, and deliberately does **not** displace the `App.config` entry, so
+SQL Server still resolves.
+
+**The SQL Server connection is a `System.Data.SqlClient` one, not
+`Microsoft.Data.SqlClient`.** EF6's SQL Server provider services hard-cast to
+`System.Data.SqlClient.SqlConnection`, so handing them the other type fails every
+query with *"Unable to determine the provider name for provider factory of type
+'Microsoft.Data.SqlClient.SqlClientFactory'"* — and registering that factory's
+invariant only moves the failure to an `InvalidCastException`. `System.Data.SqlClient`
+arrives with `EntityFramework`, so this needs no extra dependency.
+
+**The settings screen's connection test runs a statement through EF6**, not raw
+ADO.NET. A test that only opens the connection will happily pass a configuration
+that EF6 cannot use, which is how a broken SQL Server setting was previously
+reported as working. The probe uses a context that maps nothing and has a null
+initialiser, so it cannot create or migrate a database to find out.
 
 ### Where the installer stores things
 
@@ -262,15 +302,25 @@ git push origin v1.0.0
 The tag must be exactly `vMAJOR.MINOR.PATCH`; the number after `v` becomes the MSI
 `ProductVersion`. See `.github/workflows/release.yml`. To sign releases, add a base64
 `.pfx` as the `MSI_CERT_PFX` repository secret and its password as `MSI_CERT_PASSWORD`.
+Without a certificate the MSI is **unsigned** and SmartScreen will warn end users; the
+workflow warns and carries on rather than failing.
+
+Re-running a tag is safe: if a release already exists for it, the workflow uploads the new
+MSI onto that release and replaces the old asset, instead of trying to create a second one.
 
 Every push and pull request also builds the MSI via `.github/workflows/build-msi.yml`, so
-packaging breakage surfaces on the branch that caused it.
+packaging breakage surfaces on the branch that caused it. Those CI packages are versioned
+`0.0.<run number>`, deliberately below every release — a run number as the major version
+would eventually collide with a release version, and since `MajorUpgrade` keys off the
+`UpgradeCode`, installing one after the other would fail with the downgrade error.
 
 ---
 
 ## 🧪 Running Tests
 
-Unit tests are implemented with **xUnit** covering domain logic, stock policies, pricing engine, permission matrix, security hashing, and the data layer (the SQLite schema, the grid queries against a real database file, and the Persian-culture date ranges).
+Unit tests are implemented with **xUnit** covering domain logic, stock policies, the pricing engine, the permission matrix, password hashing, money formatting, the data layer (the SQLite schema, the grid queries against a real database file, and the Persian-culture date ranges), and the provider selection behind dual-database mode.
+
+The WPF-facing helpers are covered too. `Money` (grouping, parsing, the culture's own separator) is tested directly, and the price field's typing behaviour — caret tracking, and backspace with the caret just past a separator — is tested on a borrowed STA thread, because a window cannot be opened from a test run. The generated-grid price formatting is tested against a real `DataGrid` bound to a `DataTable`.
 
 Run tests using the .NET CLI:
 
@@ -279,8 +329,9 @@ dotnet test
 ```
 
 Expected output:
+
 ```text
-Passed!  - Failed: 0, Passed: 165, Skipped: 0, Total: 165
+Passed!  - Failed: 0, Passed: 243, Skipped: 0, Total: 243
 ```
 
 ---
@@ -296,14 +347,16 @@ Passed!  - Failed: 0, Passed: 165, Skipped: 0, Total: 165
 #### ویژگی‌های کلیدی:
 - **مدیریت پیشرفته مشتریان**: ثبت مشخصات، سوابق خرید، تاریخچه تعاملات و جستجوی لحظه‌ای.
 - **کاتالوگ کالا و خدمات**: تفکیک کالای فیزیکی (دارای موجودی و کسر خودکار از انبار هنگام فروش) و خدمات، با اعمال قوانین دقیق کنترل موجودی.
-- **صدور و مدیریت فاکتور**: محاسبه خودکار اقلام، اعمال کدهای تخفیف، تبدیل تاریخ به تقویم هجری شمسی و چاپ فاکتور استاندارد با استیمول‌سافت (<span dir="ltr">Stimulsoft Reports</span>).
-- **کدهای تخفیف (<span dir="ltr">OffCode</span>)**: ایجاد کدهای تخفیف درصدی و مبلغی با قابلیت تعیین سقف استفاده و بازه زمانی معتبر.
+- **صدور و مدیریت فاکتور**: محاسبه خودکار اقلام، اعمال کدهای تخفیف، تبدیل تاریخ به تقویم هجری شمسی و چاپ فاکتور استاندارد با موتور <span dir="ltr">QuestPDF</span> (چیدمان کدنویسی‌شده به‌جای فایل قالب، با پشتیبانی کامل راست‌به‌چپ و فونت فارسی).
+- **نمایش خوانای مبالغ**: قیمت‌ها در هر جا که دیده می‌شوند — داخل فیلد ورودی، ستون جدول و جمع فاکتور — با جداکننده هزارگان نمایش داده می‌شوند و در زمان ذخیره، جداکننده‌ها حذف می‌شوند. واحد پول (تومان) روی فیلد قیمت درج شده است.
+- **کدهای تخفیف**: ایجاد کدهای تخفیف درصدی و مبلغی با قابلیت تعیین سقف استفاده و بازه زمانی معتبر.
 - **فعالیت‌ها و یادآورها**: ثبت تماس‌ها، جلسات و وظایف به تفکیک دسته‌بندی با اعلان و آلارم هوشمند.
 - **سامانه پیامک**: ارتباط با وب‌سرویس <span dir="ltr">SmsIr</span> برای ارسال پیامک‌های خوش‌آمدگویی، صدور فاکتور و اطلاع‌رسانی انبوه.
 - **سطوح دسترسی پیشرفته (<span dir="ltr">RBAC</span>)**: ماتریس دسترسی به تفکیک بخش‌ها (<span dir="ltr">Sections</span>) و عملیات (<span dir="ltr">View, Create, Edit, Delete</span>).
 - **امنیت بالا**: هش‌کردن رمزهای عبور با الگوریتم قدرتمند <span dir="ltr">PBKDF2-SHA256</span> و ۱۰۰٬۰۰۰ تکرار به‌همراه <span dir="ltr">Salt</span> اختصاصی.
 - **داشبورد آماری و نموداری**: نمایش نمودارهای زنده فروش، رشد مشتریان و آمارهای کلیدی با <span dir="ltr">LiveCharts</span>.
-- **پشتیبان‌گیری و بازیابی پایگاه داده**: تهیه آسان نسخه پشتیبان از پایگاه داده و بازیابی درون‌برنامه‌ای. پایگاه داده به‌صورت پیش‌فرض <span dir="ltr">SQLite</span> است و نیازی به نصب هیچ سروری ندارد؛ <span dir="ltr">SQL Server</span> در صورت نیاز از داخل خود برنامه انتخاب می‌شود.
+- **پشتیبان‌گیری و بازیابی پایگاه داده**: تهیه آسان نسخه پشتیبان از پایگاه داده و بازیابی درون‌برنامه‌ای. نسخه پشتیبان <span dir="ltr">SQLite</span> از طریق <span dir="ltr">API</span> آنلاین خودِ <span dir="ltr">SQLite</span> گرفته می‌شود، بنابراین کاربر می‌تواند هنگام تهیه نسخه به کار خود ادامه دهد؛ برای <span dir="ltr">SQL Server</span> از <span dir="ltr">BACKUP DATABASE</span> استفاده می‌شود.
+- **پشتیبانی از دو پایگاه داده**: برنامه هم با <span dir="ltr">SQLite</span> (پیش‌فرض) و هم با <span dir="ltr">SQL Server</span> کار می‌کند و انتخاب از داخل خود برنامه (تنظیمات ← پیکربندی پایگاه داده) انجام می‌شود. رشته اتصال <span dir="ltr">SQL Server</span> حتی هنگام فعال بودن <span dir="ltr">SQLite</span> نگهداری می‌شود، بنابراین جابه‌جایی میان این دو بدون تایپ دوباره اطلاعات اتصال انجام می‌شود. آزمون اتصال در صفحه تنظیمات، دستور را از لایه <span dir="ltr">EF6</span> عبور می‌دهد تا تنظیمی که واقعاً کار نمی‌کند، موفق گزارش نشود.
 
 </div>
 
