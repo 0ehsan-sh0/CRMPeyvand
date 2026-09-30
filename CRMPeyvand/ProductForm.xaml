@@ -58,7 +58,7 @@
         <!-- The unit is named on the label rather than inside the field: the field
              has to stay a plain number to be typed into, and a fixed-width field
              cannot hold the amount and the unit tight against each other. -->
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Content="قیمت کالا (تومان) :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top" Margin="5,37,0,0"/>
+        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Content="قیمت کالا (تومان) :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Margin="5,0,0,0"/>
         <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="5" Grid.ColumnSpan="3" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center">
             <TextBox Style="{StaticResource InputTextBox}" Text="0" x:Name="txtPrice" TabIndex="1" GotFocus="txtTotal_GotFocus" TextChanged="txtPrice_TextChanged" PreviewKeyDown="txtPrice_PreviewKeyDown" ToolTip="قیمت به تومان"/>
         </Border>
