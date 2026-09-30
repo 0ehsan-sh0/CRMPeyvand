@@ -24,9 +24,18 @@ jobs:
       # The MSI is framework-dependent, so it is built without the runtime.
       # build-installer.ps1 is the single source of truth for how the package is
       # produced; the workflow only supplies the SDK and the version.
+      #
+      # Versioned 0.0.<run number> deliberately. These are throwaway CI packages,
+      # not releases, and release.yml versions real releases 1.x from the tag. A
+      # run number as the major version (1.0.0, 2.0.0, ...) eventually produces the
+      # same ProductVersion as a release, and since MajorUpgrade is keyed on the
+      # UpgradeCode in Package.wxs, installing one after the other fails with the
+      # downgrade error rather than upgrading. Keeping CI below every release means
+      # the worst case is that a stray CI package is recognised as older.
+      # The MSI build field holds up to 65535, so the run number has room.
       - name: Build installer
         shell: pwsh
-        run: ./build-installer.ps1 -Version ${{ github.run_number }}.0.0
+        run: ./build-installer.ps1 -Version 0.0.${{ github.run_number }}
 
       - name: Upload MSI
         uses: actions/upload-artifact@v4

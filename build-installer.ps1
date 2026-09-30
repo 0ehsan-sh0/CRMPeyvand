@@ -77,8 +77,15 @@ $published = (Get-ChildItem -LiteralPath $publishDir -Recurse -File).Count
 Write-Host "    $published files published"
 
 Write-Host "==> Building MSI (version $Version)" -ForegroundColor Cyan
+# -t:Rebuild is not optional. WiX does not treat DefineConstants as an input to
+# its compile step, so a warm installer\obj makes the target up to date and the
+# link step re-copies the *previous* MSI - version included. A plain build
+# therefore silently emits whatever ProductVersion was compiled last, which is
+# the wixproj default rather than $Version. A fresh CI runner hides this because
+# its obj is always empty; a developer's second build does not.
 $wixOutput = dotnet build $installerProject `
     -c $Configuration `
+    -t:Rebuild `
     -p:Platform=x64 `
     -p:ProductVersion=$Version `
     -p:PublishDirOverride=$publishDir `
@@ -96,6 +103,20 @@ if ($wixOutput -match 'WIX8600') {
 if (-not (Test-Path -LiteralPath $msiPath)) {
     throw "expected MSI not found at $msiPath"
 }
+
+# The version drives MajorUpgrade, so a package carrying the wrong one cannot be
+# upgraded over the right one. Read it back out of the built MSI rather than
+# trusting the -p: value: the whole point is that the value can be dropped on the
+# floor between the command line and the package, and it has been.
+$installerShell = New-Object -ComObject WindowsInstaller.Installer
+$msiDb = $installerShell.OpenDatabase($msiPath, 0)
+$msiView = $msiDb.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property``='ProductVersion'")
+$msiView.Execute()
+$builtVersion = $msiView.Fetch().StringData(1)
+if ($builtVersion -ne $Version) {
+    throw "MSI reports ProductVersion '$builtVersion' but '$Version' was asked for - the version did not reach the package"
+}
+Write-Host "    MSI ProductVersion $builtVersion" -ForegroundColor DarkGray
 
 if ($SignPfx) {
     if (-not (Test-Path -LiteralPath $SignPfx)) {
