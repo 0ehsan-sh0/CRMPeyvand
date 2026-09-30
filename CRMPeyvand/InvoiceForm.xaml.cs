@@ -1,4 +1,4 @@
-using BE;
+﻿using BE;
 using Section = BE.Section;
 using BLL;
 using CRMPeyvand.Reports.Documents;
@@ -49,6 +49,36 @@ namespace CRMPeyvand
 
         private const string InvoiceNumberColumn = "شماره فاکتور";
 
+        /// <summary>
+        /// The DAL's own name for the amount column, so the grid groups the column
+        /// the query produced rather than a name repeated here. The line grid
+        /// declares its own columns and already carries "N0".
+        /// </summary>
+        private const string AmountColumn = "هزینه پرداختی";
+
+        /// <summary>
+        /// Every fill has to name the amount column again: a grid generated from a
+        /// DataTable throws its columns away and rebuilds them each time, and
+        /// searching narrows the rows.
+        /// </summary>
+        private void FillInvoices(DataTable table)
+        {
+            PublicMethods.dgvFiller(dgvInvoices, table, AmountColumn);
+        }
+
+        /// <summary>
+        /// Puts the three amounts back to nothing. Written once because saving,
+        /// printing and discarding the draft each used to spell it out slightly
+        /// differently, and discarding left the discount showing a figure that
+        /// belonged to the lines just thrown away.
+        /// </summary>
+        private void ResetTotals()
+        {
+            lblTotalPrice.Content = Money.Display(0m);
+            lblOff.Content = Money.Display(0m);
+            lblFinalPrice.Content = Money.Display(0m);
+        }
+
         string countOff()
         {
             if (cbCustomer != null)
@@ -59,15 +89,15 @@ namespace CRMPeyvand
                     off = Obll.GetOffCode(txtOff.Text);
                     decimal total = draftLines.Sum(l => l.LineTotal);
                     decimal discount = Pricing.ComputeDiscount(off, total);
-                    lblOff.Content = discount.ToString("N0");
-                    lblFinalPrice.Content = Pricing.ComputePayable(total, discount).ToString("N0");
+                    lblOff.Content = Money.Display(discount);
+                    lblFinalPrice.Content = Money.Display(Pricing.ComputePayable(total, discount));
                     lblOffError.Content = "";
                     return off.Code;
                 }
                 else
                 {
                     lblOffError.Content = result;
-                    lblOff.Content = 0;
+                    lblOff.Content = Money.Display(0m);
                     return null;
                 }
             }
@@ -86,7 +116,7 @@ namespace CRMPeyvand
             draftLines.Add(line);
             dgvProduts.ItemsSource = null;
             dgvProduts.ItemsSource = draftLines;
-            lstResult.Items.Add(cbProduct.Name + " به ارزش " + cbProduct.SalePrice.ToString("N0") + " تومان "
+            lstResult.Items.Add(cbProduct.Name + " به ارزش " + Money.DisplayWithCurrency(cbProduct.SalePrice) + " "
                 + (cbProduct.Kind == ItemKind.Good ? "به تعداد " + qty : ""));
             cbProduct = null;
             txtProduct.Text = "";
@@ -115,12 +145,12 @@ namespace CRMPeyvand
             {
                 FillDataGrid();
                 decimal sum = draftLines.Sum(l => l.LineTotal);
-                lblTotalPrice.Content = sum.ToString("N0");
+                lblTotalPrice.Content = Money.Display(sum);
                 if (txtOff.Text != string.Empty)
                 {
                     countOff();
                 }
-                else lblFinalPrice.Content = sum.ToString("N0");
+                else lblFinalPrice.Content = Money.Display(sum);
             }
 
         }
@@ -162,7 +192,7 @@ namespace CRMPeyvand
             txtProduct.ItemsSource = Pbll.ReadNames();
             lblDate.Content = DateTime.Now.Date.ToString("yyyy/MM/dd");
             lblCount.Content = Ibll.CountInvoices();
-            PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
+            FillInvoices(Ibll.Read());
         }
 
         private void txtProduct_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -211,15 +241,13 @@ namespace CRMPeyvand
                 {
                     Ibll.Done(savedInvoice.id);
                 }
-                PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
+                FillInvoices(Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 dgvProduts.ItemsSource = null;
                 draftLines.Clear();
                 lstResult.Items.Clear();
-                lblFinalPrice.Content = "0";
-                lblTotalPrice.Content = "0";
+                ResetTotals();
                 txtOff.Clear();
-                lblOff.Content = "0";
                 txtCustomer.Focus();
             }
             else MessageBox.Show("لطفا تمامی فیلد های مورد نیاز را پر کنید");
@@ -242,8 +270,7 @@ namespace CRMPeyvand
             dgvProduts.ItemsSource = null;
             draftLines.Clear();
             lstResult.Items.Clear();
-            lblFinalPrice.Content = "0";
-            lblTotalPrice.Content = "0";
+            ResetTotals();
         }
 
         private void miDeleteInvoice_Click(object sender, RoutedEventArgs e)
@@ -256,7 +283,7 @@ namespace CRMPeyvand
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {
                 Ibll.Delete(invoiceEdit.id);
-                PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
+                FillInvoices(Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
             }
 
@@ -321,7 +348,7 @@ namespace CRMPeyvand
                 {
                     Ibll.Done(savedInvoice.id);
                 }
-                PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());
+                FillInvoices(Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 try
                 {
@@ -339,10 +366,8 @@ namespace CRMPeyvand
                 dgvProduts.ItemsSource = null;
                 draftLines.Clear();
                 lstResult.Items.Clear();
-                lblFinalPrice.Content = "0";
-                lblTotalPrice.Content = "0";
+                ResetTotals();
                 txtOff.Clear();
-                lblOff.Content = "0";
                 txtCustomer.Focus();
             }
             else MessageBox.Show("لطفا تمامی فیلد های مورد نیاز را پر کنید");
@@ -354,9 +379,9 @@ namespace CRMPeyvand
             {
                 TextBox textBox = sender as TextBox;
                 PublicMethods.FilterNumber(textBox);
-                PublicMethods.dgvFiller(dgvInvoices, Ibll.Search(txtSearch.Text));
+                FillInvoices(Ibll.Search(txtSearch.Text));
             }
-            else PublicMethods.dgvFiller(dgvInvoices, Ibll.Read());  
+            else FillInvoices(Ibll.Read());  
         }
 
         private void txtOff_LostFocus(object sender, RoutedEventArgs e)

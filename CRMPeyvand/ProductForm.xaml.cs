@@ -3,6 +3,7 @@ using Section = BE.Section;
 using BLL;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,12 @@ namespace CRMPeyvand
         UserBLL Ubll = new UserBLL();
         User u = new User();
         bool Add;
+
+        /// <summary>
+        /// The DAL's own name for the price column, so that the grid groups the
+        /// column the query produced rather than a name repeated here.
+        /// </summary>
+        private const string PriceColumn = "قیمت";
         private void IsService_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
 
@@ -71,41 +78,54 @@ namespace CRMPeyvand
                 kind = ItemKind.Good;
                 total = Convert.ToInt32(txtTotal.Text);
             }
+            // What the field shows is grouped for reading, so the separators have
+            // to come back off before it is a number again.
+            int? price = Money.ParseWhole(txtPrice.Text);
             CatalogItem product = new CatalogItem()
             {
                 Name = txtName.Text,
                 Stock = total,
                 Kind = kind
             };
-            if ((txtName.Text != "" && txtTotal.Text != "" && txtPrice.Text != "" && product.Kind == ItemKind.Good) || (txtName.Text != "" && txtPrice.Text != "" && product.Kind == ItemKind.Service))
+            if (txtName.Text != "" && price.HasValue && (product.Kind == ItemKind.Service || txtTotal.Text != ""))
             {
                 if (btnAddProduct.Content.ToString() == "ثبت کالا")
                 {
-                    product.SalePrice = Convert.ToInt32(txtPrice.Text);
+                    product.SalePrice = price.Value;
                     MessageBox.Show(bll.Create(product), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();
                     txtTotal.Clear();
-                    PublicMethods.dgvFiller(dgvProducts, bll.Read());
+                    FillProducts(bll.Read());
                     ProductCount.Content = bll.ProductsCount();
                     txtName.Focus();
                 }
                 else if (btnAddProduct.Content.ToString() == "ویرایش کالا")
                 {
-                    product.SalePrice = Convert.ToInt32(txtPrice.Text);
+                    product.SalePrice = price.Value;
                     MessageBox.Show(bll.Update(product, productEdit.Id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();
                     txtTotal.Clear();
                     txtTotal.IsEnabled = true;
                     IsServiceImage.Visibility = Visibility.Hidden;
-                    PublicMethods.dgvFiller(dgvProducts, bll.Read());
+                    FillProducts(bll.Read());
                     btnAddProduct.Content = "ثبت کالا";
                     btnAddProduct.IsEnabled = Add;
                     txtName.Focus();
                 }
             }
             else MessageBox.Show("لطفا تمامی فیلد هارا پر کنید");
+        }
+
+        /// <summary>
+        /// Every fill has to name the price column again: a grid generated from a
+        /// DataTable throws its columns away and rebuilds them each time, and
+        /// searching narrows the rows.
+        /// </summary>
+        private void FillProducts(DataTable table)
+        {
+            PublicMethods.dgvFiller(dgvProducts, table, PriceColumn);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -138,7 +158,7 @@ namespace CRMPeyvand
             {
                 miDelete.IsEnabled = true;
             }
-            PublicMethods.dgvFiller(dgvProducts, bll.Read());
+            FillProducts(bll.Read());
             PublicMethods.DGVAutoSizeColumnFill(dgvProducts);
             ProductCount.Content = bll.ProductsCount();
         }
@@ -154,7 +174,7 @@ namespace CRMPeyvand
             if (DeleteConfirmation == MessageBoxResult.Yes)
             {
                 bll.Delete(productEdit.Id);
-                PublicMethods.dgvFiller(dgvProducts, bll.Read());
+                FillProducts(bll.Read());
                 ProductCount.Content = bll.ProductsCount();
             }
         }
@@ -162,7 +182,7 @@ namespace CRMPeyvand
         private void miEdit_Click(object sender, RoutedEventArgs e)
         {
             txtName.Text = productEdit.Name;
-            txtPrice.Text = productEdit.SalePrice.ToString();
+            txtPrice.Text = Money.Display(productEdit.SalePrice);
             txtTotal.Text = productEdit.Stock.ToString();
             if (productEdit.Kind == ItemKind.Service)
             {
@@ -206,15 +226,24 @@ namespace CRMPeyvand
         {
             if (txtSearchProduct.Text != String.Empty)
             {
-                PublicMethods.dgvFiller(dgvProducts, bll.Search(txtSearchProduct.Text));
+                FillProducts(bll.Search(txtSearchProduct.Text));
             }
-            else PublicMethods.dgvFiller(dgvProducts, bll.Read());
+            else FillProducts(bll.Read());
         }
 
         private void txtPrice_TextChanged(object sender, TextChangedEventArgs e)
         {
-            TextBox t = sender as TextBox;
-            PublicMethods.FilterNumber(t);
+            // Not FilterNumber, which would strip the separator it is meant to be
+            // showing.
+            PriceField.GroupAsTyped(sender as TextBox);
+        }
+
+        private void txtPrice_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (PriceField.Backspace(sender as TextBox, e.Key))
+            {
+                e.Handled = true;
+            }
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

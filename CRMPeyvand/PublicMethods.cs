@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace CRMPeyvand
@@ -96,6 +97,60 @@ namespace CRMPeyvand
             dg.AutoGenerateColumns = true;
             dg.CanUserAddRows = false;
             DGVAutoSizeColumnFill(dg);
+        }
+
+        /// <summary>
+        /// Fills a grid whose columns are generated from a DataTable, grouping the
+        /// named ones.
+        ///
+        /// A generated column is the only kind here that has no StringFormat to
+        /// hang a separator off, and the columns are thrown away and rebuilt
+        /// every time the grid is refilled - searching narrows the rows - so this
+        /// has to be asked for on each fill rather than once at startup.
+        /// </summary>
+        public static void dgvFiller(DataGrid dg, DataTable dt, params string[] moneyColumns)
+        {
+            dgvFiller(dg, dt);
+
+            if (moneyColumns == null || moneyColumns.Length == 0)
+            {
+                return;
+            }
+
+            foreach (DataGridColumn column in dg.Columns)
+            {
+                if (column is not DataGridBoundColumn bound)
+                {
+                    continue;
+                }
+
+                // The generated header and the path it binds to are both the
+                // DataTable's own column name, but a caption is allowed to differ
+                // from it, so either one naming the column will do.
+                string name = NameOf(bound);
+                if (name == null || Array.IndexOf(moneyColumns, name) < 0)
+                {
+                    continue;
+                }
+
+                bound.Binding = new Binding(name)
+                {
+                    Converter = new MoneyConverter(),
+                    Mode = BindingMode.OneWay,
+                };
+            }
+        }
+
+        private static string NameOf(DataGridBoundColumn column)
+        {
+            foreach (string candidate in new[] { column.SortMemberPath, column.Header?.ToString() })
+            {
+                if (!string.IsNullOrEmpty(candidate))
+                {
+                    return candidate;
+                }
+            }
+            return null;
         }
 
         public static string ReadTheEntityCode(DataGrid d, int index)

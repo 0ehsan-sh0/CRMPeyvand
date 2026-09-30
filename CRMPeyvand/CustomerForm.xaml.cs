@@ -161,6 +161,7 @@ namespace CRMPeyvand
         {
             TextBox t = sender as TextBox;
             PublicMethods.FilterNumber(t);
+            lblPhoneHint.Visibility = t.Text == string.Empty ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void txtName_TextChanged(object sender, TextChangedEventArgs e)

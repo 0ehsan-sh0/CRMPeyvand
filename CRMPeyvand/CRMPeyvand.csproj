@@ -19,6 +19,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- PublicMethods holds the shared grid and field helpers, and its behaviour
+         is worth pinning: the tests reach it directly rather than through a form
+         that cannot be opened from a test run. -->
+    <InternalsVisibleTo Include="CRMPeyvand.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="HandyControls" Version="3.5.3" />
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />

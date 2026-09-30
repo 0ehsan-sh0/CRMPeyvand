@@ -58,7 +58,16 @@
 
         <Label Style="{StaticResource TextBoxLabel}" Grid.Column="3" Content="شماره تلفن :" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top" Margin="77,37,0,0" Grid.ColumnSpan="2"/>
         <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="4" Grid.ColumnSpan="4" HorizontalAlignment="Center" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center">
-            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtPhone" TabIndex="1" TextChanged="txtPhone_TextChanged"/>
+            <Grid>
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtPhone" TabIndex="1" TextChanged="txtPhone_TextChanged"/>
+                <!-- An example of the shape the field wants. WPF has no placeholder
+                     of its own, and the field's own background is opaque, so the
+                     hint cannot sit underneath it: txtPhone_TextChanged shows and
+                     hides it instead. -->
+                <TextBlock x:Name="lblPhoneHint" Text="09120000012" FontFamily="Shabnam FD" FontSize="13"
+                           Foreground="#9aa3b2" Margin="5,4,0,0" TextAlignment="Right"
+                           IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
         </Border>
 
         <!--btnAddCustomer-->
