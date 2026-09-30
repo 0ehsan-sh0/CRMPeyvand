@@ -73,13 +73,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $ErrorActionPreference = 'Stop'
           $tag = if ('${{ github.event.inputs.tag }}') { '${{ github.event.inputs.tag }}' } else { '${{ github.ref_name }}' }
-          gh release create $tag artifacts/CRMPeyvand.msi `
-            --title "CRM Peyvand $tag" `
-            --generate-notes `
-            --clobber
-          # Let people download without logging in.
-          gh release edit $tag --latest
+          $msi = 'artifacts/CRMPeyvand.msi'
+
+          # gh release create has no --clobber. The runner rejects it as an unknown
+          # flag, so nothing was created, and the follow-up "gh release edit --latest"
+          # then failed with "release not found" - a second failure that hid the
+          # first. --latest is set on create instead, which is all the edit was for.
+          #
+          # A tag that already has a release - a re-run, or the workflow_dispatch
+          # path - is not given a second one by gh, so the MSI is uploaded onto the
+          # existing release instead. --clobber does exist on upload, where it means
+          # "delete the old asset first".
+          if (gh release view $tag --json tagName --jq .tagName 2>$null) {
+            Write-Host "    release $tag already exists - replacing the MSI asset"
+            gh release upload $tag $msi --clobber
+          }
+          else {
+            gh release create $tag $msi --title "CRM Peyvand $tag" --generate-notes --latest
+          }
 
       - name: Upload MSI as workflow artifact
         uses: actions/upload-artifact@v4
