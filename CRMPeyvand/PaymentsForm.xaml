@@ -30,7 +30,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition/>
-            <RowDefinition Height="50"/>
+            <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
@@ -49,52 +49,67 @@
         <!--Background-->
 
         <!--ثبت وصولی-->
-        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="5" Margin="10,5,10,15" />
+        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="4" Margin="10,5,10,10" />
 
-        <Label Style="{StaticResource TextBoxLabel}" Content="شماره فاکتور :" HorizontalAlignment="Right" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,37,73,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="32,0,0,0">
-            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
-        </Border>
-        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" HorizontalAlignment="Right" Grid.Row="0" Grid.RowSpan="2" Grid.Column="6" Grid.ColumnSpan="6" VerticalAlignment="Center" Margin="0,0,42,0"/>
+        <!--One horizontal StackPanel per line, rather than a label in one grid cell and
+            its input in another. The grid form let the two drift apart, because a label
+            aligned Right in one cell and a box aligned Left in the next leaves whatever
+            is left of the column between them. As siblings they cannot come apart. The
+            StackPanel inherits RightToLeft from the window, so the first child is the
+            rightmost one and the fields read in the order they are written.-->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
+            <Label Style="{StaticResource TextBoxLabel}" Content="شماره فاکتور :" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
+            </Border>
+            <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" VerticalAlignment="Center" Margin="46,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
+                <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
+            </Border>
+        </StackPanel>
 
-        <Label Style="{StaticResource TextBoxLabel}" Content="مبلغ وصولی :" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,40,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="32,0,0,0">
-            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtAmount" TabIndex="1" TextChanged="txtAmount_TextChanged" PreviewKeyDown="txtAmount_PreviewKeyDown"/>
-        </Border>
-        <Label Style="{StaticResource TextBoxLabel}" Content="تومان" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="4" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="8,20,0,0"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
+            <Label Style="{StaticResource TextBoxLabel}" Content="مبلغ وصولی :" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtAmount" TabIndex="1" TextChanged="txtAmount_TextChanged" PreviewKeyDown="txtAmount_PreviewKeyDown"/>
+            </Border>
+            <Label Style="{StaticResource TextBoxLabel}" Content="تومان" VerticalAlignment="Center" Margin="8,0,0,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" VerticalAlignment="Center" Margin="46,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
+            </Border>
+        </StackPanel>
 
-        <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,33,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="7" Grid.ColumnSpan="4" Margin="32,0,0,0">
-            <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
-        </Border>
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
+            <Label Style="{StaticResource TextBoxLabel}" Content="تاریخ وصول :" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" Width="230" Height="30" TabIndex="3"/>
+        </StackPanel>
 
-        <Label Style="{StaticResource TextBoxLabel}" Content="تاریخ وصول :" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,40,0"/>
-        <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="32,4,0,4" Height="30" TabIndex="3"/>
-
-        <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="5" Grid.ColumnSpan="3" VerticalAlignment="Top" Margin="0,20,33,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="8" Grid.ColumnSpan="4" Margin="32,0,0,0">
-            <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
-        </Border>
-
-        <Border Style="{StaticResource ButtonBorder}" Height="50" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" Margin="32,10,0,20">
-            <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" HorizontalAlignment="Center" VerticalAlignment="Center" TabIndex="5" Click="btnAdd_Click"/>
-        </Border>
-        <Border Style="{StaticResource ButtonBorder}" Height="50" Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="4" Margin="32,10,0,20">
-            <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" HorizontalAlignment="Center" VerticalAlignment="Center" TabIndex="6" Click="btnPrintReceipt_Click"/>
-        </Border>
+        <!--The border is left to hug the button. Setting a height on it left a 30px
+            blue button floating inside a 50px frame, and setting a width left the
+            frame wider than the blue.-->
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,8,22,4">
+            <Border Style="{StaticResource ButtonBorder}" Margin="0,0,20,0">
+                <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" TabIndex="5" Click="btnAdd_Click"/>
+            </Border>
+            <Border Style="{StaticResource ButtonBorder}">
+                <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" TabIndex="6" Click="btnPrintReceipt_Click"/>
+            </Border>
+        </StackPanel>
         <!--ثبت وصولی-->
 
         <!--جستجو-->
-        <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی وصولی ها" Grid.Row="5" Grid.RowSpan="2" Grid.ColumnSpan="12" Margin="10,25,10,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="6" Margin="20,0,0,0" Width="880">
+        <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی وصولی ها" Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="12" Margin="10,10,10,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="5" Margin="20,0,0,0" Width="880">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSearch" TabIndex="7" TextChanged="txtSearch_TextChanged" ToolTip="جستجو بر اساس شماره فاکتور یا نام مشتری"/>
         </Border>
-        <Image Source="/Images/Search.png" Grid.Column="11" Grid.Row="6" Height="25" Margin="0,12,40,12"/>
+        <Image Source="/Images/Search.png" Grid.Column="11" Grid.Row="5" Height="25" Margin="0,12,40,12"/>
         <!--جستجو-->
 
         <!--نمایش وصولی ها-->
-        <Border Style="{StaticResource DataGridBorder}" Grid.Column="0" Grid.ColumnSpan="12" Grid.Row="7" Grid.RowSpan="4" Margin="10,10,10,0">
-            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvPayments" ContextMenuOpening="dgvPayments_ContextMenuOpening" Grid.ColumnSpan="12" Margin="0,0,-1,0" Grid.RowSpan="4">
+        <Border Style="{StaticResource DataGridBorder}" Grid.Column="0" Grid.ColumnSpan="12" Grid.Row="6" Grid.RowSpan="5" Margin="10,10,10,0">
+            <DataGrid Style="{StaticResource DataGrid}" x:Name="dgvPayments" ContextMenuOpening="dgvPayments_ContextMenuOpening" Grid.ColumnSpan="12" Margin="0,0,-1,0" Grid.RowSpan="5">
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource ContextMenu}">
                         <MenuItem Style="{StaticResource MenuItem}" x:Name="miPrint" Header="چاپ رسید دریافت" Click="miPrint_Click">
