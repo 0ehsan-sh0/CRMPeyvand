@@ -86,7 +86,7 @@
 
 
         <!--کارت اول-->
-        <Border Grid.Column="6" Grid.RowSpan="3" Grid.Row="1" Grid.ColumnSpan="4" Margin="85,10,20,10" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+        <Border Grid.Column="6" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="85,10,20,20" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
             <Rectangle Fill="#F9FAFB"/>
         </Border>
         <Border Grid.Column="9" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="1" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="15,30,46,0" VerticalAlignment="Top">
@@ -97,7 +97,7 @@
 
 
         <!--کارت دوم-->
-        <Border Grid.Column="3" Grid.RowSpan="3" Grid.Row="1" Grid.ColumnSpan="4" Margin="55,10,55,10" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+        <Border Grid.Column="3" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="55,10,55,20" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
             <Rectangle Fill="#F9FAFB"/>
         </Border>
         <Border Grid.Column="5" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="91,30,81,0" VerticalAlignment="Top">
@@ -107,7 +107,7 @@
         <Label Style="{StaticResource MainWindowLabels}" x:Name="TodaySells" Content="0" Grid.Column="5" Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="42" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,30,77,0"/>
 
         <!--کارت سوم-->
-        <Border Grid.Column="0" Grid.RowSpan="3" Grid.Row="1" Grid.ColumnSpan="4" Margin="20,11,85,10" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+        <Border Grid.Column="0" Grid.RowSpan="4" Grid.Row="1" Grid.ColumnSpan="4" Margin="20,11,85,19" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
             <Rectangle Fill="#F9FAFB"/>
         </Border>
         <Border Grid.Column="2" Grid.RowSpan="2" Grid.Row="1" Grid.ColumnSpan="1" BorderBrush="#4A8FE7" BorderThickness="2" CornerRadius="25" Height="50" Width="50" Margin="56,31,5,0" VerticalAlignment="Top">
@@ -116,14 +116,6 @@
         <Label Style="{StaticResource MainWindowLabels}" Content="فروش هفت روز گذشته" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" Foreground="#A6B6FF" FontFamily="Shabnam FD" FontWeight="Bold" Margin="85,0,0,0" Width="137"/>
         <Label Style="{StaticResource MainWindowLabels}" x:Name="lblCountSellsWeek" Content="0" Grid.Column="1" Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="42" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,31,5,0"/>
 
-        <!--کارت چهارم: مشتریان بدهکار-->
-        <Border Grid.Column="0" Grid.Row="4" Grid.RowSpan="1" Grid.ColumnSpan="10" Margin="20,4,85,6" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
-            <Rectangle Fill="#F9FAFB"/>
-        </Border>
-        <Image Source="/Images/Checked.png" Grid.Column="9" Grid.Row="4" Height="28" Width="28" Margin="14,10,21,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" ToolTip="رفتن به دریافت ها"/>
-        <Label Style="{StaticResource MainWindowLabels}" Content="مشتریان بدهکار" Grid.Column="7" Grid.Row="4" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" Foreground="#A6B6FF" FontFamily="Shabnam FD" FontWeight="Bold" Margin="74,0,0,0"/>
-        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblDebtorCount" Content="0" Grid.Column="6" Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="22" Foreground="#4A8FE7" FontFamily="Shabnam FD" FontWeight="Bold" Margin="0,0,20,0"/>
-        <!--کارت چهارم-->
         <!--ساعت-->
         <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="1" Grid.ColumnSpan="4" Margin="20,16,85,4" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
             <Rectangle Fill="#F9FAFB"/>
@@ -152,6 +144,15 @@
         </Border>
         <Label Style="{StaticResource MainWindowLabels}" x:Name="lblReminder" Content="تعداد یادآور های امروز :" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.Row="5" Grid.Column="1" Height="40" Margin="0,16,62,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand" Grid.ColumnSpan="2"/>
         <Label Style="{StaticResource MainWindowLabels}" x:Name="lblReminderCount" Content="0" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.ColumnSpan="2" Grid.Row="5" Height="40" Margin="0,17,101,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="ActivitiesIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand"/>
+
+        <!--It shares the reminders header rather than taking a card of its own. The three
+            metric cards already fill columns 0-9 across rows 1-4, and shrinking them to
+            make room left their 42pt figures hanging outside their own boxes with no
+            column free for an icon either. The label is the click target, exactly like
+            the reminder count beside it, so no separate icon is needed and none can
+            drift outside its panel. -->
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblDebtorTitle" Content="مشتریان بدهکار :" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.Row="5" Grid.Column="5" Grid.ColumnSpan="2" Height="40" Margin="0,16,62,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand" ToolTip="رفتن به دریافت ها"/>
+        <Label Style="{StaticResource MainWindowLabels}" x:Name="lblDebtorCount" Content="0" FlowDirection="RightToLeft" FontFamily="Shabnam FD" Grid.Row="5" Grid.Column="5" Grid.ColumnSpan="2" Height="40" Margin="0,17,124,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="15" Foreground="#4A8FE7" MouseEnter="Label_MouseEnter" MouseLeave="Label_MouseLeave" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" FontWeight="Bold" Cursor="Hand" ToolTip="رفتن به دریافت ها"/>
 
     </Grid>
 </Window>

@@ -49,47 +49,47 @@
         <!--Background-->
 
         <!--ثبت وصولی-->
-        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="5" Margin="10,5,10,20" />
+        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="5" Margin="10,5,10,15" />
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="شماره فاکتور :" HorizontalAlignment="Left" Grid.RowSpan="2" VerticalAlignment="Center" Margin="18,0,0,0" Grid.ColumnSpan="2" Width="90"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.RowSpan="2" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="5" Margin="31,36,0,0">
+        <Label Style="{StaticResource TextBoxLabel}" Content="شماره فاکتور :" HorizontalAlignment="Right" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,37,73,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="4" Margin="32,0,0,0">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
         </Border>
-        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" HorizontalAlignment="Left" Grid.RowSpan="2" VerticalAlignment="Center" Margin="18,0,0,0" Grid.Column="6" Grid.ColumnSpan="5" Width="300"/>
+        <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" HorizontalAlignment="Right" Grid.Row="0" Grid.RowSpan="2" Grid.Column="6" Grid.ColumnSpan="6" VerticalAlignment="Center" Margin="0,0,42,0"/>
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="مبلغ وصولی :" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0" Grid.Row="2" Grid.ColumnSpan="2" Width="90"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2" Margin="34,0,0,0">
+        <Label Style="{StaticResource TextBoxLabel}" Content="مبلغ وصولی :" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,40,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="32,0,0,0">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtAmount" TabIndex="1" TextChanged="txtAmount_TextChanged" PreviewKeyDown="txtAmount_PreviewKeyDown"/>
         </Border>
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="4" Content="تومان" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" Grid.Row="2" Grid.ColumnSpan="2" Width="50"/>
+        <Label Style="{StaticResource TextBoxLabel}" Content="تومان" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="4" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="8,20,0,0"/>
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="6" Content="روش پرداخت :" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0" Grid.Row="2" Grid.ColumnSpan="2" Width="90"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="8" Grid.ColumnSpan="3" Grid.Row="2" Margin="8,0,0,0">
-            <ComboBox x:Name="cbInstrument" TabIndex="2" Height="30"/>
+        <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,33,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="7" Grid.ColumnSpan="4" Margin="32,0,0,0">
+            <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
         </Border>
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="0" Content="تاریخ وصول :" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0" Grid.Row="3" Grid.ColumnSpan="2" Width="90"/>
-        <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="3" Margin="31,8,0,8" Height="32" TabIndex="3"/>
+        <Label Style="{StaticResource TextBoxLabel}" Content="تاریخ وصول :" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,40,0"/>
+        <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="32,4,0,4" Height="30" TabIndex="3"/>
 
-        <Label Style="{StaticResource TextBoxLabel}" Grid.Column="6" Content="شماره پیگیری (اختیاری) :" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0" Grid.Row="3" Grid.ColumnSpan="3" Width="150"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="9" Grid.ColumnSpan="3" Grid.Row="3" Margin="8,0,0,0">
+        <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="5" Grid.ColumnSpan="3" VerticalAlignment="Top" Margin="0,20,33,0"/>
+        <Border Style="{StaticResource InputTextBoxBorder}" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="8" Grid.ColumnSpan="4" Margin="32,0,0,0">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
         </Border>
 
-        <Border Style="{StaticResource ButtonBorder}" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Left" Grid.Row="4" VerticalAlignment="Center" Margin="70,0,0,0" Width="300">
-            <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" TabIndex="5" Click="btnAdd_Click" Width="300"/>
+        <Border Style="{StaticResource ButtonBorder}" Height="50" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" Margin="32,10,0,20">
+            <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" HorizontalAlignment="Center" VerticalAlignment="Center" TabIndex="5" Click="btnAdd_Click"/>
         </Border>
-        <Border Style="{StaticResource ButtonBorder}" Grid.Column="7" Grid.ColumnSpan="5" HorizontalAlignment="Left" Grid.Row="4" VerticalAlignment="Center" Margin="30,0,0,0" Width="300">
-            <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" TabIndex="6" Click="btnPrintReceipt_Click" Width="300"/>
+        <Border Style="{StaticResource ButtonBorder}" Height="50" Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="4" Margin="32,10,0,20">
+            <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" HorizontalAlignment="Center" VerticalAlignment="Center" TabIndex="6" Click="btnPrintReceipt_Click"/>
         </Border>
         <!--ثبت وصولی-->
 
         <!--جستجو-->
         <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی وصولی ها" Grid.Row="5" Grid.RowSpan="2" Grid.ColumnSpan="12" Margin="10,25,10,0"/>
-        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="6" Margin="20,0,0,0" Width="940">
+        <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="6" Margin="20,0,0,0" Width="880">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSearch" TabIndex="7" TextChanged="txtSearch_TextChanged" ToolTip="جستجو بر اساس شماره فاکتور یا نام مشتری"/>
         </Border>
-        <Image Source="/Images/Search.png" Grid.Column="11" Grid.Row="6" Height="25" Margin="0,12,0,12"/>
+        <Image Source="/Images/Search.png" Grid.Column="11" Grid.Row="6" Height="25" Margin="0,12,40,12"/>
         <!--جستجو-->
 
         <!--نمایش وصولی ها-->
