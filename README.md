@@ -91,7 +91,7 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 ### 📊 Dashboard & Visual Analytics
 - **LiveCharts Visualization**: Interactive charts for sales performance, daily/weekly/monthly revenue trends, customer growth, and top catalog items.
 - **Quick Metric Cards**: Real-time stats on pending reminders, recent invoices, and customer activities.
-- **Debtor Count**: A «مشتریان بدهکار» figure beside the reminders count, showing how many customers currently owe something, and clicking it opens the payments screen.
+- **Debtor Count**: A «مشتریان بدهکار» figure in the small stat box between the metric cards and the reminders panel, showing how many customers currently owe something, and clicking it opens the payments screen. Three cells beside it are reserved for future figures.
 
 ### 🗄️ Database Management & Backup
 - **No Setup Required**: SQLite by default, with the schema created on first run; SQL Server as an opt-in configured in the app.

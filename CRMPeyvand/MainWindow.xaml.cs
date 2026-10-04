@@ -321,8 +321,10 @@ namespace CRMPeyvand
                                 uC_Reminder.txtReminderTitle.Text = item.Title;
                                 uC_Reminder.txtReminderInfo.Text = item.Info;
                                 uC_Reminder.ReminderID.Text = item.id.ToString();
-                                // Add in Children
-                                Grid.SetRow(uC_Reminder, 6 + a);
+                                // Add in Children. Row 7 is the first row inside the
+                                // reminders panel, which starts at row 6 now that the
+                                // small stat boxes take row 5.
+                                Grid.SetRow(uC_Reminder, 7 + a);
                                 Grid.SetColumn(uC_Reminder, 0);
                                 Grid.SetColumnSpan(uC_Reminder, 10);
                                 uC_Reminder.Width = 1050;
