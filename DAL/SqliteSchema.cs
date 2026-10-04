@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS OffCodes (
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Code         TEXT NULL,
     IsPrice      INTEGER NOT NULL,
-    Price        DECIMAL(18,2) NULL,
+    Price        DECIMAL(28,2) NULL,
     Percent      INTEGER NULL,
     RegDate      DATETIME NOT NULL,
     ExpireDate   DATETIME NULL,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS Invoices (
     CheckoutDate    DATETIME NULL,
     DeleteStatus    INTEGER NOT NULL,
     OffCode         TEXT NULL,
-    DiscountAmount  DECIMAL(18,2) NOT NULL,
+    DiscountAmount  DECIMAL(28,2) NOT NULL,
     Customer_id     INTEGER NULL REFERENCES Customers (id),
     User_id         INTEGER NULL REFERENCES Users (id)
 );
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS CatalogItems (
     Id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Name       TEXT NULL,
     Kind       INTEGER NOT NULL,
-    SalePrice  DECIMAL(18,2) NOT NULL,
+    SalePrice  DECIMAL(28,2) NOT NULL,
     Stock      INTEGER NOT NULL,
     DeleteStatus INTEGER NOT NULL
 );
@@ -129,14 +129,14 @@ CREATE TABLE IF NOT EXISTS InvoiceLines (
     InvoiceId     INTEGER NOT NULL,
     CatalogItemId INTEGER NOT NULL,
     Quantity      INTEGER NOT NULL,
-    UnitPrice     DECIMAL(18,2) NOT NULL,
+    UnitPrice     DECIMAL(28,2) NOT NULL,
     FOREIGN KEY (InvoiceId)     REFERENCES Invoices (id)     ON DELETE CASCADE,
     FOREIGN KEY (CatalogItemId) REFERENCES CatalogItems (Id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Payments (
     Id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    Amount       DECIMAL(18,2) NOT NULL,
+    Amount       DECIMAL(28,2) NOT NULL,
     RegDate      DATETIME NOT NULL,
     Instrument   INTEGER NOT NULL,
     Reference    TEXT NULL,

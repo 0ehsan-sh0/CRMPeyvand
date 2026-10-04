@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
+using DAL;
 using Xunit;
 
 namespace CRMPeyvand.Tests
@@ -287,23 +289,63 @@ namespace CRMPeyvand.Tests
 
         /// <summary>
         /// The widest amount a field accepts, once Toman has been converted to the
-        /// Rial that gets stored, still has to be typeable - so the money columns,
-        /// not the field, have to be the wall.
+        /// Rial that gets stored, still has to be storable - so the money columns,
+        /// not the field, have to be the wall. Reading the declared type out of the
+        /// SQLite DDL rather than repeating the number means widening one and not the
+        /// other cannot pass unnoticed.
+        /// </summary>
+        [Theory]
+        [InlineData("OffCodes", "Price")]
+        [InlineData("Invoices", "DiscountAmount")]
+        [InlineData("CatalogItems", "SalePrice")]
+        [InlineData("InvoiceLines", "UnitPrice")]
+        [InlineData("Payments", "Amount")]
+        public void Anything_a_field_accepts_fits_the_column_behind_it(string table, string column)
+        {
+            string declared = DeclaredColumnType(table, column);
+            int precision = int.Parse(declared.Substring("DECIMAL(".Length, declared.IndexOf(',') - "DECIMAL(".Length),
+                CultureInfo.InvariantCulture);
+
+            // DECIMAL(p,2) spends two digits after the point, so p - 2 before it.
+            int integerDigits = precision - 2;
+            decimal widestColumnHolds = (decimal)Math.Pow(10, integerDigits) - 0.01m;
+            decimal widestAFieldCanStore = Money.FromToman(Money.MaxFieldAmount);
+
+            Assert.True(widestAFieldCanStore <= widestColumnHolds,
+                $"{table}.{column} is DECIMAL({precision},2) and holds {integerDigits} integer digits, "
+                + $"but a field can ask to store {widestAFieldCanStore} - the field must never be the wider of the two");
+        }
+
+        /// <summary>
+        /// The int the fields used to be read into held 2,147,483,647 - about 21
+        /// billion Rial - and that, not the schema, is what refused a price of
+        /// 30,000,000,000.
         /// </summary>
         [Fact]
-        public void The_field_range_is_wider_than_int_and_wider_than_the_column()
+        public void The_field_range_is_wider_than_int()
         {
             Assert.True(Money.MaxFieldAmount > int.MaxValue);
             Assert.Equal(long.MaxValue, Money.MaxFieldAmount);
+        }
 
-            // DECIMAL(18,2) is eighteen digits, two of them after the point, so
-            // sixteen before it. Fields are in Toman and the column is in Rial, so
-            // compare the two like with like rather than across the conversion.
-            decimal widestStoredColumn = 9999999999999999.99m;
-            decimal widestFieldThatStillFits = Money.ToToman(widestStoredColumn);
+        /// <summary>
+        /// Pulls "DECIMAL(28,2)" out of the hand-written DDL for one column, so this
+        /// test reads the same text the database is created from.
+        /// </summary>
+        private static string DeclaredColumnType(string table, string column)
+        {
+            Match tableBlock = Regex.Match(SqliteSchema.Ddl,
+                $@"CREATE TABLE IF NOT EXISTS {table} \((?<body>.*?)\n\);",
+                RegexOptions.Singleline);
 
-            Assert.True(widestFieldThatStillFits < Money.MaxFieldAmount,
-                "anything the column can store has to be typeable into a field");
+            Assert.True(tableBlock.Success, $"{table} is not in the SQLite schema");
+
+            Match columnLine = Regex.Match(tableBlock.Groups["body"].Value,
+                $@"^\s*{column}\s+(?<type>\w+\([\d,]+\)|\w+)",
+                RegexOptions.Multiline);
+
+            Assert.True(columnLine.Success, $"{table}.{column} is not in the SQLite schema");
+            return columnLine.Groups["type"].Value;
         }
 
         [Theory]

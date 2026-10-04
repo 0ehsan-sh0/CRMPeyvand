@@ -151,17 +151,18 @@ namespace CRMPeyvand
         /// <summary>
         /// The most a price field accepts, in whole Toman.
         ///
-        /// Widened from int because 30,000,000,000 is not a strange number for this
-        /// business - it fits the DECIMAL(18,2) money columns without complaint -
-        /// and an int simply cannot hold it. long does, so a field now takes
-        /// anything the database could.
+        /// Widened from int because 30,000,000,000 is a plain enough figure for this
+        /// business and an int simply cannot hold it. int capped a field at
+        /// 2,147,483,647 - about 21 billion Rial - and that, not the schema, is what
+        /// refused the price.
         ///
-        /// Not that every long fits: the money columns hold 16 integer digits and
-        /// long has 19, so long is now comfortably wider than the storage and the
-        /// column is the real wall. The MoneyTests case
-        /// The_field_range_is_wider_than_int_and_wider_than_the_column pins that
-        /// relationship, so if the schema is ever widened the ceiling gets
-        /// revisited with it.
+        /// long leaves 19 digits, and converting Toman to the Rial that gets stored
+        /// needs 20. The money columns are DECIMAL(28,2), which spends two digits
+        /// after the point and so takes 26 before it, so the storage is the wider of
+        /// the two by six digits and a field can never ask for something a column
+        /// would refuse. MoneyTests reads the declared precision back out of
+        /// DAL/SqliteSchema and checks all five, so widening a field without widening
+        /// the column behind it fails the build rather than the database.
         /// </summary>
         public const long MaxFieldAmount = long.MaxValue;
 
