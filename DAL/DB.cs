@@ -98,5 +98,6 @@ namespace DAL
         public DbSet<Message> Messages { get; set; }
         public DbSet<MessagePanel> MessagePanels { get; set; }
         public DbSet<RememberMe> RememberMe { get; set; }
+        public DbSet<Payment> Payments { get; set; }
     }
 }

@@ -14,7 +14,7 @@ namespace CRMPeyvand.Tests
             {
                 "AccessGrants", "UserGroups", "Users", "Activities", "ActivityCategories",
                 "Customers", "Invoices", "InvoiceLines", "CatalogItems", "Reminders",
-                "MessagePanels", "Messages", "OffCodes", "RememberMes",
+                "MessagePanels", "Messages", "OffCodes", "RememberMes", "Payments",
             };
 
             var found = new System.Collections.Generic.List<string>();
@@ -74,6 +74,43 @@ namespace CRMPeyvand.Tests
 
                 var ids = db.Customers.OrderBy(c => c.id).Select(c => c.id).ToList();
                 Assert.Equal(new[] { 1, 2, 3 }, ids);
+            });
+        }
+
+        [Fact]
+        public void A_payment_round_trips_through_the_context_with_its_relations()
+        {
+            SqliteTestDb.WithDb(db =>
+            {
+                var customer = new BE.Customer { Name = "مشتری", Phone = "09120000001", RegDate = new DateTime(2026, 10, 4) };
+                db.Customers.Add(customer);
+                db.SaveChanges();
+
+                var invoice = new BE.Invoice { RegDate = new DateTime(2026, 10, 4), DiscountAmount = 0m, Customer = customer };
+                invoice.Lines.Add(new BE.InvoiceLine
+                {
+                    Quantity = 1,
+                    UnitPrice = 4000m,
+                    CatalogItem = new BE.CatalogItem { Name = "کالا", Kind = BE.ItemKind.Good, SalePrice = 4000m, Stock = 5 },
+                });
+                db.Invoices.Add(invoice);
+                db.SaveChanges();
+
+                db.Payments.Add(new BE.Payment
+                {
+                    Amount = 1500m,
+                    RegDate = new DateTime(2026, 10, 4),
+                    Instrument = BE.PaymentInstrument.Card,
+                    Reference = "123456",
+                    Invoice = invoice,
+                });
+                db.SaveChanges();
+
+                var stored = db.Payments.Include("Invoice").Single();
+                Assert.Equal(1500m, stored.Amount);
+                Assert.Equal(BE.PaymentInstrument.Card, stored.Instrument);
+                Assert.Equal("123456", stored.Reference);
+                Assert.Equal(invoice.id, stored.Invoice.id);
             });
         }
     }

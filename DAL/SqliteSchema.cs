@@ -14,9 +14,9 @@ namespace DAL
     /// lives here and is applied on first run.
     ///
     /// Names must match the SQL Server schema exactly, including the lowercase
-    /// "id" on 12 tables versus uppercase "Id" on CatalogItems and InvoiceLines,
-    /// and including "RememberMes" (EF6's pluraliser produced that spelling and
-    /// existing SQL Server data is keyed to it).
+    /// "id" on 12 tables versus uppercase "Id" on CatalogItems, InvoiceLines
+    /// and Payments, and including "RememberMes" (EF6's pluraliser produced
+    /// that spelling and existing SQL Server data is keyed to it).
     /// </summary>
     public static class SqliteSchema
     {
@@ -134,6 +134,17 @@ CREATE TABLE IF NOT EXISTS InvoiceLines (
     FOREIGN KEY (CatalogItemId) REFERENCES CatalogItems (Id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS Payments (
+    Id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    Amount       DECIMAL(18,2) NOT NULL,
+    RegDate      DATETIME NOT NULL,
+    Instrument   INTEGER NOT NULL,
+    Reference    TEXT NULL,
+    DeleteStatus INTEGER NOT NULL,
+    Invoice_id   INTEGER NULL REFERENCES Invoices (id),
+    User_id      INTEGER NULL REFERENCES Users (id)
+);
+
 CREATE TABLE IF NOT EXISTS Reminders (
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Title        TEXT NULL,
@@ -178,6 +189,7 @@ CREATE INDEX IF NOT EXISTS IX_Invoices_Customer_id        ON Invoices (Customer_
 CREATE INDEX IF NOT EXISTS IX_Invoices_User_id            ON Invoices (User_id);
 CREATE INDEX IF NOT EXISTS IX_InvoiceLines_InvoiceId      ON InvoiceLines (InvoiceId);
 CREATE INDEX IF NOT EXISTS IX_InvoiceLines_CatalogItemId  ON InvoiceLines (CatalogItemId);
+CREATE INDEX IF NOT EXISTS IX_Payments_Invoice_id            ON Payments (Invoice_id);
 CREATE INDEX IF NOT EXISTS IX_Reminders_User_id           ON Reminders (User_id);
 ";
 
