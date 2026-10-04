@@ -30,7 +30,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Version = '1.0.0',
+    [string] $Version = '1.1.0',
     [ValidateSet('x64')]
     [string] $Runtime = 'win-x64',
     [string] $Configuration = 'Release',

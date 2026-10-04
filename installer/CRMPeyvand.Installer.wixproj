@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <!-- Bump on every release so MajorUpgrade chains correctly. -->
-    <ProductVersion>1.0.0</ProductVersion>
+    <ProductVersion>1.1.0</ProductVersion>
   </PropertyGroup>
 
   <PropertyGroup>
