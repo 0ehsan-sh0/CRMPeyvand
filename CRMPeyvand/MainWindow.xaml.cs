@@ -284,6 +284,7 @@ namespace CRMPeyvand
                     lblCustomersCount.Content = Dbll.CustomersCount();
                     lblCountSellsWeek.Content = Dbll.SellsCountWeek();
                     lblReminderCount.Content = Dbll.UserReminderCount(loggedInUser);
+                    lblDebtorCount.Content = Dbll.DebtorCustomerCount();
                 }
                 catch
                 {

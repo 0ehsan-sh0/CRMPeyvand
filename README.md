@@ -44,6 +44,17 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 - **Discount Engine**: Support for promotional discount codes (`Discount Code`) and percentage/fixed discounts with automatic calculation.
 - **QuestPDF Reporting**: Invoices, customer lists, catalog lists, activity logs, and sales summaries are laid out in typed C# (`IDocument`), not in a binary template — see [ADR-0007](docs/adr/0007-questpdf-reporting-engine.md). Right-to-left Persian typography with embedded fonts, preview, and PDF/print export.
 - **Readable Money**: Prices are grouped for reading wherever they appear — typed into a field, listed in a grid, or totalled on an invoice — and the separators come back off before the amount is saved.
+- **Payments Against Invoices**: Record what a customer actually paid, in full or in part, against any invoice. The invoice's "paid" state is derived from those payments, so the two cannot disagree — see [ADR-0009](docs/adr/0009-payments-authoritative-over-checkout-flag.md).
+- **Outstanding Balances**: Every invoice and every customer carries a derived balance. Overpayment is refused rather than held as credit, so a payment never exceeds what the invoice still owes.
+- **رسید دریافت (Payment Receipt)**: A printed receipt per payment, carrying the invoice total, what that receipt paid, what is left, the Payment Instrument and who took it.
+
+### 💰 Receivables
+- **Ledger Screen**: A dedicated «دریافت‌ها» screen lists every payment, searchable by invoice number or customer name. Reachable from the sidebar, from shortcut `V`, or by right-clicking any unpaid invoice and choosing «ثبت وصولی».
+- **Payment Instruments**: Cash, card, transfer, cheque or other, with an optional reference number — enough to answer "how much came in cash versus card" without dragging in full cheque tracking.
+- **Void, Never Amend**: A payment may already have a printed receipt in the customer's hand, so a correction is a void plus a fresh payment rather than an edit.
+- **مانده حساب Statement**: A report of every customer who still owes something, with their invoice count, total billed, total received and balance.
+- **Cashier-Safe Access**: Payments are their own permission section, so a cashier can take money without being able to issue invoices — and therefore without being able to reduce stock.
+- **Settle at the Counter**: The invoice screen's «وضعیت پرداخت» checkbox records the full payable as a real payment inside the same transaction that writes the invoice, so the commonest transaction in the shop is still one click.
 
 ### 🏷️ Promotions & Discount Codes
 - **Campaign Codes**: Create and manage discount codes with validity periods and usage limits.
@@ -67,7 +78,7 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 
 ### 🔐 Granular Role-Based Access Control (RBAC)
 - **Typed Permission Matrix**: Fine-grained access control based on `Section` × `Operation` enums:
-  - **Sections**: Customers, Invoices, Products, Activities, Reminders, Users, SMS, Settings, Reports.
+  - **Sections**: Customers, CatalogItems, Invoices, Activities, Reminders, Users, SmsPanel, Reports, Settings, Discounts, Payments.
   - **Operations**: `View`, `Create`, `Edit`, `Delete`.
 - **User Groups**: Assign reusable permission sets to employee groups.
 - **Built-in Administrator Group**: Auto-seeded on First Run with full system privileges.
@@ -80,6 +91,7 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 ### 📊 Dashboard & Visual Analytics
 - **LiveCharts Visualization**: Interactive charts for sales performance, daily/weekly/monthly revenue trends, customer growth, and top catalog items.
 - **Quick Metric Cards**: Real-time stats on pending reminders, recent invoices, and customer activities.
+- **Debtor Count**: A «مشتریان بدهکار» card showing how many customers currently owe something, and a click target into the payments screen.
 
 ### 🗄️ Database Management & Backup
 - **No Setup Required**: SQLite by default, with the schema created on first run; SQL Server as an opt-in configured in the app.
@@ -110,6 +122,7 @@ CRMPeyvand (Solution)
 - **ADR-0006**: Flagged `IsBuiltIn` Administrator group replacing title-string conventions.
 - [ADR-0007](docs/adr/0007-questpdf-reporting-engine.md): QuestPDF replacing Stimulsoft; report layouts as typed C# rather than binary `.mrt` templates.
 - [ADR-0008](docs/adr/0008-dual-database-mode.md): SQLite by default with SQL Server on request, one DAL behind both.
+- [ADR-0009](docs/adr/0009-payments-authoritative-over-checkout-flag.md): Payments are the record of what was received; the invoice's checkout flag is derived from them.
 
 ---
 
@@ -318,7 +331,7 @@ would eventually collide with a release version, and since `MajorUpgrade` keys o
 
 ## 🧪 Running Tests
 
-Unit tests are implemented with **xUnit** covering domain logic, stock policies, the pricing engine, the permission matrix, password hashing, money formatting, the data layer (the SQLite schema, the grid queries against a real database file, and the Persian-culture date ranges), and the provider selection behind dual-database mode.
+Unit tests are implemented with **xUnit** covering domain logic, stock policies, the pricing engine, the settlement policy and the payments ledger (recording, voiding, and the derived checkout flag against a real database file), the permission matrix, password hashing, money formatting, the data layer (the SQLite schema, the grid queries against a real database file, and the Persian-culture date ranges), and the provider selection behind dual-database mode.
 
 The WPF-facing helpers are covered too. `Money` (grouping, parsing, the culture's own separator) is tested directly, and the price field's typing behaviour — caret tracking, and backspace with the caret just past a separator — is tested on a borrowed STA thread, because a window cannot be opened from a test run. The generated-grid price formatting is tested against a real `DataGrid` bound to a `DataTable`.
 
@@ -331,7 +344,7 @@ dotnet test
 Expected output:
 
 ```text
-Passed!  - Failed: 0, Passed: 243, Skipped: 0, Total: 243
+Passed!  - Failed: 0, Passed: 304, Skipped: 0, Total: 304
 ```
 
 ---
@@ -350,6 +363,7 @@ Passed!  - Failed: 0, Passed: 243, Skipped: 0, Total: 243
 - **صدور و مدیریت فاکتور**: محاسبه خودکار اقلام، اعمال کدهای تخفیف، تبدیل تاریخ به تقویم هجری شمسی و چاپ فاکتور استاندارد با موتور <span dir="ltr">QuestPDF</span> (چیدمان کدنویسی‌شده به‌جای فایل قالب، با پشتیبانی کامل راست‌به‌چپ و فونت فارسی).
 - **نمایش خوانای مبالغ**: قیمت‌ها در هر جا که دیده می‌شوند — داخل فیلد ورودی، ستون جدول و جمع فاکتور — با جداکننده هزارگان نمایش داده می‌شوند و در زمان ذخیره، جداکننده‌ها حذف می‌شوند. واحد پول (تومان) روی فیلد قیمت درج شده است.
 - **کدهای تخفیف**: ایجاد کدهای تخفیف درصدی و مبلغی با قابلیت تعیین سقف استفاده و بازه زمانی معتبر.
+- **وصولی و مانده حساب**: ثبت پرداخت مشتری (کامل یا بخشی) بابت هر فاکتور، نگهداری مانده حساب هر مشتری و فاکتور، چاپ <span dir="ltr">رسید دریافت</span> و گزارش <span dir="ltr">مانده حساب</span> مشتریان. وضعیت «پرداخت شده» دیگر یک گزینه دستی نیست و از همین وصولی‌ها محاسبه می‌شود، بنابراین هرگز با فهرست وصولی‌ها اختلاف پیدا نمی‌کند. پرداخت بیش از مانده حساب پذیرفته نمی‌شود. وصولی قابل ویرایش نیست؛ اشتباه با «ابطال» و ثبت دوباره اصلاح می‌شود، چون ممکن است نسخه چاپ‌شده آن دست مشتری باشد. گزینه «وضعیت پرداخت» در صفحه فاکتور همچنان یک کلیک است، ولی اکنون یک وصولی واقعی در همان تراکنش ثبت می‌کند.
 - **فعالیت‌ها و یادآورها**: ثبت تماس‌ها، جلسات و وظایف به تفکیک دسته‌بندی با اعلان و آلارم هوشمند.
 - **سامانه پیامک**: ارتباط با وب‌سرویس <span dir="ltr">SmsIr</span> برای ارسال پیامک‌های خوش‌آمدگویی، صدور فاکتور و اطلاع‌رسانی انبوه.
 - **سطوح دسترسی پیشرفته (<span dir="ltr">RBAC</span>)**: ماتریس دسترسی به تفکیک بخش‌ها (<span dir="ltr">Sections</span>) و عملیات (<span dir="ltr">View, Create, Edit, Delete</span>).
