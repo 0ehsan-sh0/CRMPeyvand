@@ -301,14 +301,32 @@ namespace CRMPeyvand.Tests
         [Fact]
         public void What_the_field_shows_is_what_gets_saved()
         {
-            int? saved = OnStaThread(() =>
+            long? saved = OnStaThread(() =>
             {
                 TextBox field = NewPriceField();
                 field.Text = "1234567";
                 return Money.ParseWhole(field.Text);
             });
 
-            Assert.Equal(1234567, saved);
+            Assert.Equal(1234567L, saved);
+        }
+
+        /// <summary>
+        /// The field used to hand its text to an int, so typing eleven digits came
+        /// back null and the form assumed nothing had been typed at all.
+        /// </summary>
+        [Fact]
+        public void A_wide_amount_survives_the_round_trip_out_of_the_field()
+        {
+            long? saved = OnStaThread(() =>
+            {
+                TextBox field = NewPriceField();
+                field.Text = "30000000000";
+                Assert.False(Money.IsTooLarge(field.Text));
+                return Money.ParseWhole(field.Text);
+            });
+
+            Assert.Equal(30000000000L, saved);
         }
     }
 }

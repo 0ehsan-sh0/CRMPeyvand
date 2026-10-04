@@ -148,7 +148,31 @@ namespace CRMPeyvand
         /// because the field is mid-edit most of the time and an amount too big
         /// for an int is a thing to tell the user, not to crash on.
         /// </summary>
-        public static int? ParseWhole(string text)
+        /// <summary>
+        /// The most a price field accepts, in whole Toman.
+        ///
+        /// Widened from int because 30,000,000,000 is not a strange number for this
+        /// business - it fits the DECIMAL(18,2) money columns without complaint -
+        /// and an int simply cannot hold it. long does, so a field now takes
+        /// anything the database could.
+        ///
+        /// Not that every long fits: the money columns hold 16 integer digits and
+        /// long has 19, so long is now comfortably wider than the storage and the
+        /// column is the real wall. The MoneyTests case
+        /// The_field_range_is_wider_than_int_and_wider_than_the_column pins that
+        /// relationship, so if the schema is ever widened the ceiling gets
+        /// revisited with it.
+        /// </summary>
+        public const long MaxFieldAmount = long.MaxValue;
+
+        /// <summary>
+        /// Reads a whole amount out of a field, ignoring the separators a grouped
+        /// field puts in for readability.
+        ///
+        /// Null means either "nothing here" or "wider than a long" - ask
+        /// IsTooLarge to tell those apart rather than guessing from the null.
+        /// </summary>
+        public static long? ParseWhole(string text)
         {
             string digits = Digits(text);
             if (digits.Length == 0)
@@ -156,43 +180,25 @@ namespace CRMPeyvand
                 return null;
             }
 
-            return int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out int amount)
+            return long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long amount)
                 ? amount
-                : (int?)null;
+                : (long?)null;
         }
-
-        /// <summary>
-        /// The most a price field will take. Fields are whole Toman, so this is
-        /// 2,147,483,647 Toman — some 21 billion Rial, far past any real price, and
-        /// deliberately a whole number rather than the largest decimal, because the
-        /// figures the fields hand back are ints.
-        /// </summary>
-        public const int MaxFieldAmount = int.MaxValue;
 
         /// <summary>
         /// True when the field holds digits, but more of them than a price field
         /// accepts.
         ///
         /// Worth separating from "there is nothing here" because the two need
-        /// different replies. ParseWhole returns null for an empty field, a field
-        /// with letters in it, AND a field holding a number too large to fit, so a
-        /// caller that only asks "did it parse?" tells someone whose field is full
-        /// that they have filled nothing in.
-        ///
-        /// Parsed as long rather than int so that "too big for a field" and "too
-        /// big for a long" are the same answer, instead of the second falling
-        /// through and looking like a different thing.
+        /// different replies. ParseWhole returns null for an empty field and for a
+        /// field holding a number too wide to fit, so a caller that only asks "did
+        /// it parse?" tells someone whose field is full that they have filled
+        /// nothing in.
         /// </summary>
         public static bool IsTooLarge(string text)
         {
             string digits = Digits(text);
-            if (digits.Length == 0)
-            {
-                return false;
-            }
-
-            return !long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long value)
-                || value > MaxFieldAmount;
+            return digits.Length != 0 && !long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long _);
         }
 
         /// <summary>

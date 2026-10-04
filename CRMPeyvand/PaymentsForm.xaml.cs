@@ -223,7 +223,7 @@ namespace CRMPeyvand
                 return;
             }
 
-            int? amount = Money.ParseWhole(txtAmount.Text);
+            long? amount = Money.ParseWhole(txtAmount.Text);
             if (!amount.HasValue)
             {
                 MessageBox.Show("مبلغ وصولی را وارد کنید", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);

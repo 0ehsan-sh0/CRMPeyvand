@@ -202,11 +202,12 @@ namespace CRMPeyvand.Tests
         }
 
         [Theory]
-        [InlineData("1,234,567", 1234567)]
-        [InlineData("1234", 1234)]
-        [InlineData(" 12,345 ", 12345)]
-        [InlineData("0", 0)]
-        public void ParseWhole_reads_a_grouped_amount(string typed, int expected)
+        [InlineData("1,234,567", 1234567L)]
+        [InlineData("1234", 1234L)]
+        [InlineData(" 12,345 ", 12345L)]
+        [InlineData("0", 0L)]
+        [InlineData("30,000,000,000", 30000000000L)]
+        public void ParseWhole_reads_a_grouped_amount(string typed, long expected)
         {
             Assert.Equal(expected, Money.ParseWhole(typed));
         }
@@ -228,15 +229,30 @@ namespace CRMPeyvand.Tests
         [Fact]
         public void ParseWhole_refuses_an_amount_past_the_range_rather_than_overflowing()
         {
-            Assert.Null(Money.ParseWhole("999999999999"));
+            Assert.Null(Money.ParseWhole("99999999999999999999999999"));
         }
 
+        /// <summary>
+        /// Fields were once read into an int, so a price of 30,000,000,000 - a
+        /// figure that fits the database column without trouble - came back null and
+        /// was reported as an empty field. long is what the stored column can
+        /// actually be asked for.
+        /// </summary>
         [Theory]
         [InlineData("2147483648")]
         [InlineData("30000000000")]
-        [InlineData("999,999,999,999")]
+        [InlineData("999999999999")]
+        [InlineData("9223372036854775807")]
+        public void A_price_beyond_the_old_int_range_is_read_normally(string typed)
+        {
+            Assert.Equal(long.Parse(typed), Money.ParseWhole(typed));
+            Assert.False(Money.IsTooLarge(typed));
+        }
+
+        [Theory]
         [InlineData("99999999999999999999999999")]
-        public void A_number_too_big_for_the_field_is_recognised_as_such(string typed)
+        [InlineData("9223372036854775808")]
+        public void A_number_wider_than_a_long_is_recognised_as_such(string typed)
         {
             Assert.True(Money.IsTooLarge(typed));
         }
@@ -249,24 +265,45 @@ namespace CRMPeyvand.Tests
         [InlineData("0")]
         [InlineData("1234")]
         [InlineData("12,345")]
-        [InlineData("2147483647")]
         public void A_field_that_is_blank_or_within_range_is_not_too_large(string typed)
         {
             Assert.False(Money.IsTooLarge(typed));
         }
 
         /// <summary>
-        /// The two used to be the same null, so a form asking only "did it parse?"
-        /// told someone whose field was full that they had filled nothing in.
+        /// Too large and blank used to be the same null, so a form asking only "did
+        /// it parse?" told someone whose field was full that they had filled
+        /// nothing in.
         /// </summary>
         [Fact]
         public void Too_large_and_blank_are_different_answers()
         {
-            Assert.Null(Money.ParseWhole("30000000000"));
-            Assert.True(Money.IsTooLarge("30000000000"));
+            Assert.Null(Money.ParseWhole("99999999999999999999999999"));
+            Assert.True(Money.IsTooLarge("99999999999999999999999999"));
 
             Assert.Null(Money.ParseWhole(""));
             Assert.False(Money.IsTooLarge(""));
+        }
+
+        /// <summary>
+        /// The widest amount a field accepts, once Toman has been converted to the
+        /// Rial that gets stored, still has to be typeable - so the money columns,
+        /// not the field, have to be the wall.
+        /// </summary>
+        [Fact]
+        public void The_field_range_is_wider_than_int_and_wider_than_the_column()
+        {
+            Assert.True(Money.MaxFieldAmount > int.MaxValue);
+            Assert.Equal(long.MaxValue, Money.MaxFieldAmount);
+
+            // DECIMAL(18,2) is eighteen digits, two of them after the point, so
+            // sixteen before it. Fields are in Toman and the column is in Rial, so
+            // compare the two like with like rather than across the conversion.
+            decimal widestStoredColumn = 9999999999999999.99m;
+            decimal widestFieldThatStillFits = Money.ToToman(widestStoredColumn);
+
+            Assert.True(widestFieldThatStillFits < Money.MaxFieldAmount,
+                "anything the column can store has to be typeable into a field");
         }
 
         [Theory]
@@ -276,10 +313,11 @@ namespace CRMPeyvand.Tests
         [InlineData("1000")]
         [InlineData("1234567")]
         [InlineData("1234567890")]
+        [InlineData("30000000000")]
         public void Parsing_back_what_Group_wrote_gives_the_original_amount(string digits)
         {
             WithCulture(CultureInfo.GetCultureInfo("fa-IR"), () =>
-                Assert.Equal(int.Parse(digits, CultureInfo.InvariantCulture), Money.ParseWhole(Money.Group(digits))));
+                Assert.Equal(long.Parse(digits, CultureInfo.InvariantCulture), Money.ParseWhole(Money.Group(digits))));
         }
 
         [Theory]

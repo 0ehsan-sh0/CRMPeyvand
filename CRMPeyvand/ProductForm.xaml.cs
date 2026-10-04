@@ -90,7 +90,7 @@ namespace CRMPeyvand
             }
             // What the field shows is grouped for reading, so the separators have
             // to come back off before it is a number again.
-            int? price = Money.ParseWhole(txtPrice.Text);
+            long? price = Money.ParseWhole(txtPrice.Text);
             CatalogItem product = new CatalogItem()
             {
                 Name = txtName.Text,
