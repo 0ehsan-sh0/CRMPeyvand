@@ -63,10 +63,6 @@
 <TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" LostFocus="txtInvoiceNumber_LostFocus" KeyDown="txtInvoiceNumber_KeyDown" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
             </Border>
             <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" Foreground="#4A8FE7" VerticalAlignment="Center" Margin="10,0,0,0"/>
-            <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" VerticalAlignment="Center" Margin="71,0,60,0"/>
-            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
-                <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
-            </Border>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,20,22,36" Grid.RowSpan="2">
@@ -75,15 +71,21 @@
                 <TextBox Style="{StaticResource InputTextBox}" x:Name="txtAmount" TabIndex="1" TextChanged="txtAmount_TextChanged" PreviewKeyDown="txtAmount_PreviewKeyDown"/>
             </Border>
             <Label Style="{StaticResource TextBoxLabel}" Content="تومان" VerticalAlignment="Center" Margin="8,0,0,0"/>
-            <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" VerticalAlignment="Center" Margin="45,0,8,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" VerticalAlignment="Center" Margin="71,0,8,0"/>
             <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
-                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
+                <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
             </Border>
+
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,14,22,42" Grid.RowSpan="2">
             <Label Style="{StaticResource TextBoxLabel}" Content="تاریخ وصول :" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" Width="230" Height="30" TabIndex="3"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" VerticalAlignment="Center" Margin="66,0,8,0"/>
+            <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
+                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
+            </Border>
+
         </StackPanel>
 
         <!--The border is left to hug the button. Setting a height on it left a 30px
