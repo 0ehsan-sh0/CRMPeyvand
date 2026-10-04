@@ -1,6 +1,6 @@
 # CRMPeyvand
 
-Persian-language CRM desktop application: manages customers, a catalog of goods and services, sales invoices, activities and reminders, SMS messaging, and employee access control.
+Persian-language CRM desktop application: manages customers, a catalog of goods and services, sales invoices and the payments received against them, activities and reminders, SMS messaging, and employee access control.
 
 ## Language
 
@@ -31,6 +31,23 @@ _Avoid_: product-invoice link, order detail
 **Discount Code**:
 A code that grants a discount applied to an Invoice.
 _Avoid_: OffCode
+
+### Receivables
+
+**Payment**:
+Money received from a Customer, recorded against exactly one Invoice and reducing what that Invoice still owes. Never larger than the Invoice's Outstanding Balance.
+_Avoid_: پرداخت (ambiguous — it reads as the generic act of paying), بدهی
+
+**Payment Receipt**:
+The printed proof of a Payment, numbered by the Payment's own identity.
+_Avoid_: رسید پرداخت
+
+**Payment Instrument**:
+How a Payment was tendered: cash, card, transfer, cheque, or other.
+
+**Outstanding Balance**:
+What an Invoice still owes after its Payments; zero once fully settled.
+_Avoid_: هزینه پرداختی (legacy grid column meaning the Invoice total, not the unpaid part)
 
 ### People & Access
 

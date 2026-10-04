@@ -33,5 +33,10 @@ namespace BLL
         {
             return dal.PanelIsActive();
         }
+
+        public string DebtorCustomerCount()
+        {
+            return dal.DebtorCustomerCount();
+        }
     }
 }

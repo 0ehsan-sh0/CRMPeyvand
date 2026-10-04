@@ -77,26 +77,6 @@ namespace CRMPeyvand.Tests
         }
 
         [Fact]
-        public void Customer_balance_sums_only_their_live_invoices()
-        {
-            var customer = new Customer();
-
-            var live = new Invoice { DiscountAmount = 0m };
-            live.Lines.Add(new InvoiceLine { Quantity = 1, UnitPrice = 8000m });
-            live.Payments.Add(new Payment { Amount = 3000m });
-
-            var deleted = new Invoice { DeleteStatus = true, DiscountAmount = 0m };
-            deleted.Lines.Add(new InvoiceLine { Quantity = 1, UnitPrice = 100000m });
-
-            customer.Invoices.Add(live);
-            customer.Invoices.Add(deleted);
-
-            Assert.Equal(8000m, customer.PayableTotal);
-            Assert.Equal(3000m, customer.PaidTotal);
-            Assert.Equal(5000m, customer.Balance);
-        }
-
-        [Fact]
         public void Instrument_captions_are_the_words_the_grid_and_the_receipt_share()
         {
             Assert.Equal("نقد", PaymentInstrumentTitles.Of(PaymentInstrument.Cash));

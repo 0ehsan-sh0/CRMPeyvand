@@ -9,9 +9,14 @@ namespace BLL
     {
         InvoiceDAL dal = new InvoiceDAL();
 
-        public Invoice Create(Invoice invoice, int customerId, IReadOnlyList<InvoiceLine> lines)
+        /// <summary>
+        /// settledBy is non-null when the «وضعیت پرداخت» checkbox was ticked,
+        /// meaning the full payable arrived at the counter as the invoice was
+        /// written.
+        /// </summary>
+        public Invoice Create(Invoice invoice, int customerId, IReadOnlyList<InvoiceLine> lines, Payment settledBy)
         {
-            return dal.Create(invoice, customerId, lines, StockPolicy.Validate, Pricing.ComputeDiscount);
+            return dal.Create(invoice, customerId, lines, StockPolicy.Validate, Pricing.ComputeDiscount, settledBy);
         }
 
 
@@ -36,12 +41,6 @@ namespace BLL
         public string Delete(int id)
         {
             return dal.Delete(id);
-        }
-
-
-        public string Done(int id)
-        {
-            return dal.Done(id);
         }
 
 

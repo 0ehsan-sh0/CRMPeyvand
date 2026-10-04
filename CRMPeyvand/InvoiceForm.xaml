@@ -172,7 +172,7 @@
                                 <Image Source="/Images/Delete.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miDone" Header="پرداخت شد" Click="miDone_Click">
+                        <MenuItem Style="{StaticResource MenuItem}" x:Name="miRecordPayment" Header="ثبت وصولی" Click="miRecordPayment_Click">
                             <MenuItem.Icon>
                                 <Image Source="/Images/Checked.png"/>
                             </MenuItem.Icon>

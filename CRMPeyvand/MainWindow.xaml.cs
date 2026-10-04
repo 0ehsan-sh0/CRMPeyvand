@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,6 +46,7 @@ namespace CRMPeyvand
         bool EnterG;
         bool EnterR;
         bool EnterS;
+        bool EnterV;
         public void LoadPage()
         {
             #region CanEnter
@@ -100,6 +101,23 @@ namespace CRMPeyvand
                     InvoiceLabel.IsEnabled = true;
                     InvoiceIcon.Opacity = 1;
                     InvoiceLabel.Opacity = 1;
+                }
+
+                if (!AccessGuard.Can(loggedInUser, Section.Payments, Operation.View))
+                {
+                    EnterV = false;
+                    PaymentIcon.IsEnabled = false;
+                    PaymentLabel.IsEnabled = false;
+                    PaymentIcon.Opacity = 0.7;
+                    PaymentLabel.Opacity = 0.7;
+                }
+                else
+                {
+                    EnterV = true;
+                    PaymentIcon.IsEnabled = true;
+                    PaymentLabel.IsEnabled = true;
+                    PaymentIcon.Opacity = 1;
+                    PaymentLabel.Opacity = 1;
                 }
 
                 if (!AccessGuard.Can(loggedInUser, Section.Activities, Operation.View))
@@ -218,6 +236,8 @@ namespace CRMPeyvand
                 SMSLabel.IsEnabled = false;
                 ReportIcon.IsEnabled = false;
                 ReportLabel.IsEnabled = false;
+                PaymentIcon.IsEnabled = false;
+                PaymentLabel.IsEnabled = false;
                 SettingIcon.IsEnabled = false;
                 SettingIcon.Visibility = Visibility.Hidden;
             }
@@ -342,6 +362,8 @@ namespace CRMPeyvand
                 SMSLabel.IsEnabled = false;
                 ReportIcon.IsEnabled = false;
                 ReportLabel.IsEnabled = false;
+                PaymentIcon.IsEnabled = false;
+                PaymentLabel.IsEnabled = false;
                 SettingIcon.IsEnabled = false;
                 SettingIcon.Visibility = Visibility.Hidden;
             }
@@ -436,6 +458,13 @@ namespace CRMPeyvand
             }
         }
 
+        private void PaymentIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            PaymentsForm list = new PaymentsForm();
+            openform(list);
+            RefreshPage();
+        }
+
         private void ReportIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             ReportsWindow list = new ReportsWindow();
@@ -526,6 +555,14 @@ namespace CRMPeyvand
                     {
                         InvoiceForm list = new InvoiceForm();
                         openform(list);
+                        RefreshPage();
+                    }
+                    break;
+                case Key.V:
+                    if (EnterV)
+                    {
+                        PaymentsForm payments = new PaymentsForm();
+                        openform(payments);
                         RefreshPage();
                     }
                     break;

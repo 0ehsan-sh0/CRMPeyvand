@@ -141,6 +141,28 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// How many customers owe something, as a counter string.
+        ///
+        /// Counted in memory over the book rather than in SQL because the balance
+        /// is a sum over an invoice's lines and payments, and SQLite cannot be
+        /// asked for all three in one query. This is the only dashboard figure that
+        /// materialises; the rest of this class is a plain Count, so on a very
+        /// large book this is the expensive card. Try/catch to "0" like its
+        /// neighbours.
+        /// </summary>
+        public string DebtorCustomerCount()
+        {
+            try
+            {
+                return BalanceQuery.LoadDebtors(db).Count.ToString();
+            }
+            catch
+            {
+                return "0";
+            }
+        }
+
         public bool PanelIsActive()
         {
             try

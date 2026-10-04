@@ -60,6 +60,7 @@ namespace CRMPeyvand
             { Section.Reports, "بخش گزارشات" },
             { Section.Settings, "بخش تنظیمات" },
             { Section.Discounts, "بخش تخفیف ها" },
+            { Section.Payments, "بخش وصولی ها" },
         };
 
         private void BuildPermissionMatrix()

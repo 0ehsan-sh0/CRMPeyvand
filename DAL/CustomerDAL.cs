@@ -50,16 +50,36 @@ namespace DAL
             }
         }
         private static readonly string[] ReadColumns =
-            { "نام", "شماره تماس", "تاریخ ثبت" };
+            { "نام", "شماره تماس", "تاریخ ثبت", "مانده حساب" };
+
+        /// <summary>
+        /// The customers with what they owe, keyed by customer id.
+        ///
+        /// Loaded separately from the row projection because the balance is a sum
+        /// over the customer's invoices, their lines and their payments, and
+        /// SQLite cannot be asked for all three in one query. See BalanceQuery.
+        /// </summary>
+        private Dictionary<int, CustomerBalance> LoadBalances()
+        {
+            return BalanceQuery.Load(db).ToDictionary(b => b.Customer.id);
+        }
 
         public DataTable Read()
         {
+            var balances = LoadBalances();
             var rows = db.Customers
+                .AsNoTracking()
                 .Where(i => i.DeleteStatus == false)
                 .OrderByDescending(i => i.id)
                 .Take(GridTable.DefaultRowLimit)
                 .ToList()
-                .Select(i => new object[] { i.Name, i.Phone, i.RegDate })
+                .Select(i => new object[]
+                {
+                    i.Name,
+                    i.Phone,
+                    i.RegDate,
+                    balances.TryGetValue(i.id, out var balance) ? balance.Balance : 0m,
+                })
                 .ToList();
 
             return GridTable.Build(ReadColumns, rows);
@@ -113,13 +133,22 @@ namespace DAL
         }
         public DataTable Search(string Filter)
         {
+            var balances = LoadBalances();
             var rows = db.Customers
+                .AsNoTracking()
                 .Where(i => i.DeleteStatus == false)
                 .OrderByDescending(i => i.id)
                 .Take(GridTable.DefaultRowLimit)
+                .ToList()
                 .AsEnumerable()
                 .Where(i => GridTable.Matches(Filter, i.Name, i.Phone))
-                .Select(i => new object[] { i.Name, i.Phone, i.RegDate })
+                .Select(i => new object[]
+                {
+                    i.Name,
+                    i.Phone,
+                    i.RegDate,
+                    balances.TryGetValue(i.id, out var balance) ? balance.Balance : 0m,
+                })
                 .ToList();
 
             return GridTable.Build(ReadColumns, rows);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -83,7 +83,7 @@ namespace CRMPeyvand.Tests
                 db.SaveChanges();
 
                 var table = new CustomerDAL(db).Read();
-                Assert.Equal(new[] { "نام", "شماره تماس", "تاریخ ثبت" },
+                Assert.Equal(new[] { "نام", "شماره تماس", "تاریخ ثبت", "مانده حساب" },
                              table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
                 Assert.Single(table.Rows);
             });
@@ -870,24 +870,29 @@ namespace CRMPeyvand.Tests
         }
 
         [Fact]
-        public void Invoice_Read_returns_the_seven_persian_headers()
+        public void Invoice_Read_returns_the_nine_persian_headers()
         {
             SqliteTestDb.WithDb(db =>
             {
                 SeedInvoice(db);
 
                 var table = new InvoiceDAL(db).Read();
-                // Copied from the AS aliases of the T-SQL this replaces, in its
-                // order: the two computed columns come last, not in the middle.
+                // The three money columns come last, in the order a reader wants
+                // them: what it came to, what was paid, what is left.
                 Assert.Equal(
                     new[] { "شماره فاکتور", "وضعیت پرداخت", "تاریخ پرداخت", "کد تخفیف", "تاریخ ثبت",
-                            "تعداد کالاهای فاکتور", "هزینه پرداختی" },
+                            "تعداد کالاهای فاکتور", "مبلغ کل فاکتور", "مبلغ پرداخت شده", "مانده حساب" },
                     table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
 
                 // "قیمت کل" existed only as an alias inside the stored procedure
                 // deleted in the first task. The live query had no joins at all,
                 // so there is no customer name and no user name either.
                 Assert.DoesNotContain("قیمت کل",
+                                      table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+
+                // «هزینه پرداختی» is gone: beside a real payments feature the word
+                // «پرداختی» read as *paid*, which it never meant.
+                Assert.DoesNotContain("هزینه پرداختی",
                                       table.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
             });
         }
@@ -911,7 +916,7 @@ namespace CRMPeyvand.Tests
                 var table = new InvoiceDAL(db).Read();
                 Assert.Single(table.Rows);
                 Assert.Equal(5, Convert.ToInt32(table.Rows[0]["تعداد کالاهای فاکتور"]));
-                Assert.Equal(5000m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
+                Assert.Equal(5000m, Convert.ToDecimal(table.Rows[0]["مبلغ کل فاکتور"]));
             });
         }
 
@@ -928,7 +933,7 @@ namespace CRMPeyvand.Tests
                 db.SaveChanges();
 
                 var table = new InvoiceDAL(db).Read();
-                Assert.Equal(4250m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
+                Assert.Equal(4250m, Convert.ToDecimal(table.Rows[0]["مبلغ کل فاکتور"]));
             });
         }
 
@@ -944,8 +949,8 @@ namespace CRMPeyvand.Tests
                 // which is why the grid must show 0 rather than a blank.
                 var table = new InvoiceDAL(db).Read();
                 Assert.Equal(0, Convert.ToInt32(table.Rows[0]["تعداد کالاهای فاکتور"]));
-                Assert.Equal(0m, Convert.ToDecimal(table.Rows[0]["هزینه پرداختی"]));
-                Assert.NotEqual(DBNull.Value, table.Rows[0]["هزینه پرداختی"]);
+                Assert.Equal(0m, Convert.ToDecimal(table.Rows[0]["مبلغ کل فاکتور"]));
+                Assert.NotEqual(DBNull.Value, table.Rows[0]["مبلغ کل فاکتور"]);
             });
         }
 
@@ -964,7 +969,7 @@ namespace CRMPeyvand.Tests
                 // 3 * 1234.56 = 3703.68, less 0.03. The old SQL rounded this
                 // through float, which would report 3703.6499023437504 here.
                 var row = new InvoiceDAL(db).Read().Rows[0];
-                Assert.Equal(3703.65m, Convert.ToDecimal(row["هزینه پرداختی"]));
+                Assert.Equal(3703.65m, Convert.ToDecimal(row["مبلغ کل فاکتور"]));
             });
         }
 
@@ -1850,3 +1855,4 @@ namespace CRMPeyvand.Tests
         }
     }
 }
+

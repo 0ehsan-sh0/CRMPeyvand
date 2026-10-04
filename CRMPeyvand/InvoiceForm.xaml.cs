@@ -169,15 +169,7 @@ namespace CRMPeyvand
                 btnAdd.IsEnabled = true;
                 Print.IsEnabled = true;
             }
-            if (!AccessGuard.Can(u, Section.Invoices, Operation.Edit))
-            {
-                miDone.IsEnabled = false;
-            }
-            else
-            {
-                miDone.IsEnabled = true;
-            }
-            if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
+if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
             {
                 miDelete.IsEnabled = false;
                 miDeleteInvoice.IsEnabled = false;
@@ -186,6 +178,15 @@ namespace CRMPeyvand
             {
                 miDelete.IsEnabled = true;
                 miDeleteInvoice.IsEnabled = true;
+            }
+
+            if (!AccessGuard.Can(u, Section.Payments, Operation.Create))
+            {
+                miRecordPayment.IsEnabled = false;
+            }
+            else
+            {
+                miRecordPayment.IsEnabled = true;
             }
 
             txtCustomer.ItemsSource = Cbll.ReadPhoneNumbers();
@@ -229,19 +230,15 @@ namespace CRMPeyvand
                 Invoice savedInvoice;
                 try
                 {
-                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), null);
                 }
                 catch (InvalidOperationException ex)
                 {
                     MessageBox.Show(ex.Message, "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                if (IsCheckedOutImage.Visibility == Visibility.Visible)
-                {
-                    Ibll.Done(savedInvoice.id);
-                }
-                FillInvoices(Ibll.Read());
+MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+FillInvoices(Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 dgvProduts.ItemsSource = null;
                 draftLines.Clear();
@@ -289,9 +286,21 @@ namespace CRMPeyvand
 
         }
 
-        private void miDone_Click(object sender, RoutedEventArgs e)
+private void miRecordPayment_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(Ibll.Done(invoiceEdit.id));
+            if (!AccessGuard.Can(u, Section.Payments, Operation.Create))
+            {
+                MessageBox.Show("شما به ثبت وصولی دسترسی ندارید", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (invoiceEdit != null && invoiceEdit.id != 0)
+            {
+                PaymentsForm form = new PaymentsForm(invoiceEdit.id);
+                form.ShowDialog();
+                FillInvoices(Ibll.Read());
+                lblCount.Content = Ibll.CountInvoices();
+            }
         }
 
         private void dgvInvoices_ContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -336,19 +345,15 @@ namespace CRMPeyvand
                 Invoice savedInvoice;
                 try
                 {
-                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList());
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), null);
                 }
                 catch (InvalidOperationException ex)
                 {
                     MessageBox.Show(ex.Message, "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                if (IsCheckedOutImage.Visibility == Visibility.Visible)
-                {
-                    Ibll.Done(savedInvoice.id);
-                }
-                FillInvoices(Ibll.Read());
+MessageBox.Show($"فاکتور با شماره {savedInvoice.id} ثبت شد", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
+FillInvoices(Ibll.Read());
                 lblCount.Content = Ibll.CountInvoices();
                 try
                 {

@@ -24,12 +24,19 @@ namespace DAL
             this.db = db;
         }
 
-        // Creates invoice + lines atomically, validates/decrements Goods stock, returns saved invoice with id.
-        // validateStock / computeDiscount are injected from BLL (StockPolicy.Validate / Pricing.ComputeDiscount)
-        // because the DAL assembly cannot reference BLL (BLL references DAL).
+        // Creates invoice + lines + optional settling payment atomically, validates/
+        // decrements Goods stock, returns saved invoice with id.
+        // validateStock / computeDiscount are injected from BLL (StockPolicy.Validate /
+        // Pricing.ComputeDiscount) because the DAL assembly cannot reference BLL
+        // (BLL references DAL). settledBy is the «وضعیت پرداخت» checkbox: when the
+        // employee ticks it while composing the invoice, the full payable arrived at
+        // the counter, so a real Payment is written here inside the transaction that
+        // creates the invoice. It used to be a second call to Done() in a second
+        // context afterwards, which was never atomic and recorded no amount.
         public Invoice Create(Invoice invoice, int customerId, IReadOnlyList<InvoiceLine> lines,
             Func<CatalogItem, int, InvalidOperationException> validateStock,
-            Func<OffCode, decimal, decimal> computeDiscount)
+            Func<OffCode, decimal, decimal> computeDiscount,
+            Payment settledBy)
         {
             // Per-call context: a rollback must not leave modified entities pending in a
             // shared long-lived tracker (phantom decrements would flush on the next SaveChanges).
@@ -57,6 +64,19 @@ namespace DAL
                                 : db.OffCodes.FirstOrDefault(o => o.Code == invoice.OffCode),
                             invoice.SubTotal);
                         db.Invoices.Add(invoice);
+                        if (settledBy != null)
+                        {
+                            // The amount can only be known now: it is the payable,
+                            // and the payable depends on the discount the line
+                            // above just computed.
+                            settledBy.Amount = invoice.Payable;
+                            settledBy.RegDate = invoice.RegDate;
+                            settledBy.User = invoice.User;
+                            settledBy.Invoice = invoice;
+                            db.Payments.Add(settledBy);
+                            invoice.Payments.Add(settledBy);
+                            SettlementFlag.Apply(invoice, invoice.Payable);
+                        }
                         db.SaveChanges();
                         transaction.Commit();
                         return invoice;
@@ -67,31 +87,6 @@ namespace DAL
                         throw;
                     }
                 }
-            }
-        }
-
-
-        public string Done(int id)
-        {
-            try
-            {
-                var q = db.Invoices.Where(i => i.id == id).FirstOrDefault();
-                if (q != null)
-                {
-                    q.IsCheckedout = true;
-                    q.CheckoutDate = DateTime.Now;
-                    db.SaveChanges();
-                    return "تسویه حساب انجام شد";
-                }
-                else
-                {
-                    return "ستون مورد نظر یافت نشد";
-                }
-            }
-            catch (Exception e)
-            {
-
-                return "تسویه حساب شخص  با مشکلی روبرو شد لطفا برسی کنید:\n" + e.Message;
             }
         }
 
@@ -117,24 +112,28 @@ namespace DAL
         private static readonly string[] ReadColumns =
         {
             "شماره فاکتور", "وضعیت پرداخت", "تاریخ پرداخت", "کد تخفیف", "تاریخ ثبت",
-            "تعداد کالاهای فاکتور", "هزینه پرداختی",
+            "تعداد کالاهای فاکتور", "مبلغ کل فاکتور", "مبلغ پرداخت شده", "مانده حساب",
         };
 
         /// <summary>
         /// The rows behind the grid, newest first.
         ///
         /// Include("Lines") replaces the pair of correlated subqueries the old
-        /// SQL ran per invoice over InvoiceLines. It is not optional: EF6 does
-        /// not lazy load, so without it the two sums see an empty collection.
+        /// SQL ran per invoice over InvoiceLines, and Include("Payments") is what
+        /// makes «مبلغ پرداخت شده» and «مانده حساب» real numbers rather than
+        /// zeros. Neither is optional: EF6 does not lazy load, so without them the
+        /// sums see empty collections.
+        ///
         /// The projection itself is deliberately in memory rather than in the
         /// SQL, because EF6 cannot project a collection aggregate - and neither
-        /// provider can do the grouping LINQ would need to express it. Two
-        /// sums over the one materialised collection is a single pass.
+        /// provider can do the grouping LINQ would need to express it. Sums over
+        /// the one materialised collection are a single pass.
         /// </summary>
         private List<object[]> InvoiceRows()
         {
             return db.Invoices
                 .Include("Lines")
+                .Include("Payments")
                 .Where(i => i.DeleteStatus == false)
                 .OrderByDescending(i => i.id)
                 .Take(GridTable.DefaultRowLimit)
@@ -142,17 +141,21 @@ namespace DAL
                 .Select(i => new object[]
                 {
                     i.id,
-                    i.IsCheckedout,
+                    // Persian rather than the bool. The column carried a bool in an
+                    // object[] and rendered the literal text "True"/"False".
+                    i.IsCheckedout ? "پرداخت شده" : "پرداخت نشده",
                     i.CheckoutDate,
                     i.OffCode,
                     i.RegDate,
                     // ISNULL(SUM(l.Quantity), 0) becomes Sum, which returns 0
                     // for an empty sequence rather than null.
                     i.Lines.Sum(l => l.Quantity),
-                    // Kept in decimal. The old expression was wrapped in float
-                    // by a sibling query, so money totals lost cents; decimal
-                    // arithmetic is exact and the tests pin it.
-                    i.Lines.Sum(l => l.Quantity * l.UnitPrice) - i.DiscountAmount,
+                    // Payable rather than the raw expression this used to carry:
+                    // it is clamped, and clamping matters now that a payment is
+                    // measured against it.
+                    i.Payable,
+                    i.Paid,
+                    i.Balance,
                 })
                 .ToList();
         }
@@ -192,12 +195,14 @@ namespace DAL
         }
 
         // Full invoice for the details view: navigation properties are not lazy loaded, so they must be pulled in explicitly.
+        // Payments is what backs «مبلغ پرداخت شده» and «مانده حساب» on the screen.
         public Invoice ReadDetails(int id)
         {
             return db.Invoices
                 .Include("Customer")
                 .Include("User")
                 .Include("Lines.CatalogItem")
+                .Include("Payments")
                 .FirstOrDefault(i => i.id == id);
         }
         public DataTable Search(string Filter)

@@ -3,6 +3,7 @@ using Section = BE.Section;
 using BLL;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,6 +33,20 @@ namespace CRMPeyvand
         Customer customer = new Customer();
         UserBLL Ubll = new UserBLL();
         User u = new User();
+
+        /// <summary>
+        /// The DAL's own name for the balance column, so the grid groups the
+        /// column the query produced rather than a name repeated here. Every fill
+        /// has to name it again: a grid generated from a DataTable throws its
+        /// columns away and rebuilds them each time, and searching narrows the
+        /// rows.
+        /// </summary>
+        private const string BalanceColumn = "مانده حساب";
+
+        private void FillCustomers(DataTable table)
+        {
+            PublicMethods.dgvFiller(dgvCustomer, table, BalanceColumn);
+        }
 
         private void BackToHome_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -66,7 +81,7 @@ namespace CRMPeyvand
             {
                 DeleteCustomer.IsEnabled = true;
             }
-            PublicMethods.dgvFiller(dgvCustomer, bll.Read());
+            FillCustomers(bll.Read());
             Count.Content = bll.CustomerCount();
         }
 
@@ -83,7 +98,7 @@ namespace CRMPeyvand
                 if (btnAddProduct.Content.ToString() == "ثبت مشتری")
                 {
                     MessageBox.Show(bll.Create(c), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                    PublicMethods.dgvFiller(dgvCustomer, bll.Read());
+                    FillCustomers(bll.Read());
                     txtName.Clear();
                     txtPhone.Clear();
                     Count.Content = bll.CustomerCount();
@@ -92,7 +107,7 @@ namespace CRMPeyvand
                 else if (btnAddProduct.Content.ToString() == "ویرایش مشتری")
                 {
                     MessageBox.Show(bll.Update(c, customer.id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                    PublicMethods.dgvFiller(dgvCustomer, bll.Read());
+                    FillCustomers(bll.Read());
                     btnAddProduct.Content = "ثبت مشتری";
                     if (!AccessGuard.Can(u, Section.Customers, Operation.Create))
                     {
@@ -118,9 +133,9 @@ namespace CRMPeyvand
         {
             if (txtSearchCustomer.Text != String.Empty)
             {
-                PublicMethods.dgvFiller(dgvCustomer, bll.Search(txtSearchCustomer.Text));
+                FillCustomers(bll.Search(txtSearchCustomer.Text));
             }
-            else PublicMethods.dgvFiller(dgvCustomer, bll.Read());
+            else FillCustomers(bll.Read());
         }
 
         private void EditCustomerMI_Click(object sender, RoutedEventArgs e)
@@ -152,7 +167,7 @@ namespace CRMPeyvand
             {
                 bll.Delete(customer.id);
                 Count.Content = bll.CustomerCount();
-                PublicMethods.dgvFiller(dgvCustomer, bll.Read());
+                FillCustomers(bll.Read());
             }
 
         }
@@ -181,3 +196,4 @@ namespace CRMPeyvand
         }
     }
 }
+
