@@ -215,6 +215,20 @@ namespace CRMPeyvand.Reports.Documents
                             r.RelativeItem().AlignLeft().Text(PersianReportStyle.FormatCurrency(Model.DiscountAmount)).Style(PersianReportStyle.SummaryValueStyle);
                         });
 
+                        // Paid so far
+                        col.Item().Row(r =>
+                        {
+                            r.AutoItem().Text("پرداخت شده:").Style(PersianReportStyle.SummaryLabelStyle);
+                            r.RelativeItem().AlignLeft().Text(PersianReportStyle.FormatCurrency(Model.PaidAmount)).Style(PersianReportStyle.SummaryValueStyle);
+                        });
+
+                        // What is still owed
+                        col.Item().Row(r =>
+                        {
+                            r.AutoItem().Text("مانده حساب:").Style(PersianReportStyle.SummaryLabelStyle);
+                            r.RelativeItem().AlignLeft().Text(PersianReportStyle.FormatCurrency(Model.RemainingBalance)).Style(PersianReportStyle.SummaryValueStyle);
+                        });
+
                         col.Item().LineHorizontal(0.5f).LineColor(PersianReportStyle.ColorBorder);
 
                         // Final Total

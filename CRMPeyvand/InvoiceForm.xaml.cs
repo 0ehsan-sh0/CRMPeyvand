@@ -47,23 +47,32 @@ namespace CRMPeyvand
         User u = new User();
         OffCode off = new OffCode();
 
+        /// <summary>
+        /// The instant the invoice being composed is dated. The settling payment
+        /// carries the same one, so an invoice paid at the counter is not a
+        /// fraction of a second older than its own receipt.
+        /// </summary>
+        private DateTime invoiceRegDate;
+
         private const string InvoiceNumberColumn = "شماره فاکتور";
 
         /// <summary>
-        /// The DAL's own name for the amount column, so the grid groups the column
-        /// the query produced rather than a name repeated here. The line grid
-        /// declares its own columns and already carries "N0".
+        /// The DAL's own names for the money columns, so the grid groups the
+        /// columns the query produced rather than names repeated here. The line
+        /// grid declares its own columns and already carries "N0".
         /// </summary>
-        private const string AmountColumn = "هزینه پرداختی";
+        private const string InvoiceTotalColumn = "مبلغ کل فاکتور";
+        private const string PaidColumn = "مبلغ پرداخت شده";
+        private const string BalanceColumn = "مانده حساب";
 
         /// <summary>
-        /// Every fill has to name the amount column again: a grid generated from a
+        /// Every fill has to name the money columns again: a grid generated from a
         /// DataTable throws its columns away and rebuilds them each time, and
         /// searching narrows the rows.
         /// </summary>
         private void FillInvoices(DataTable table)
         {
-            PublicMethods.dgvFiller(dgvInvoices, table, AmountColumn);
+            PublicMethods.dgvFiller(dgvInvoices, table, InvoiceTotalColumn, PaidColumn, BalanceColumn);
         }
 
         /// <summary>
@@ -125,6 +134,33 @@ namespace CRMPeyvand
         private void BackToHome_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.Close();
+        }
+
+        /// <summary>
+        /// The «وضعیت پرداخت» checkbox as a Payment, or null when it is unticked.
+        ///
+        /// It used to mean "call InvoiceDAL.Done afterwards", which set a boolean
+        /// and recorded no amount, in a second transaction. It now means the full
+        /// payable arrived at the counter, and InvoiceDAL.Create writes the payment
+        /// inside the transaction that creates the invoice. Settling at the counter
+        /// is the commonest transaction in the shop, so this stays a one-click path.
+        ///
+        /// The amount is left for the DAL to fill in: it is the payable, and the
+        /// payable is not known until the discount has been computed there.
+        /// </summary>
+        private Payment SettledBy()
+        {
+            if (IsCheckedOutImage.Visibility != Visibility.Visible)
+            {
+                return null;
+            }
+
+            return new Payment
+            {
+                Instrument = PaymentInstrument.Cash,
+                RegDate = invoiceRegDate,
+                User = u,
+            };
         }
 
         private void txtCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -224,13 +260,14 @@ if (!AccessGuard.Can(u, Section.Invoices, Operation.Delete))
             if (txtCustomer.SelectedItem != null && dgvProduts.Items.Count != 0)
             {
                 Invoice invoice = new Invoice();
-                invoice.RegDate = DateTime.Now;
+                invoiceRegDate = DateTime.Now;
+                invoice.RegDate = invoiceRegDate;
                 invoice.OffCode = countOff();
                 invoice.User = u;
                 Invoice savedInvoice;
                 try
                 {
-                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), null);
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), SettledBy());
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -339,13 +376,14 @@ private void miRecordPayment_Click(object sender, RoutedEventArgs e)
             if (txtCustomer.SelectedItem != null && dgvProduts.Items.Count != 0)
             {
                 Invoice invoice = new Invoice();
-                invoice.RegDate = DateTime.Now;
+                invoiceRegDate = DateTime.Now;
+                invoice.RegDate = invoiceRegDate;
                 invoice.OffCode = countOff();
                 invoice.User = u;
                 Invoice savedInvoice;
                 try
                 {
-                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), null);
+                    savedInvoice = Ibll.Create(invoice, cbCustomer.id, draftLines.ToList(), SettledBy());
                 }
                 catch (InvalidOperationException ex)
                 {

@@ -24,6 +24,8 @@ namespace CRMPeyvand.Reports.Services
                 CustomerName = invoice.Customer?.Name ?? string.Empty,
                 CustomerPhone = invoice.Customer?.Phone ?? string.Empty,
                 DiscountAmount = (double)invoice.DiscountAmount,
+                PaidAmount = (double)invoice.Paid,
+                RemainingBalance = (double)invoice.Balance,
                 Items = BuildItems(invoice),
                 Note = BuildNote(invoice)
             };

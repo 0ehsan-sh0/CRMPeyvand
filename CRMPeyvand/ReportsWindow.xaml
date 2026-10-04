@@ -159,6 +159,7 @@
                             <RadioButton x:Name="rbPrintThisMonth" Content="لیست فروش ماه گذشته (۳۰ روز گذشته)" FontFamily="Shabnam FD" FontSize="13" Margin="0,6"/>
                             <RadioButton x:Name="rbPrintThisYear" Content="لیست فروش سال گذشته (۳۶۵ روز گذشته)" FontFamily="Shabnam FD" FontSize="13" Margin="0,6"/>
                             <RadioButton x:Name="rbPrintProducts" Content="موجودی محصولات و ارزش انبار" FontFamily="Shabnam FD" FontSize="13" Margin="0,6"/>
+                            <RadioButton x:Name="rbPrintCustomerBalances" Content="مانده حساب مشتریان" FontFamily="Shabnam FD" FontSize="13" Margin="0,6"/>
 
                             <Button Style="{StaticResource ActionReportButton}" Content="🖨️ تولید و دریافت PDF" Margin="0,12,0,4" Click="btnPrintGeneralReport_Click"/>
                         </StackPanel>

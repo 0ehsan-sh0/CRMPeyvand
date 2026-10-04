@@ -52,6 +52,14 @@
                     <Label x:Name="lblCheckoutDate" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,4,34,4">
+                    <Label Content="مبلغ پرداخت شده :" />
+                    <Label x:Name="lblPaidAmount" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,34,4">
+                    <Label Content="مانده حساب :" />
+                    <Label x:Name="lblBalance" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,34,4">
                     <Label Content="کد تخفیف :" />
                     <Label x:Name="lblOffCode" FontWeight="Bold"/>
                 </StackPanel>

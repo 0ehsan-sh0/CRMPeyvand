@@ -1,5 +1,6 @@
 using BE;
 using BLL;
+using DAL;
 using CRMPeyvand.Reports.Common;
 using CRMPeyvand.Reports.Documents;
 using CRMPeyvand.Reports.Models;
@@ -21,6 +22,7 @@ namespace CRMPeyvand
         private readonly CustomerBLL _cbll = new CustomerBLL();
         private readonly ActivityBLL _abll = new ActivityBLL();
         private readonly CatalogItemBLL _pbll = new CatalogItemBLL();
+        private readonly PaymentBLL _paybll = new PaymentBLL();
 
         private enum ChartType
         {
@@ -291,6 +293,28 @@ namespace CRMPeyvand
                         }).ToList()
                     };
                     ReportViewerService.OpenReportPdf(new CatalogItemListDocument(model), "ProductsTotal");
+                }
+                else if (rbPrintCustomerBalances.IsChecked == true)
+                {
+                    // Already filtered to debtors and ordered most-indebted first
+                    // by PaymentDAL, so nothing further to do with the order.
+                    var debtors = _paybll.ReadCustomerBalances() ?? new List<CustomerBalance>();
+                    var model = new CustomerBalanceReportModel
+                    {
+                        ReportTitle = "گزارش مانده حساب مشتریان",
+                        GeneratedDatePersian = ToPersianDate(DateTime.Now),
+                        Customers = debtors.Select((c, idx) => new CustomerBalanceRowModel
+                        {
+                            RowIndex = idx + 1,
+                            Name = c.Customer.Name ?? "",
+                            Phone = c.Customer.Phone ?? "",
+                            InvoiceCount = c.InvoiceCount,
+                            TotalBilled = (double)c.PayableTotal,
+                            TotalReceived = (double)c.PaidTotal,
+                            Balance = (double)c.Balance,
+                        }).ToList()
+                    };
+                    ReportViewerService.OpenReportPdf(new CustomerBalanceDocument(model), "CustomerBalances");
                 }
             }
             catch (Exception ex)

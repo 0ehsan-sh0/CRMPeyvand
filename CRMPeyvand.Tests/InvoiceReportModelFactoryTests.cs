@@ -1,4 +1,5 @@
 using BE;
+using System;
 using CRMPeyvand.Reports.Services;
 using Xunit;
 
@@ -106,7 +107,61 @@ namespace CRMPeyvand.Tests
 
             Assert.Equal(string.Empty, model.InvoiceNumber);
             Assert.Equal(0d, model.SubTotal);
+            Assert.Equal(0d, model.PaidAmount);
+            Assert.Equal(0d, model.RemainingBalance);
             Assert.Empty(model.Items);
+        }
+
+        [Fact]
+        public void Paid_and_remaining_come_from_the_invoices_payments()
+        {
+            var customer = new BE.Customer { Name = "مشتری", Phone = "09120000000" };
+            var invoice = new BE.Invoice { RegDate = new DateTime(2026, 10, 1), DiscountAmount = 0m, Customer = customer };
+            invoice.Lines.Add(new BE.InvoiceLine { Quantity = 1, UnitPrice = 10000m });
+            invoice.Payments.Add(new BE.Payment { Amount = 4000m, RegDate = new DateTime(2026, 10, 2) });
+
+            var model = InvoiceReportModelFactory.FromInvoice(invoice);
+
+            Assert.Equal(4000d, model.PaidAmount);
+            Assert.Equal(6000d, model.RemainingBalance);
+        }
+
+        [Fact]
+        public void An_invoice_with_no_payments_owes_its_full_total()
+        {
+            var invoice = new BE.Invoice { RegDate = new DateTime(2026, 10, 1), DiscountAmount = 0m };
+            invoice.Lines.Add(new BE.InvoiceLine { Quantity = 1, UnitPrice = 7000m });
+
+            var model = InvoiceReportModelFactory.FromInvoice(invoice);
+
+            Assert.Equal(0d, model.PaidAmount);
+            Assert.Equal(7000d, model.RemainingBalance);
+        }
+
+        [Fact]
+        public void A_settled_invoice_reports_nothing_outstanding()
+        {
+            var invoice = new BE.Invoice { RegDate = new DateTime(2026, 10, 1), DiscountAmount = 0m };
+            invoice.Lines.Add(new BE.InvoiceLine { Quantity = 1, UnitPrice = 7000m });
+            invoice.Payments.Add(new BE.Payment { Amount = 7000m, RegDate = new DateTime(2026, 10, 2) });
+
+            var model = InvoiceReportModelFactory.FromInvoice(invoice);
+
+            Assert.Equal(7000d, model.PaidAmount);
+            Assert.Equal(0d, model.RemainingBalance);
+        }
+
+        [Fact]
+        public void A_voided_payment_does_not_reduce_what_the_invoice_shows_as_owed()
+        {
+            var invoice = new BE.Invoice { RegDate = new DateTime(2026, 10, 1), DiscountAmount = 0m };
+            invoice.Lines.Add(new BE.InvoiceLine { Quantity = 1, UnitPrice = 7000m });
+            invoice.Payments.Add(new BE.Payment { Amount = 7000m, RegDate = new DateTime(2026, 10, 2), DeleteStatus = true });
+
+            var model = InvoiceReportModelFactory.FromInvoice(invoice);
+
+            Assert.Equal(0d, model.PaidAmount);
+            Assert.Equal(7000d, model.RemainingBalance);
         }
     }
 }

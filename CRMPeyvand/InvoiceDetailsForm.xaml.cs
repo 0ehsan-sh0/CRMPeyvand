@@ -67,6 +67,8 @@ namespace CRMPeyvand
             lblSubTotal.Content = model.SubTotal.ToString("N0");
             lblDiscountAmount.Content = model.DiscountAmount.ToString("N0");
             lblFinalTotal.Content = model.FinalTotal.ToString("N0");
+            lblPaidAmount.Content = model.PaidAmount.ToString("N0");
+            lblBalance.Content = model.RemainingBalance.ToString("N0");
 
             Title = $"جزئیات فاکتور {model.InvoiceNumber}";
         }
