@@ -135,15 +135,21 @@
             <Rectangle Fill="#F9FAFB"/>
         </Border>
         <!--small stat boxes-->
-        <Border Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="10" Margin="20,4,85,8" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
+        <Border Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="10" Margin="20,4,20,8" BorderBrush="#F9FAFB" BorderThickness="5" CornerRadius="8">
             <Rectangle Fill="#F9FAFB"/>
         </Border>
         <!--One row taken off the reminders panel to make it. Four equal cells, so three
-            more figures can be added by filling cells 1-3 and nothing else moving. Inside
-            each cell the icon comes first and the text after it, which in this
-            right-to-left flow puts the icon on the right of its text - the same order
-            the reminders header below uses, so the two read as one kind of thing.-->
-        <Grid Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="10" Margin="28,6,93,10">
+            more figures can be added by filling cells 1-3 and nothing else moving.
+
+            FlowDirection is RightToLeft on this grid, and deliberately so. MainWindow
+            itself sets no FlowDirection, which means its columns run left to right:
+            column 0 is the leftmost, which is why the reminders bell sits in the HIGHEST
+            column to appear on the right. Without this the first figure would land on
+            far left. Setting it here makes cell 0 the rightmost, so figures fill from
+            the right inward the way the panel below already reads, and a figure's own
+            icon comes before its text - so the icon lands to the right of the text,
+            matching the reminders bell. -->
+        <Grid Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="10" Margin="28,6,28,10" FlowDirection="RightToLeft">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -155,7 +161,8 @@
                 <Label Style="{StaticResource MainWindowLabels}" Content="مشتریان بدهکار :" FontFamily="Shabnam FD" FontSize="14" FontWeight="Bold" Foreground="#4A8FE7" VerticalAlignment="Center" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" Cursor="Hand" ToolTip="رفتن به دریافت ها"/>
                 <Label Style="{StaticResource MainWindowLabels}" x:Name="lblDebtorCount" Content="0" FontFamily="Shabnam FD" FontSize="18" FontWeight="Bold" Foreground="#4A8FE7" VerticalAlignment="Center" Margin="6,0,0,0"/>
             </StackPanel>
-            <!--Cells 1, 2 and 3 are deliberately empty: room for three more figures. -->
+            <!--Cells 1, 2 and 3 are deliberately empty, and are to the left of this one:
+                room for three more figures. -->
         </Grid>
         <!--small stat boxes-->
 
