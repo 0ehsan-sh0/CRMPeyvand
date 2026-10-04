@@ -232,6 +232,44 @@ namespace CRMPeyvand.Tests
         }
 
         [Theory]
+        [InlineData("2147483648")]
+        [InlineData("30000000000")]
+        [InlineData("999,999,999,999")]
+        [InlineData("99999999999999999999999999")]
+        public void A_number_too_big_for_the_field_is_recognised_as_such(string typed)
+        {
+            Assert.True(Money.IsTooLarge(typed));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("   ")]
+        [InlineData("abc")]
+        [InlineData("0")]
+        [InlineData("1234")]
+        [InlineData("12,345")]
+        [InlineData("2147483647")]
+        public void A_field_that_is_blank_or_within_range_is_not_too_large(string typed)
+        {
+            Assert.False(Money.IsTooLarge(typed));
+        }
+
+        /// <summary>
+        /// The two used to be the same null, so a form asking only "did it parse?"
+        /// told someone whose field was full that they had filled nothing in.
+        /// </summary>
+        [Fact]
+        public void Too_large_and_blank_are_different_answers()
+        {
+            Assert.Null(Money.ParseWhole("30000000000"));
+            Assert.True(Money.IsTooLarge("30000000000"));
+
+            Assert.Null(Money.ParseWhole(""));
+            Assert.False(Money.IsTooLarge(""));
+        }
+
+        [Theory]
         [InlineData("0")]
         [InlineData("7")]
         [InlineData("100")]

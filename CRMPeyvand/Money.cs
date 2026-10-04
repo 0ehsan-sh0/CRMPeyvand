@@ -162,6 +162,40 @@ namespace CRMPeyvand
         }
 
         /// <summary>
+        /// The most a price field will take. Fields are whole Toman, so this is
+        /// 2,147,483,647 Toman — some 21 billion Rial, far past any real price, and
+        /// deliberately a whole number rather than the largest decimal, because the
+        /// figures the fields hand back are ints.
+        /// </summary>
+        public const int MaxFieldAmount = int.MaxValue;
+
+        /// <summary>
+        /// True when the field holds digits, but more of them than a price field
+        /// accepts.
+        ///
+        /// Worth separating from "there is nothing here" because the two need
+        /// different replies. ParseWhole returns null for an empty field, a field
+        /// with letters in it, AND a field holding a number too large to fit, so a
+        /// caller that only asks "did it parse?" tells someone whose field is full
+        /// that they have filled nothing in.
+        ///
+        /// Parsed as long rather than int so that "too big for a field" and "too
+        /// big for a long" are the same answer, instead of the second falling
+        /// through and looking like a different thing.
+        /// </summary>
+        public static bool IsTooLarge(string text)
+        {
+            string digits = Digits(text);
+            if (digits.Length == 0)
+            {
+                return false;
+            }
+
+            return !long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long value)
+                || value > MaxFieldAmount;
+        }
+
+        /// <summary>
         /// True for the separators a grouped field puts in, and only those: the
         /// backspace handling needs to tell a separator from a digit.
         /// </summary>

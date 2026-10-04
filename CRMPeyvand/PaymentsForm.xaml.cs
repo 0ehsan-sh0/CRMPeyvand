@@ -217,6 +217,12 @@ namespace CRMPeyvand
 
             // The field is grouped for reading, so the separators come back off
             // before it is a number again.
+            if (Money.IsTooLarge(txtAmount.Text))
+            {
+                MessageBox.Show("مبلغ وصولی بیش از حد مجاز است", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             int? amount = Money.ParseWhole(txtAmount.Text);
             if (!amount.HasValue)
             {

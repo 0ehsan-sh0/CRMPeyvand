@@ -66,6 +66,16 @@ namespace CRMPeyvand
         }
         private void btnAddProduct_Click(object sender, RoutedEventArgs e)
         {
+            // Checked before anything else, because a price too large for the field
+            // reads back as null - the same as an empty one - and the generic
+            // "fill in all the fields" below then tells someone whose form is
+            // complete that they have left it blank.
+            if (Money.IsTooLarge(txtPrice.Text))
+            {
+                MessageBox.Show("مبلغ قیمت بیش از حد مجاز است", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             ItemKind kind = ItemKind.Good;
             int total = 0;
             if (IsServiceImage.Visibility == Visibility.Visible)
