@@ -112,6 +112,19 @@ namespace CRMPeyvand
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
+            // Read once, here, rather than four times further down inside the
+            // branches. The field can be blank - a percentage code leaves it blank on
+            // purpose - and Convert.ToDecimal used to be asked about that blank field
+            // and threw, so saving a percentage code landed in the global
+            // "something went wrong" box instead of saving. A missing amount means
+            // zero; only an amount too wide to store is refused.
+            long? price = Money.ParseWhole(txtPrice.Text);
+            if (Money.IsTooLarge(txtPrice.Text))
+            {
+                MessageBox.Show("مبلغ تخفیف بیش از حد مجاز است", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             OffCode offCode = new OffCode()
             {
                 RegDate = DateTime.Now,
@@ -127,7 +140,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
+                            offCode.Price = Money.FromToman(price ?? 0);
                         }
                         else
                         {
@@ -148,7 +161,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
+                        offCode.Price = Money.FromToman(price ?? 0);
                     }
                     else
                     {
@@ -183,7 +196,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
+                            offCode.Price = Money.FromToman(price ?? 0);
                         }
                         else
                         {
@@ -207,7 +220,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
+                        offCode.Price = Money.FromToman(price ?? 0);
                     }
                     else
                     {
@@ -273,7 +286,7 @@ namespace CRMPeyvand
                 IsCheckedImage.Visibility = Visibility.Hidden;
                 txtPrice.IsEnabled = true;
                 nudPercent.IsEnabled = false;
-                txtPrice.Text = Money.ToToman(offcodeEdit.Price.Value).ToString("0");
+                txtPrice.Text = Money.Display(offcodeEdit.Price.Value);
             }
             else
             {
