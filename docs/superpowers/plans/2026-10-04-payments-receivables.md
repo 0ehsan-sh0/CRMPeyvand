@@ -3781,3 +3781,23 @@ Both are real and both are outside this feature's blast radius. Record them rath
 
 - `DAL/OffCodeDAL.CanUse` counts discount-code usage by joining through `Customer.Phone` and does **not** filter `DeleteStatus`, so soft-deleted invoices still consume a Discount Code's `LimitCount`.
 - `DAL/InvoiceDAL.ReadInvoiceLastID` is dead code with no caller, and it dereferences `q.id` without a null check, so it would throw on an empty table.
+
+---
+
+## Deviations from this plan, and why
+
+This plan was written before the code existed and was executed task by task. Six things came out differently on contact with the code. Each is recorded here rather than edited back into the task that diverged, so the reasoning survives.
+
+**1. `BE.Customer` does not carry a balance.** Task 1 added `PayableTotal`, `PaidTotal` and `Balance` to the entity. They are gone. A customer's balance is a sum over that customer's invoices, and loading every invoice's lines *and* payments in one EF6 query means a collection include under a collection include — which makes EF6 emit `APPLY`, and SQLite answers `APPLY joins are not supported`. A property that reads as `0` whenever the collections happen not to be loaded is worse than no property, so the figure is computed where it is loaded: `DAL/BalanceQuery`, from two flat queries, returning a `DAL.CustomerBalance` per customer. `Invoice.Paid` / `.Balance` stayed, because `InvoiceDAL` loads an invoice's lines and payments from the invoice's *own* root, where collection includes are plain left joins.
+
+**2. `PaymentDAL.Create` and `Void` use the injected context.** Task 4 had them open `new DB()` per call, mirroring `InvoiceDAL.Create`. That makes them untestable: `new DB()` resolves to the process-wide `DataSource`, so the test suite wrote 39 junk payment rows into the developer's real `%ProgramData%\CRMPeyvand\CRMPeyvand.db` before the design was corrected. They now run on `db` with a transaction, and a rollback is followed by `DiscardPendingChanges` so a rejected payment cannot be flushed by the next successful `SaveChanges`. As a side effect `Create` and `Void` are now genuinely covered by tests, which no DAL mutator in this codebase was.
+
+**3. `Sum` over a decimal column needs a nullable cast.** `PaidSoFar` sums `p.Amount`; over zero rows SQL returns `NULL`, and EF6 then throws *"The cast to value type 'System.Decimal' failed because the materialized value is null"* rather than yielding zero. The sum is now over `(decimal?)p.Amount` with `?? 0m`.
+
+**4. `AsNoTracking` appears only where it is safe.** The statement and the dashboard read through long-lived contexts, and a tracked entity keeps the collections it was loaded with — so without it the debtor count would freeze at whatever it was when the screen was first opened. But `AsNoTracking` combined with a collection include is what triggers the `APPLY`, so it is applied only to the flat queries in `BalanceQuery`.
+
+**5. `Include("Customer")` is load-bearing in `BalanceQuery`.** Its absence is silent: every `invoice.Customer` comes back null, every balance comes out zero, and the debtor list is simply empty. There is no error to notice.
+
+**6. The migration has no `.resx` and no model snapshot.** Task 2 said to copy the `Designer` and add the entity to `BuildTargetModel`. The existing `Designer` is 29 lines of `IMigrationMetadata` with no model in it; the target model is a `Target` resource in the `.resx`, as an opaque serialised blob. So the new `Designer` returns `Target = null`, there is no `.resx`, and the migration file carries a `KNOWN GAP` note telling the next developer to delete and re-add the migration from Visual Studio if they need to scaffold. `Up`/`Down` are complete, which is all the app needs in order to run.
+
+Two further things were corrected rather than planned: the `CustomerForm` money-column grouping step was missing from Task 4's file list, and Task 4's original test for `Customer.Balance` moved to `BalanceQuery` coverage once that property stopped existing.
