@@ -64,11 +64,15 @@ namespace CRMPeyvand
             lblPhone.Content = OrDefault(model.CustomerPhone);
 
             dgvLines.ItemsSource = model.Items;
-            lblSubTotal.Content = model.SubTotal.ToString("N0");
-            lblDiscountAmount.Content = model.DiscountAmount.ToString("N0");
-            lblFinalTotal.Content = model.FinalTotal.ToString("N0");
-            lblPaidAmount.Content = model.PaidAmount.ToString("N0");
-            lblBalance.Content = model.RemainingBalance.ToString("N0");
+
+            // The report model is Rial, because the PDF built from it has to print
+            // Rial. This screen is a form, so it shows Toman - the conversion is
+            // applied here rather than in the model, which the two would share.
+            lblSubTotal.Content = Money.Display((decimal)model.SubTotal);
+            lblDiscountAmount.Content = Money.Display((decimal)model.DiscountAmount);
+            lblFinalTotal.Content = Money.Display((decimal)model.FinalTotal);
+            lblPaidAmount.Content = Money.Display((decimal)model.PaidAmount);
+            lblBalance.Content = Money.Display((decimal)model.RemainingBalance);
 
             Title = $"جزئیات فاکتور {model.InvoiceNumber}";
         }

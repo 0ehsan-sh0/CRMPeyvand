@@ -11,10 +11,45 @@ namespace CRMPeyvand
     /// because the invoice labels were already using "N0" and the currency this
     /// app runs under is fa-IR. One rule, so a price cannot look one way in the
     /// field it was typed into and another way in the grid that lists it.
+    ///
+    /// The two units, and where each one applies:
+    ///
+    ///   Rial is what is STORED and what the REPORTS print. A printed document
+    ///   leaves the building and is read by an accountant, so it says «ریال» and
+    ///   shows the stored figure unaltered.
+    ///
+    ///   Toman is what the FORMS and GRIDS show and what the user types. Ten
+    ///   Toman make a Rial, so a price on screen is a tenth of the number in the
+    ///   database. Every conversion goes through ToToman or FromToman here rather
+    ///   than being written as a division at each call site, so there is one place
+    ///   that knows the ratio and one place to change if it ever does.
     /// </summary>
     public static class Money
     {
         public const string Currency = "تومان";
+
+        /// <summary>Ten Toman make a Rial. Rial is the stored unit.</summary>
+        public const decimal RialPerToman = 10m;
+
+        /// <summary>
+        /// Stored Rial as Toman, for showing.
+        ///
+        /// Floors rather than rounds, because Rial do not divide into Toman evenly
+        /// and a price on screen must never be worth more than the money behind it.
+        /// </summary>
+        public static decimal ToToman(decimal rial)
+        {
+            return Math.Floor(rial / RialPerToman);
+        }
+
+        /// <summary>
+        /// Toman as stored Rial, for saving. Exact: multiplying cannot lose a
+        /// fraction the way the division above does.
+        /// </summary>
+        public static decimal FromToman(decimal toman)
+        {
+            return toman * RialPerToman;
+        }
 
         /// <summary>
         /// The character fa-IR groups with. A culture is allowed to have none,
@@ -92,16 +127,19 @@ namespace CRMPeyvand
             return grouped.ToString();
         }
 
-        /// <summary>What a grid cell or a label shows: grouped, no unit named.</summary>
-        public static string Display(decimal amount)
+        /// <summary>
+        /// What a grid cell or a label shows: the stored Rial converted to Toman,
+        /// grouped, with no unit named.
+        /// </summary>
+        public static string Display(decimal rial)
         {
-            return amount.ToString("N0");
+            return ToToman(rial).ToString("N0");
         }
 
         /// <summary>What the price field shows once it holds something.</summary>
-        public static string DisplayWithCurrency(decimal amount)
+        public static string DisplayWithCurrency(decimal rial)
         {
-            return Display(amount) + " " + Currency;
+            return Display(rial) + " " + Currency;
         }
 
         /// <summary>

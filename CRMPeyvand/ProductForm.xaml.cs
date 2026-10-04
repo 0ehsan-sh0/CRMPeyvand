@@ -91,7 +91,7 @@ namespace CRMPeyvand
             {
                 if (btnAddProduct.Content.ToString() == "ثبت کالا")
                 {
-                    product.SalePrice = price.Value;
+                    product.SalePrice = Money.FromToman(price.Value);
                     MessageBox.Show(bll.Create(product), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();
@@ -102,7 +102,7 @@ namespace CRMPeyvand
                 }
                 else if (btnAddProduct.Content.ToString() == "ویرایش کالا")
                 {
-                    product.SalePrice = price.Value;
+                    product.SalePrice = Money.FromToman(price.Value);
                     MessageBox.Show(bll.Update(product, productEdit.Id), "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
                     txtName.Clear();
                     txtPrice.Clear();

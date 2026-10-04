@@ -105,7 +105,43 @@ namespace CRMPeyvand.Tests
             });
 
             Assert.NotNull(converter);
-            Assert.Equal("1,234,567", converter.Convert(1234567m, typeof(string), null, CultureInfo.CurrentCulture));
+
+            // Stored Rial in, Toman out: 1,234,567 Rial is 123,456 Toman.
+            Assert.Equal("123,456", converter.Convert(1234567m, typeof(string), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void The_row_under_the_grid_is_left_in_stored_rial()
+        {
+            // The DataTable is the record, not a presentation: the conversion
+            // belongs to the converter, so the raw figure stays readable underneath.
+            IValueConverter converter = OnStaThread(() =>
+            {
+                var grid = LaidOutGrid(CatalogTable());
+                PublicMethods.dgvFiller(grid, CatalogTable(), PriceColumn);
+                return ConverterOf(ColumnNamed(grid, PriceColumn));
+            });
+
+            Assert.Equal("123,456", converter.Convert(1234567m, typeof(string), null, CultureInfo.CurrentCulture));
+            Assert.Equal(1234567m, (decimal)CatalogTable().Rows[0][PriceColumn]);
+        }
+
+        [Fact]
+        public void Every_numeric_kind_is_converted_not_just_decimal()
+        {
+            IValueConverter converter = OnStaThread(() =>
+            {
+                var grid = LaidOutGrid(CatalogTable());
+                PublicMethods.dgvFiller(grid, CatalogTable(), PriceColumn);
+                return ConverterOf(ColumnNamed(grid, PriceColumn));
+            });
+
+            // The report models carry money as double, so a grid bound to one of
+            // those columns would otherwise skip the conversion entirely.
+            Assert.Equal("500", converter.Convert(5000m, typeof(string), null, CultureInfo.CurrentCulture));
+            Assert.Equal("500", converter.Convert(5000, typeof(string), null, CultureInfo.CurrentCulture));
+            Assert.Equal("500", converter.Convert(5000L, typeof(string), null, CultureInfo.CurrentCulture));
+            Assert.Equal("500", converter.Convert(5000d, typeof(string), null, CultureInfo.CurrentCulture));
         }
 
         [Fact]

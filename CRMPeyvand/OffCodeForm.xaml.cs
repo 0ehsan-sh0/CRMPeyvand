@@ -1,4 +1,4 @@
-using BE;
+﻿using BE;
 using Section = BE.Section;
 using System;
 using System.Collections.Generic;
@@ -127,7 +127,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Convert.ToDecimal(txtPrice.Text);
+                            offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
                         }
                         else
                         {
@@ -148,7 +148,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Convert.ToDecimal(txtPrice.Text);
+                        offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
                     }
                     else
                     {
@@ -183,7 +183,7 @@ namespace CRMPeyvand
                         offCode.Code = txtCode.Text;
                         if (offCode.IsPrice)
                         {
-                            offCode.Price = Convert.ToDecimal(txtPrice.Text);
+                            offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
                         }
                         else
                         {
@@ -207,7 +207,7 @@ namespace CRMPeyvand
                     offCode.Code = txtCode.Text;
                     if (offCode.IsPrice)
                     {
-                        offCode.Price = Convert.ToDecimal(txtPrice.Text);
+                        offCode.Price = Money.FromToman(Convert.ToDecimal(txtPrice.Text));
                     }
                     else
                     {
@@ -273,7 +273,7 @@ namespace CRMPeyvand
                 IsCheckedImage.Visibility = Visibility.Hidden;
                 txtPrice.IsEnabled = true;
                 nudPercent.IsEnabled = false;
-                txtPrice.Text = offcodeEdit.Price.ToString();
+                txtPrice.Text = Money.ToToman(offcodeEdit.Price.Value).ToString("0");
             }
             else
             {

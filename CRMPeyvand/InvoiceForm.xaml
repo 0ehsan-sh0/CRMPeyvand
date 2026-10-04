@@ -16,6 +16,10 @@
         Title="InvoiceForm" Height="600" Width="1260" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
     <Window.Resources>
         <local:PersianKindConverter x:Key="KindConverter"/>
+        <!--The draft line grid's two money columns go through the converter rather
+            than a StringFormat, so they show Toman like the rest of the form. The
+            quantity column keeps its own formatting: a count is not money. -->
+        <local:MoneyConverter x:Key="MoneyConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -84,8 +88,8 @@
                     <DataGridTextColumn Header="نام کالا" Binding="{Binding CatalogItem.Name}" />
                     <DataGridTextColumn Header="نوع کالا" Binding="{Binding CatalogItem.Kind, Converter={StaticResource KindConverter}}" />
                     <DataGridTextColumn Header="تعداد" Binding="{Binding Quantity}" />
-                    <DataGridTextColumn Header="قیمت واحد" Binding="{Binding UnitPrice, StringFormat=N0}" />
-                    <DataGridTextColumn Header="جمع خط" Binding="{Binding LineTotal, StringFormat=N0}" />
+                    <DataGridTextColumn Header="قیمت واحد" Binding="{Binding UnitPrice, Converter={StaticResource MoneyConverter}}" />
+                    <DataGridTextColumn Header="جمع خط" Binding="{Binding LineTotal, Converter={StaticResource MoneyConverter}}" />
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource ContextMenu}">

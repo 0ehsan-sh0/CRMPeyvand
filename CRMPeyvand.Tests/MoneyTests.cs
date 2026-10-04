@@ -113,12 +113,14 @@ namespace CRMPeyvand.Tests
         }
 
         [Fact]
-        public void Display_matches_the_N0_format_the_rest_of_the_app_already_uses()
+        public void Display_converts_stored_rial_into_toman_before_formatting()
         {
             WithCulture(CultureInfo.GetCultureInfo("en-US"), () =>
             {
-                Assert.Equal(1234567m.ToString("N0"), Money.Display(1234567m));
-                Assert.Equal(1000m.ToString("N0"), Money.Display(1000m));
+                // 1,234,570 Rial is 123,457 Toman - the figure anyone says out loud
+                // is a tenth of what the database holds.
+                Assert.Equal(123457m.ToString("N0"), Money.Display(1234570m));
+                Assert.Equal(100m.ToString("N0"), Money.Display(1000m));
                 Assert.Equal(0m.ToString("N0"), Money.Display(0m));
             });
         }
@@ -126,14 +128,15 @@ namespace CRMPeyvand.Tests
         /// <summary>
         /// The whole point: the number a user types into the price field and the
         /// number the grid and the labels show are formatted by the same rule.
+        /// Both sides are Toman now, so the field's text and Display agree.
         /// </summary>
         [Fact]
         public void What_the_field_shows_and_what_the_label_shows_agree()
         {
             WithCulture(CultureInfo.GetCultureInfo("fa-IR"), () =>
             {
-                Assert.Equal(Money.Display(1234567m), Money.Group("1234567"));
-                Assert.Equal(Money.Display(100000m), Money.Group("100000"));
+                Assert.Equal(Money.Display(12345670m), Money.Group("1234567"));
+                Assert.Equal(Money.Display(1000000m), Money.Group("100000"));
             });
         }
 
@@ -142,9 +145,60 @@ namespace CRMPeyvand.Tests
         {
             WithCulture(CultureInfo.GetCultureInfo("en-US"), () =>
             {
-                Assert.Equal("1,000 تومان", Money.DisplayWithCurrency(1000m));
+                Assert.Equal("100 تومان", Money.DisplayWithCurrency(1000m));
                 Assert.Equal(Money.Display(1000m) + " " + Money.Currency, Money.DisplayWithCurrency(1000m));
             });
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(1000, 100)]
+        [InlineData(300000, 30000)]
+        [InlineData(1234570, 123457)]
+        public void ToToman_drops_the_rial_a_ten_times_over(decimal rial, decimal expected)
+        {
+            Assert.Equal(expected, Money.ToToman(rial));
+        }
+
+        /// <summary>
+        /// Rial do not divide into Toman evenly - 1,555 Rial is 155.5 Toman - and the
+        /// fields only take whole numbers. Flooring keeps a shown price from ever
+        /// being worth more than the money behind it.
+        /// </summary>
+        [Theory]
+        [InlineData(1555, 155)]
+        [InlineData(1559, 155)]
+        [InlineData(1500, 150)]
+        [InlineData(9, 0)]
+        public void ToToman_floors_rather_than_rounding_up(decimal rial, decimal expected)
+        {
+            Assert.Equal(expected, Money.ToToman(rial));
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(100, 1000)]
+        [InlineData(30000, 300000)]
+        [InlineData(155, 1550)]
+        public void FromToman_adds_the_rial_back_on(decimal toman, decimal expected)
+        {
+            Assert.Equal(expected, Money.FromToman(toman));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(999)]
+        [InlineData(123456)]
+        public void A_whole_toman_amount_survives_the_round_trip(decimal toman)
+        {
+            Assert.Equal(toman, Money.ToToman(Money.FromToman(toman)));
+        }
+
+        [Fact]
+        public void Ten_toman_make_a_rial()
+        {
+            Assert.Equal(10m, Money.RialPerToman);
         }
 
         [Theory]

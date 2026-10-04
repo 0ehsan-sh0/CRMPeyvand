@@ -65,6 +65,12 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 - **Separator-Free Saves**: Grouping is a display concern only. The separators are stripped before the amount is persisted, and a price too large to store is reported instead of throwing.
 - **One Rule Everywhere**: One helper formats prices for the field, the grids, and the invoice labels, so a price cannot look one way where it was typed and another where it is listed. Grouping follows the current culture rather than a hard-coded comma.
 - **Named Unit**: تومان is shown on the price field itself.
+
+### 💱 The Two Currencies
+- **Rial is what is stored.** Every amount in the database is Rial, and every printed document — invoices, receipts, statements, the sales summary — says **ریال** and prints the stored figure unaltered. A document that leaves the building is read by an accountant, so it speaks in the base unit.
+- **Toman is what the screens show.** Ten Toman make a Rial, so every price in a form or a grid is a tenth of the number in the database: an invoice stored at 300,000 Rial reads **30,000 تومان** on screen. The same payment therefore appears as `15,000 تومان` in the ledger grid and `150,000 ریال` on its receipt. That is correct, not a discrepancy.
+- **One conversion, in one place.** `Money.ToToman` and `Money.FromToman` are the only place the ratio appears, and `Money.Display` / `MoneyConverter` apply it for every label and grid cell. Nothing is scaled by writing `/10` at a call site, so a screen cannot end up showing the stored figure under a Toman label — which is exactly what happened before this existed, with one stored number labelled تومان in forms and ریال in reports.
+- **Display floors, saving is exact.** Rial do not divide into Toman evenly — 1,555 Rial is 155.5 Toman — and the fields take whole numbers, so a shown price is floored and is never worth more than the money behind it. Multiplying on the way in loses nothing.
 - **Stock Counts Left Alone**: Quantity columns are not formatted as money.
 
 ### 📅 Activities & Reminders
@@ -362,6 +368,7 @@ Passed!  - Failed: 0, Passed: 304, Skipped: 0, Total: 304
 - **کاتالوگ کالا و خدمات**: تفکیک کالای فیزیکی (دارای موجودی و کسر خودکار از انبار هنگام فروش) و خدمات، با اعمال قوانین دقیق کنترل موجودی.
 - **صدور و مدیریت فاکتور**: محاسبه خودکار اقلام، اعمال کدهای تخفیف، تبدیل تاریخ به تقویم هجری شمسی و چاپ فاکتور استاندارد با موتور <span dir="ltr">QuestPDF</span> (چیدمان کدنویسی‌شده به‌جای فایل قالب، با پشتیبانی کامل راست‌به‌چپ و فونت فارسی).
 - **نمایش خوانای مبالغ**: قیمت‌ها در هر جا که دیده می‌شوند — داخل فیلد ورودی، ستون جدول و جمع فاکتور — با جداکننده هزارگان نمایش داده می‌شوند و در زمان ذخیره، جداکننده‌ها حذف می‌شوند. واحد پول (تومان) روی فیلد قیمت درج شده است.
+- **دو واحد پول**: آنچه در پایگاه داده ذخیره می‌شود **ریال** است و اسناد چاپی (فاکتور، رسید دریافت، گزارش‌ها) نیز به **ریال** و با همان رقم ذخیره‌شده چاپ می‌شوند. اما فرم‌ها و جدول‌ها **تومان** نشان می‌دهند، یعنی یک دهم رقم پایگاه داده: فاکتوری که ۳۰۰٬۰۰۰ ریال ذخیره شده، روی صفحه ۳۰٬۰۰۰ تومان دیده می‌شود. تبدیل فقط در <span dir="ltr">Money.ToToman</span> و <span dir="ltr">Money.FromToman</span> انجام می‌شود.
 - **کدهای تخفیف**: ایجاد کدهای تخفیف درصدی و مبلغی با قابلیت تعیین سقف استفاده و بازه زمانی معتبر.
 - **وصولی و مانده حساب**: ثبت پرداخت مشتری (کامل یا بخشی) بابت هر فاکتور، نگهداری مانده حساب هر مشتری و فاکتور، چاپ <span dir="ltr">رسید دریافت</span> و گزارش <span dir="ltr">مانده حساب</span> مشتریان. وضعیت «پرداخت شده» دیگر یک گزینه دستی نیست و از همین وصولی‌ها محاسبه می‌شود، بنابراین هرگز با فهرست وصولی‌ها اختلاف پیدا نمی‌کند. پرداخت بیش از مانده حساب پذیرفته نمی‌شود. وصولی قابل ویرایش نیست؛ اشتباه با «ابطال» و ثبت دوباره اصلاح می‌شود، چون ممکن است نسخه چاپ‌شده آن دست مشتری باشد. گزینه «وضعیت پرداخت» در صفحه فاکتور همچنان یک کلیک است، ولی اکنون یک وصولی واقعی در همان تراکنش ثبت می‌کند.
 - **فعالیت‌ها و یادآورها**: ثبت تماس‌ها، جلسات و وظایف به تفکیک دسته‌بندی با اعلان و آلارم هوشمند.

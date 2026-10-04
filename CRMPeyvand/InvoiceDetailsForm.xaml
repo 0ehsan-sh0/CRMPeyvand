@@ -15,6 +15,13 @@
         FontSize="13"
 
         Title="InvoiceDetailsForm" Height="600" Width="1000" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <!--The two money columns bind through the converter rather than a
+            StringFormat, so they convert stored Rial into Toman like every other
+            price on a form. StringFormat=N0 would print the raw stored figure. The
+            quantity column keeps N0: a count is not money and must not be scaled. -->
+        <local:MoneyConverter x:Key="MoneyConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -87,8 +94,8 @@
                         <DataGridTextColumn Header="ردیف" Binding="{Binding RowIndex}" Width="60"/>
                         <DataGridTextColumn Header="شرح کالا / خدمات" Binding="{Binding ItemName}" Width="*"/>
                         <DataGridTextColumn Header="تعداد" Binding="{Binding Quantity}" Width="90"/>
-                        <DataGridTextColumn Header="قیمت واحد" Binding="{Binding UnitPrice, StringFormat=N0}" Width="150"/>
-                        <DataGridTextColumn Header="مبلغ کل" Binding="{Binding TotalPrice, StringFormat=N0}" Width="160"/>
+                        <DataGridTextColumn Header="قیمت واحد" Binding="{Binding UnitPrice, Converter={StaticResource MoneyConverter}}" Width="150"/>
+                        <DataGridTextColumn Header="مبلغ کل" Binding="{Binding TotalPrice, Converter={StaticResource MoneyConverter}}" Width="160"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

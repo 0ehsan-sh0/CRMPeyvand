@@ -144,7 +144,7 @@ namespace CRMPeyvand
             lblInvoiceInfo.Content =
                 $"مشتری: {invoice.Customer?.Name} - مانده حساب: {Money.Display(invoice.Balance)}";
 
-            txtAmount.Text = Money.Group(invoice.Balance.ToString("0"));
+            txtAmount.Text = Money.Group(Money.ToToman(invoice.Balance).ToString("0"));
         }
 
         private void SetInvoiceProblem(string message)
@@ -226,7 +226,10 @@ namespace CRMPeyvand
 
             var payment = new Payment
             {
-                Amount = amount.Value,
+                // The field is Toman because that is what the label says; the
+                // database is Rial. Every other money figure in this form is
+                // derived from the invoice and so is already in stored units.
+                Amount = Money.FromToman(amount.Value),
                 RegDate = dpPaymentDate.SelectedDate ?? DateTime.Today,
                 Instrument = SelectedInstrument(),
                 Reference = string.IsNullOrWhiteSpace(txtReference.Text) ? null : txtReference.Text.Trim(),
