@@ -8,6 +8,7 @@ using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace CRMPeyvand
 {
@@ -30,6 +31,13 @@ namespace CRMPeyvand
         /// away and rebuilds them each time, and searching narrows the rows.
         /// </summary>
         private const string AmountColumn = "مبلغ";
+
+        /// <summary>
+        /// The two states the invoice label can be in. Kept as fields so the
+        /// normal colour does not have to be rebuilt on every lookup.
+        /// </summary>
+        private static readonly Brush InfoBrush = new SolidColorBrush(Color.FromRgb(0x4A, 0x8F, 0xE7));
+        private static readonly Brush ProblemBrush = Brushes.DarkRed;
 
         private readonly int preselectedInvoiceId;
         private Invoice selectedInvoice;
@@ -95,43 +103,80 @@ namespace CRMPeyvand
         /// Resolves the typed invoice number and shows what is still owed on it, so
         /// the amount can default to the whole remainder instead of being typed
         /// blind.
+        ///
+        /// Called when the field loses focus or on Enter, never per keystroke. A
+        /// lookup on every character told the user an invoice did not exist while
+        /// they were still typing its number, one digit at a time — typing "12"
+        /// produced two "not found" dialogs, and a query per character besides.
+        ///
+        /// The outcome goes in the label beside the field rather than a MessageBox,
+        /// so a mistyped digit does not throw a modal at someone mid-entry, and the
+        /// typed number is left alone so it can be corrected.
         /// </summary>
         private void LoadInvoice()
         {
             selectedInvoice = null;
-            lblInvoiceInfo.Content = "";
+            txtAmount.Clear();
 
             if (!int.TryParse(txtInvoiceNumber.Text, out int invoiceId))
             {
+                // Empty or half-typed is not an error yet, so say nothing.
+                lblInvoiceInfo.Content = "";
                 return;
             }
 
-            selectedInvoice = Ibll.ReadDetails(invoiceId);
-            if (selectedInvoice == null || selectedInvoice.DeleteStatus)
+            var invoice = Ibll.ReadDetails(invoiceId);
+            if (invoice == null || invoice.DeleteStatus)
             {
-                MessageBox.Show("فاکتور مورد نظر یافت نشد", "هشدار", MessageBoxButton.OK, MessageBoxImage.Warning);
-                txtInvoiceNumber.Clear();
+                SetInvoiceProblem("فاکتور مورد نظر یافت نشد");
                 return;
             }
 
+            selectedInvoice = invoice;
+
+            if (invoice.IsSettled)
+            {
+                SetInvoiceProblem("این فاکتور تسویه شده است");
+                return;
+            }
+
+            lblInvoiceInfo.Foreground = InfoBrush;
             lblInvoiceInfo.Content =
-                $"مشتری: {selectedInvoice.Customer?.Name} - مانده حساب: {Money.Display(selectedInvoice.Balance)}";
+                $"مشتری: {invoice.Customer?.Name} - مانده حساب: {Money.Display(invoice.Balance)}";
 
-            if (selectedInvoice.IsSettled)
-            {
-                MessageBox.Show("این فاکتور تسویه شده است", "اطلاعیه", MessageBoxButton.OK, MessageBoxImage.Information);
-                txtAmount.Clear();
-                return;
-            }
+            txtAmount.Text = Money.Group(invoice.Balance.ToString("0"));
+        }
 
-            txtAmount.Text = Money.Group(selectedInvoice.Balance.ToString("0"));
+        private void SetInvoiceProblem(string message)
+        {
+            lblInvoiceInfo.Foreground = ProblemBrush;
+            lblInvoiceInfo.Content = message;
         }
 
         private void txtInvoiceNumber_TextChanged(object sender, TextChangedEventArgs e)
         {
             TextBox textBox = sender as TextBox;
             PublicMethods.FilterNumber(textBox);
+        }
+
+        private void txtInvoiceNumber_LostFocus(object sender, RoutedEventArgs e)
+        {
             LoadInvoice();
+        }
+
+        /// <summary>
+        /// Enter resolves the invoice without leaving the field, so a cashier who
+        /// types the number and reaches for the amount box is not made to tab away
+        /// first to find out whether the number was any good.
+        /// </summary>
+        private void txtInvoiceNumber_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                LoadInvoice();
+                txtAmount.Focus();
+                e.Handled = true;
+            }
         }
 
         private void txtAmount_TextChanged(object sender, TextChangedEventArgs e)
@@ -154,6 +199,14 @@ namespace CRMPeyvand
             if (!AccessGuard.Can(u, Section.Payments, Operation.Create))
             {
                 return;
+            }
+
+            if (selectedInvoice == null)
+            {
+                // Clicking the button takes focus off the field, so LostFocus has
+                // normally resolved the number already. This covers the paths where
+                // it did not - notably Enter, which resolves without leaving.
+                LoadInvoice();
             }
 
             if (selectedInvoice == null || selectedInvoice.IsSettled)

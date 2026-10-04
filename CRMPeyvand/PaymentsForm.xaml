@@ -49,7 +49,7 @@
         <!--Background-->
 
         <!--ثبت وصولی-->
-        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="4" Margin="10,5,10,10" />
+        <GroupBox Style="{StaticResource GroupBox}" Header="ثبت وصولی" Grid.ColumnSpan="12" Grid.RowSpan="5" Margin="10,5,10,0" Height="223" VerticalAlignment="Top" />
 
         <!--One horizontal StackPanel per line, rather than a label in one grid cell and
             its input in another. The grid form let the two drift apart, because a label
@@ -57,31 +57,31 @@
             is left of the column between them. As siblings they cannot come apart. The
             StackPanel inherits RightToLeft from the window, so the first child is the
             rightmost one and the fields read in the order they are written.-->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
-            <Label Style="{StaticResource TextBoxLabel}" Content="شماره فاکتور :" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,21,22,34" Grid.RowSpan="2">
+            <Label Style="{StaticResource TextBoxLabel}" Content="شماره فاکتور :" VerticalAlignment="Center" Margin="0,0,8,0" RenderTransformOrigin="0.514,1.096"/>
             <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
-                <TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
+<TextBox Style="{StaticResource InputTextBox}" x:Name="txtInvoiceNumber" TabIndex="0" TextChanged="txtInvoiceNumber_TextChanged" LostFocus="txtInvoiceNumber_LostFocus" KeyDown="txtInvoiceNumber_KeyDown" ToolTip="شماره فاکتوری که بابت آن وصولی ثبت میشود"/>
             </Border>
-            <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" VerticalAlignment="Center" Margin="10,0,0,0"/>
-            <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" VerticalAlignment="Center" Margin="46,0,8,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" x:Name="lblInvoiceInfo" Content="" Foreground="#4A8FE7" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="روش پرداخت :" VerticalAlignment="Center" Margin="71,0,60,0"/>
             <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
                 <ComboBox Style="{StaticResource ComboBox}" x:Name="cbInstrument" Padding="0,5,0,0" TabIndex="2"/>
             </Border>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,20,22,36" Grid.RowSpan="2">
             <Label Style="{StaticResource TextBoxLabel}" Content="مبلغ وصولی :" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
                 <TextBox Style="{StaticResource InputTextBox}" x:Name="txtAmount" TabIndex="1" TextChanged="txtAmount_TextChanged" PreviewKeyDown="txtAmount_PreviewKeyDown"/>
             </Border>
             <Label Style="{StaticResource TextBoxLabel}" Content="تومان" VerticalAlignment="Center" Margin="8,0,0,0"/>
-            <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" VerticalAlignment="Center" Margin="46,0,8,0"/>
+            <Label Style="{StaticResource TextBoxLabel}" Content="شماره پیگیری (اختیاری) :" VerticalAlignment="Center" Margin="45,0,8,0"/>
             <Border Style="{StaticResource InputTextBoxBorder}" Width="230">
                 <TextBox Style="{StaticResource InputTextBox}" x:Name="txtReference" TabIndex="4"/>
             </Border>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,4,22,0">
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,14,22,42" Grid.RowSpan="2">
             <Label Style="{StaticResource TextBoxLabel}" Content="تاریخ وصول :" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <hc:PersianDatePicker x:Name="dpPaymentDate" FontFamily="Shabnam FD" FontWeight="Bold" Width="230" Height="30" TabIndex="3"/>
         </StackPanel>
@@ -89,18 +89,18 @@
         <!--The border is left to hug the button. Setting a height on it left a 30px
             blue button floating inside a 50px frame, and setting a width left the
             frame wider than the blue.-->
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,8,22,4">
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="12" Margin="22,19,22,44" Grid.RowSpan="2">
             <Border Style="{StaticResource ButtonBorder}" Margin="0,0,20,0">
-                <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" TabIndex="5" Click="btnAdd_Click"/>
+                <Button Style="{StaticResource Button}" x:Name="btnAdd" Content="ثبت وصولی" TabIndex="5" Click="btnAdd_Click" Height="37"/>
             </Border>
             <Border Style="{StaticResource ButtonBorder}">
-                <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" TabIndex="6" Click="btnPrintReceipt_Click"/>
+                <Button Style="{StaticResource Button}" x:Name="btnPrintReceipt" Content="چاپ رسید دریافت" TabIndex="6" Click="btnPrintReceipt_Click" Height="37"/>
             </Border>
         </StackPanel>
         <!--ثبت وصولی-->
 
         <!--جستجو-->
-        <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی وصولی ها" Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="12" Margin="10,10,10,0"/>
+        <GroupBox Style="{StaticResource GroupBox}" Header="جستجوی وصولی ها" Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="12" Margin="10,26,10,0"/>
         <Border Style="{StaticResource InputTextBoxBorder}" Grid.Column="0" Grid.ColumnSpan="12" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="5" Margin="20,0,0,0" Width="880">
             <TextBox Style="{StaticResource InputTextBox}" x:Name="txtSearch" TabIndex="7" TextChanged="txtSearch_TextChanged" ToolTip="جستجو بر اساس شماره فاکتور یا نام مشتری"/>
         </Border>
