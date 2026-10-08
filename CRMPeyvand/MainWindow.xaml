@@ -157,7 +157,6 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
-                <Image Source="/Images/Checked.png" Height="26" Width="26" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" ToolTip="رفتن به دریافت ها"/>
                 <Label Style="{StaticResource MainWindowLabels}" Content="مشتریان بدهکار :" FontFamily="Shabnam FD" FontSize="14" FontWeight="Bold" Foreground="#4A8FE7" VerticalAlignment="Center" MouseLeftButtonDown="PaymentIcon_MouseLeftButtonDown" Cursor="Hand" ToolTip="رفتن به دریافت ها"/>
                 <Label Style="{StaticResource MainWindowLabels}" x:Name="lblDebtorCount" Content="0" FontFamily="Shabnam FD" FontSize="18" FontWeight="Bold" Foreground="#4A8FE7" VerticalAlignment="Center" Margin="6,0,0,0"/>
             </StackPanel>
