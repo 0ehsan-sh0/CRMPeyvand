@@ -106,7 +106,7 @@ Designed with a clean multi-tier architecture, robust domain logic, and a secure
 
 ---
 
-## 🏛 Architecture
+## 🏛 Architecture & Design
 
 CRMPeyvand is structured around a decoupled **Layered (N-Tier) Architecture**:
 
@@ -114,18 +114,29 @@ CRMPeyvand is structured around a decoupled **Layered (N-Tier) Architecture**:
 CRMPeyvand (Solution)
 ├── 🖥️ CRMPeyvand        # Presentation Layer (WPF / XAML, HandyControl, LiveCharts, QuestPDF)
 ├── ⚙️ BLL                # Business Logic Layer (Domain rules, AccessGuard, Pricing, PasswordHasher)
-├── 🗄️ DAL                # Data Access Layer (Entity Framework 6 DbContext, Migrations, Repositories)
+├── 🗄️ DAL                # Data Access Layer (Entity Framework 6 DbContext, Dual-Provider, Migrations)
 ├── 📦 BE                 # Business Entities (Domain Models: Customer, Invoice, User, CatalogItem, etc.)
 └── 🧪 CRMPeyvand.Tests   # Unit & Integration Tests (xUnit)
 ```
 
-### Architectural Decisions (ADRs)
-- **ADR-0001**: Incremental in-place refactoring preserving Persian UI formatting and legacy flows.
-- **ADR-0002**: Explicit `InvoiceLine` entity replacing implicit join tables for accurate historical pricing and stock decrements.
-- **ADR-0003**: Strongly-typed `(Section, Operation)` permission matrix eliminating magic string comparisons.
-- **ADR-0004**: Modern .NET 10 runtime & SDK-style project system.
-- **ADR-0005**: Cryptographic PBKDF2-SHA256 hashing replacing reversible encoding.
-- **ADR-0006**: Flagged `IsBuiltIn` Administrator group replacing title-string conventions.
+### 📚 Architecture Documentation Suite
+For comprehensive architectural specifications, visual diagrams, and design rationales, consult the dedicated documentation suite:
+
+- 📖 **[Architecture Overview](docs/architecture/overview.md)**: Layer responsibilities, design philosophy, and dependency rules.
+- 📐 **[C4 Architecture Model & Dynamic Flows](docs/architecture/c4-model.md)**: C4 Context, Container, and Component diagrams with Mermaid sequence flows.
+- 🗄️ **[Data & Storage Architecture](docs/architecture/data-and-storage.md)**: Dual-database engine (SQLite / SQL Server), EF6 plumbing, live backups, and ERD.
+- 💼 **[Domain & Business Logic](docs/architecture/domain-and-business-logic.md)**: Pure domain policies, inventory validation, settlement rules, and Rial/Toman dual-currency design.
+- 🔐 **[Security & Access Control (RBAC)](docs/architecture/security-and-rbac.md)**: PBKDF2-SHA256 cryptography, session tokens, and strongly-typed permission matrix.
+- 📄 **[Reporting Subsystem](docs/architecture/reporting-subsystem.md)**: QuestPDF vector document generation, RTL Persian typography, and preview service.
+- 🗂️ **[Domain Glossary (CONTEXT.md)](CONTEXT.md)**: Ubiquitous language and canonical domain definitions.
+
+### 📜 Architectural Decision Records (ADRs)
+- [ADR-0001](docs/adr/0001-incremental-in-place-refactor.md): Incremental in-place refactoring preserving Persian UI formatting and legacy flows.
+- [ADR-0002](docs/adr/0002-explicit-invoice-line-entity.md): Explicit `InvoiceLine` entity replacing implicit join tables for accurate historical pricing and stock decrements.
+- [ADR-0003](docs/adr/0003-typed-permission-matrix.md): Strongly-typed `(Section, Operation)` permission matrix eliminating magic string comparisons.
+- [ADR-0004](docs/adr/0004-modern-net-runtime.md): Modern .NET 10 runtime & SDK-style project system.
+- [ADR-0005](docs/adr/0005-pbkdf2-password-hashing.md): Cryptographic PBKDF2-SHA256 hashing replacing reversible encoding.
+- [ADR-0006](docs/adr/0006-built-in-administrator-group.md): Flagged `IsBuiltIn` Administrator group replacing title-string conventions.
 - [ADR-0007](docs/adr/0007-questpdf-reporting-engine.md): QuestPDF replacing Stimulsoft; report layouts as typed C# rather than binary `.mrt` templates.
 - [ADR-0008](docs/adr/0008-dual-database-mode.md): SQLite by default with SQL Server on request, one DAL behind both.
 - [ADR-0009](docs/adr/0009-payments-authoritative-over-checkout-flag.md): Payments are the record of what was received; the invoice's checkout flag is derived from them.
@@ -255,41 +266,12 @@ covered by the same DAL and the same entities.
 | **Chosen where** | The default; nothing to do | Settings → پیکربندی پایگاه داده |
 | **Schema created by** | `SqliteSchema.Ensure` on first connection | EF6 `MigrateDatabaseToLatestVersion` at startup, which also seeds |
 | **Server to install** | None | SQL Server 2016+, or LocalDB / Express |
-| **Connection type** | `System.Data.SQLite.SQLiteConnection`, returned **open** so the schema exists before the first query | `System.Data.SqlClient.SqlConnection`, returned **closed** for EF6 to open and migrate |
-| **Data file** | `CRMPeyvand.db` next to `provider.json` | Whatever the connection string names |
+| **Connection type** | `System.Data.SQLite.SQLiteConnection` (returned **open**) | `System.Data.SqlClient.SqlConnection` (returned **closed**) |
+| **Data file** | `CRMPeyvand.db` next to `provider.json` | Network database instance |
 
-**The choice is reversible.** The SQL Server connection string is kept in
-`provider.json` even while SQLite is active, so switching back and forth does not
-mean retyping a server, a login, and a password each time. The settings screen's
-on/off switch drives this; activating SQL Server with nothing saved is refused
-rather than silently producing a broken connection.
-
-**Where the setting lives:** `provider.json` in `%ProgramData%\CRMPeyvand`, falling
-back to `%LocalAppData%\CRMPeyvand` if the shared folder is not writable. The
-`CRMPeyvand.db` file sits beside it, so every employee on a machine shares one
-database; a user who cannot write to the shared folder gets their own under
-`%LocalAppData%` instead.
-
-**Provider registration is done in code**, not in `App.config`. On .NET 10 the
-`system.data` section is not recognised, because `System.Data.Common` is a separate
-assembly, and even once declared the factory cannot be resolved to a provider
-invariant. `DB`'s static constructor registers the SQLite factory and provider
-services instead, and deliberately does **not** displace the `App.config` entry, so
-SQL Server still resolves.
-
-**The SQL Server connection is a `System.Data.SqlClient` one, not
-`Microsoft.Data.SqlClient`.** EF6's SQL Server provider services hard-cast to
-`System.Data.SqlClient.SqlConnection`, so handing them the other type fails every
-query with *"Unable to determine the provider name for provider factory of type
-'Microsoft.Data.SqlClient.SqlClientFactory'"* — and registering that factory's
-invariant only moves the failure to an `InvalidCastException`. `System.Data.SqlClient`
-arrives with `EntityFramework`, so this needs no extra dependency.
-
-**The settings screen's connection test runs a statement through EF6**, not raw
-ADO.NET. A test that only opens the connection will happily pass a configuration
-that EF6 cannot use, which is how a broken SQL Server setting was previously
-reported as working. The probe uses a context that maps nothing and has a null
-initialiser, so it cannot create or migrate a database to find out.
+- **Reversible Selection**: The SQL Server connection string is kept in `provider.json` even while SQLite is active, so switching back and forth does not require re-typing connection parameters.
+- **Shared Machine Storage**: `provider.json` and `CRMPeyvand.db` reside in `%ProgramData%\CRMPeyvand`, falling back to `%LocalAppData%\CRMPeyvand` if the shared folder is not writable.
+- **Architecture Deep Dive**: For full technical details on code-based factory registration on .NET 10, connection type casting, and the online backup engine, see the **[Data & Storage Architecture Specification](docs/architecture/data-and-storage.md)**.
 
 ### Where the installer stores things
 
