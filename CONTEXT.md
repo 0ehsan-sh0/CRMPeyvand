@@ -96,3 +96,27 @@ An SMS sent to or received from a Customer.
 **SMS Panel**:
 A provider account through which Messages are sent.
 _Avoid_: MessagePanel
+
+
+### Platform & Infrastructure
+
+**Base Monetary Unit (Rial)**:
+The authoritative integer currency unit stored in database records and printed on official outward documents (invoices, receipts, debtor statements).
+_Avoid_: Storing floating Toman values
+
+**Display Monetary Unit (Toman)**:
+The user-facing presentation currency unit shown across desktop UI forms and data grids, strictly defined as one-tenth of Rial (`Money.ToToman`).
+_Avoid_: Hard-coded `/ 10` divisions at UI call sites
+
+**Dual-Database Mode**:
+The architectural capability allowing the application to operate interchangeably on local SQLite (default zero-configuration) or Microsoft SQL Server (opt-in network database) behind a unified DAL.
+
+**Provider Configuration**:
+The persistent settings file (`provider.json`) in the shared app data directory that records the active provider and retains server connection parameters.
+
+**Online Backup Snapshot**:
+A non-blocking copy of the active SQLite database taken via SQLite's online backup API, allowing continuous user operations without file lock collisions.
+
+**Document Composition Engine**:
+The typed reporting subsystem (QuestPDF) generating right-to-left Persian vector PDF documents and print previews without binary template files.
+_Avoid_: Binary `.mrt` templates, Stimulsoft
